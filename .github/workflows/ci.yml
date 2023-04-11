@@ -1,0 +1,42 @@
+name: erf ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  OTP-VERSION: 25.2.3
+  REBAR3-VERSION: 3.20.0
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - uses: erlef/setup-beam@v1
+        with:
+          otp-version: ${{ env.OTP-VERSION }}
+          rebar3-version: ${{ env.REBAR3-VERSION }}
+
+      - uses: actions/cache@v3.2.6
+        id: rebar3-cache
+        with:
+          path: |
+            ~/.cache/rebar3
+            _build
+          key: ${{ runner.os }}-${{ env.OTP-VERSION }}-${{ env.REBAR3-VERSION }}-${{ hashFiles('rebar.lock') }}
+
+      - name: Compile
+        run: |
+          rebar3 clean
+          rebar3 compile
+
+      - run: rebar3 check

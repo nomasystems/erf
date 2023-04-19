@@ -25,7 +25,14 @@
     endpoints := [endpoint()]
 }.
 -type auth() :: term().
--type conf() :: map().
+-type conf() :: #{
+    spec := binary(),
+    callback => module(),
+    port => inet:port_number(),
+    ssl => boolean(),
+    keyfile => binary(),
+    certfile => binary()
+}.
 -type endpoint() :: #{
     path := path(),
     path_parameters => parameters(),
@@ -47,8 +54,8 @@
     method := method(),
     query_parameters => parameters(),
     auth => auth(),
-    request_body => ndto:schema(),
-    response_body => ndto:schema()
+    request_body => erf_dto:schema(),
+    response_body => erf_dto:schema()
 }.
 -type parameters() :: #{binary() => term()}.
 -type path() :: binary().
@@ -67,5 +74,6 @@
     Result :: {ok, Pid} | ignore | {error, Reason},
     Pid :: pid(),
     Reason :: term().
+%% @doc Starts the supervision tree for an instance of the server.
 start_link(_Conf) ->
     erlang:throw({not_implemented, 'start_link/1'}).

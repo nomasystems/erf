@@ -14,13 +14,50 @@
 -module(erf).
 
 %%% START/STOP EXPORTS
--export([start_link/1]).
+-export([
+    start_link/1
+]).
 
 %%% TYPES
+-type api() :: #{
+    name := binary(),
+    version := binary(),
+    endpoints := [endpoint()]
+}.
+-type auth() :: term().
 -type conf() :: map().
+-type endpoint() :: #{
+    path := path(),
+    path_parameters => parameters(),
+    operations := [operation()]
+}.
+-type method() ::
+    get
+    | post
+    | put
+    | delete
+    | patch
+    | head
+    | options
+    | trace
+    | connect
+    | binary().
+-type operation() :: #{
+    id := binary(),
+    method := method(),
+    query_parameters => parameters(),
+    auth => auth(),
+    request_body => ndto:schema(),
+    response_body => ndto:schema()
+}.
+-type parameters() :: #{binary() => term()}.
+-type path() :: binary().
 
 %%% TYPE EXPORTS
--export_type([conf/0]).
+-export_type([
+    api/0,
+    conf/0
+]).
 
 %%%-----------------------------------------------------------------------------
 %%% START/STOP EXPORTS
@@ -31,5 +68,4 @@
     Pid :: pid(),
     Reason :: term().
 start_link(_Conf) ->
-    % TODO: Implement
     erlang:throw({not_implemented, 'start_link/1'}).

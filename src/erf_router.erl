@@ -41,4 +41,44 @@ generate(_API) ->
     Warnings :: [term()].
 %% @doc Loads a router module into the Erlang Runtime System.
 load(Router) ->
-    ndto:load(Router).
+    Forms = erl_syntax:revert_forms(Router),
+    case compile:forms(Forms, []) of
+        {ok, ModuleName, Bin} when is_atom(ModuleName) andalso is_binary(Bin) ->
+            case load_binary(ModuleName, Bin) of
+                ok ->
+                    ok;
+                {error, What} ->
+                    {error, {[What], []}}
+            end;
+        {ok, ModuleName, Bin, Warnings} when is_atom(ModuleName) andalso is_binary(Bin) ->
+            case load_binary(ModuleName, Bin) of
+                ok ->
+                    {ok, Warnings};
+                {error, What} ->
+                    {error, {[What], Warnings}}
+            end;
+        {error, Errors, Warnings} ->
+            {error, {Errors, Warnings}};
+        error ->
+            error
+    end.
+
+%%%-----------------------------------------------------------------------------
+%%% INTERNAL FUNCTIONS
+%%%-----------------------------------------------------------------------------
+-spec load_binary(ModuleName, Bin) -> Result when
+    ModuleName :: atom(),
+    Bin :: binary(),
+    Result :: ok | {error, What},
+    What :: term().
+load_binary(ModuleName, Bin) ->
+    case
+        code:load_binary(
+            ModuleName, erlang:atom_to_list(ModuleName) ++ ".erl", Bin
+        )
+    of
+        {module, ModuleName} ->
+            ok;
+        {error, What} ->
+            {error, What}
+    end.

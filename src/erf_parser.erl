@@ -12,35 +12,13 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License
 
-%% @private
--module(erf_dto).
-
-%%% EXTERNAL EXPORTS
--export([
-    generate/2,
-    load/1
-]).
-
-%%% TYPES
--type t() :: ndto:t().
--type schema() :: ndto:schema().
+-module(erf_parser).
 
 %%%-----------------------------------------------------------------------------
-%%% EXTERNAL EXPORTS
+%%% BEHAVIOUR CALLBACKS
 %%%-----------------------------------------------------------------------------
--spec generate(Name, Schema) -> Result when
-    Name :: atom(),
-    Schema :: schema(),
-    Result :: t().
-%% @doc Generates an Erlang Syntax Tree of a DTO module from a schema.
-generate(Name, Schema) ->
-    ndto:generate(Name, Schema).
-
--spec load(DTO) -> Result when
-    DTO :: t(),
-    Result :: ok | {ok, Warnings} | error | {error, {Errors, Warnings}},
-    Errors :: [term()],
-    Warnings :: [term()].
-%% @doc Loads a DTO module into the Erlang Runtime System.
-load(DTO) ->
-    ndto:load(DTO).
+-callback parse(SpecPath) -> Result when
+    SpecPath :: binary(),
+    Result :: {ok, API} | {error, Reason},
+    API :: erf:api(),
+    Reason :: term().

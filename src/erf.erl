@@ -22,7 +22,8 @@
 -type api() :: #{
     name := binary(),
     version := binary(),
-    endpoints := [endpoint()]
+    endpoints := [endpoint()],
+    dtos := [dto()]
 }.
 -type auth() :: term().
 -type conf() :: #{
@@ -33,6 +34,8 @@
     keyfile => binary(),
     certfile => binary()
 }.
+-type dto() :: {dto_ref(), erf_dto:schema()}.
+-type dto_ref() :: module().
 -type endpoint() :: #{
     path := path(),
     path_parameters => parameters(),
@@ -54,10 +57,10 @@
     method := method(),
     query_parameters => parameters(),
     auth => auth(),
-    request_body => erf_dto:schema(),
-    response_body => erf_dto:schema()
+    request_body => dto_ref(),
+    response_body => dto_ref()
 }.
--type parameters() :: #{binary() => term()}.
+-type parameters() :: #{binary() => #{schema := dto_ref()}}.
 -type path() :: binary().
 
 %%% TYPE EXPORTS

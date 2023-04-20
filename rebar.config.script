@@ -1,0 +1,71 @@
+%%% FIND DTOs
+DTOs =
+    case file:list_dir("_gen/dtos/") of
+        {ok, Filenames} ->
+            Filenames;
+        {error, enoent} ->
+            []
+    end.
+DTOMods = lists:map(
+    fun(File) ->
+        [DTO | _Extension] = string:split(File, ".erl", trailing),
+        erlang:list_to_atom(DTO)
+    end,
+    DTOs
+).
+
+%%% DIALYZER
+RawDialyzerConf =
+    case lists:keyfind(dialyzer, 1, CONFIG) of
+        false ->
+            [];
+        {dialyzer, Dialyzer} ->
+            Dialyzer
+    end.
+RawDialyzerExcludeMods =
+    case lists:keyfind(exclude_mods, 1, RawDialyzerConf) of
+        false ->
+            [];
+        {exclude_mods, ExcludeMods} ->
+            ExcludeMods
+    end.
+DialyzerExcludeMods = RawDialyzerExcludeMods ++ DTOMods.
+DialyzerConf =
+    {dialyzer,
+        lists:keystore(exclude_mods, 1, RawDialyzerConf, {exclude_mods, DialyzerExcludeMods})}.
+
+%%% XREF
+RawXRefIgnores =
+    case lists:keyfind(xref_ignores, 1, CONFIG) of
+        false ->
+            [];
+        {xref_ignores, Ignores} ->
+            Ignores
+    end.
+XRefIgnores = {xref_ignores, RawXRefIgnores ++ DTOMods}.
+
+%%% GRADUALIZER
+RawGradualizerOpts =
+    case lists:keyfind(gradualizer_opts, 1, CONFIG) of
+        false ->
+            [];
+        {gradualizer_opts, GradualizerOpts} ->
+            GradualizerOpts
+    end.
+RawGradualizerExcludes =
+    case lists:keyfind(exclude, 1, RawGradualizerOpts) of
+        false ->
+            [];
+        {exclude, Excludes} ->
+            Excludes
+    end.
+GradualizerExcludes =
+    RawGradualizerExcludes ++ lists:map(fun(Filename) -> "_gen/dtos/" ++ Filename end, DTOs).
+GradualizerOpts =
+    {gradualizer_opts,
+        lists:keystore(exclude, 1, RawGradualizerOpts, {exclude, GradualizerExcludes})}.
+
+%%% UPDATE CONFIG
+CONFIG1 = lists:keystore(dialyzer, 1, CONFIG, DialyzerConf).
+CONFIG2 = lists:keystore(xref_ignores, 1, CONFIG1, XRefIgnores).
+lists:keystore(gradualizer, 1, CONFIG2, GradualizerOpts).

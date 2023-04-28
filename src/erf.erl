@@ -19,13 +19,7 @@
 ]).
 
 %%% TYPES
--type api() :: #{
-    name := binary(),
-    version := binary(),
-    endpoints := [endpoint()],
-    dtos := [dto()]
-}.
--type auth() :: term().
+-type api() :: erf_parser:api().
 -type conf() :: #{
     spec := binary(),
     callback => module(),
@@ -34,34 +28,6 @@
     keyfile => binary(),
     certfile => binary()
 }.
--type dto() :: {dto_ref(), erf_dto:schema()}.
--type dto_ref() :: module().
--type endpoint() :: #{
-    path := path(),
-    path_parameters => parameters(),
-    operations := [operation()]
-}.
--type method() ::
-    get
-    | post
-    | put
-    | delete
-    | patch
-    | head
-    | options
-    | trace
-    | connect
-    | binary().
--type operation() :: #{
-    id := binary(),
-    method := method(),
-    query_parameters => parameters(),
-    auth => auth(),
-    request_body => dto_ref(),
-    response_body => dto_ref()
-}.
--type parameters() :: #{binary() => #{schema := dto_ref()}}.
--type path() :: binary().
 
 %%% TYPE EXPORTS
 -export_type([

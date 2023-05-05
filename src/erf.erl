@@ -22,12 +22,14 @@
 -type api() :: erf_parser:api().
 -type conf() :: #{
     spec := binary(),
+    spec_format => spec_format(),
     callback => module(),
     port => inet:port_number(),
     ssl => boolean(),
     keyfile => binary(),
     certfile => binary()
 }.
+-type spec_format() :: erf_parser:spec_format().
 
 %%% TYPE EXPORTS
 -export_type([

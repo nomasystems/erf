@@ -14,24 +14,23 @@
 -module(erf_parser).
 
 %%% EXTERNAL EXPORTS
--export([to_snake_case/1]).
+-export([
+    parse/1,
+    parse/2,
+    to_snake_case/1
+]).
 
 %%% TYPES
 -type api() :: #{
     name := binary(),
     version := binary(),
     endpoints := [endpoint()],
-    components := [{ref(), component()}]
+    schemas := #{ref() => schema()}
 }.
--type auth() :: term().
--type component() :: #{
-    type := header | cookie | path_parameter | query_parameter | response_body | request_body,
-    schema := erf_dto:schema(),
-    meta => map()
-}.
+-type schema() :: erf_dto:schema().
 -type endpoint() :: #{
     path := path(),
-    path_parameters => [ref()],
+    parameters := [{ref(), parameter_name(), parameter_type()}],
     operations := [operation()]
 }.
 -type method() ::
@@ -43,22 +42,24 @@
     | head
     | options
     | trace
-    | connect
-    | binary().
+    | connect.
 -type operation() :: #{
     id := binary(),
     method := method(),
-    query_parameters => [ref()],
-    auth => auth(),
+    parameters := [{ref(), parameter_name(), parameter_type()}],
     request_body => ref(),
     response_body => ref()
 }.
+-type parameter_name() :: binary().
+-type parameter_type() :: header | cookie | path | query.
 -type path() :: binary().
 -type ref() :: binary().
+-type spec_format() :: oas_3_0.
 
 %%% TYPE EXPORTS
 -export_type([
-    api/0
+    api/0,
+    spec_format/0
 ]).
 
 %%%-----------------------------------------------------------------------------
@@ -73,6 +74,30 @@
 %%%-----------------------------------------------------------------------------
 %%% EXTERNAL EXPORTS
 %%%-----------------------------------------------------------------------------
+-spec parse(SpecPath) -> Result when
+    SpecPath :: binary(),
+    Result :: {ok, API} | {error, Reason},
+    API :: api(),
+    Reason :: term().
+%% @equiv parse(SpecPath, oas_3_0).
+parse(SpecPath) ->
+    parse(SpecPath, oas_3_0).
+
+-spec parse(SpecPath, SpecFormat) -> Result when
+    SpecPath :: binary(),
+    SpecFormat :: spec_format(),
+    Result :: {ok, API} | {error, Reason},
+    API :: api(),
+    Reason :: term().
+%% @doc Parses an specification file into an API AST given a specification format.
+parse(SpecPath, SpecFormat) ->
+    case parser(SpecFormat) of
+        {ok, Parser} ->
+            Parser:parse(SpecPath);
+        {error, Reason} ->
+            {error, Reason}
+    end.
+
 -spec to_snake_case(Binary) -> SnakeCase when
     Binary :: binary(),
     SnakeCase :: binary().
@@ -83,6 +108,11 @@ to_snake_case(Binary) ->
 %%%-----------------------------------------------------------------------------
 %%% INTERNAL FUNCTIONS
 %%%-----------------------------------------------------------------------------
+parser(oas_3_0) ->
+    {ok, erf_parser_oas_3_0};
+parser(SpecFormat) ->
+    {error, {unsupported_spec_format, SpecFormat}}.
+
 to_snake_case([], Acc) ->
     unicode:characters_to_binary(lists:reverse(Acc));
 to_snake_case([C1, C2 | Rest], Acc) when

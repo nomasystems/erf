@@ -1,0 +1,19 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "version": "1.0.0",
+        "title": "ERF Invalid API",
+        "license": {
+            "name": "Apache 2.0"
+        }
+    },
+    "paths": {
+        "/api/v1/invalid": {
+            "get": {
+                "summary": "Invalid operation",
+                "description": "Invalid operation: missing 'responses' property",
+                "operationId": "invalid"
+            }
+        }
+    }
+}

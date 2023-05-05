@@ -21,7 +21,16 @@
 %%%-----------------------------------------------------------------------------
 all() ->
     [
-        parse
+        {group, parse}
+    ].
+
+groups() ->
+    [
+        {parse, [parallel], [
+            petstore,
+            with_refs,
+            invalid
+        ]}
     ].
 
 %%%-----------------------------------------------------------------------------
@@ -55,14 +64,14 @@ end_per_testcase(Case, Conf) ->
 %%%-----------------------------------------------------------------------------
 %%% TEST CASES
 %%%-----------------------------------------------------------------------------
-parse(_Conf) ->
-    OAS = unicode:characters_to_binary(code:priv_dir(erf) ++ "/oas/3.0/examples/petstore.json"),
-    Invalid = unicode:characters_to_binary(
-        code:lib_dir(erf, test) ++ "/fixtures/invalid_oas_3_0_spec.json"
+petstore(_Conf) ->
+    PetstoreOAS = unicode:characters_to_binary(
+        code:priv_dir(erf) ++ "/oas/3.0/examples/petstore.json"
     ),
 
-    {ok, #{
-        name := <<"swagger_petstore">>,
+    {ok, PetstoreAPI} = erf_parser:parse(PetstoreOAS),
+    #{
+        name := <<"Swagger Petstore">>,
         version := <<"1.0.0">>,
         schemas := #{
             <<"list_pets_limit">> := #{
@@ -179,9 +188,98 @@ parse(_Conf) ->
                 ]
             }
         },
-        % TODO: add expected endpoints when parsing feature is implemented
-        endpoints := []
-    }} = erf_parser:parse(OAS),
+        endpoints := [
+            #{
+                path := <<"/pets">>,
+                parameters := [],
+                operations := [
+                    #{
+                        id := <<"list_pets">>,
+                        method := get,
+                        parameters :=
+                            [
+                                #{
+                                    ref := <<"list_pets_limit">>,
+                                    name := <<"limit">>,
+                                    type := query
+                                }
+                            ],
+                        request_body := <<"list_pets_request_body">>,
+                        response_body := <<"list_pets_response_body">>
+                    },
+                    #{
+                        id := <<"create_pets">>,
+                        method := post,
+                        parameters := [],
+                        request_body := <<"create_pets_request_body">>,
+                        response_body :=
+                            <<"create_pets_response_body">>
+                    }
+                ]
+            },
+            #{
+                path := <<"/pets/{petId}">>,
+                parameters := [],
+                operations := [
+                    #{
+                        id := <<"show_pet_by_id">>,
+                        method := get,
+                        parameters := [
+                            #{
+                                ref := <<"show_pet_by_id_pet_id">>,
+                                name := <<"petId">>,
+                                type := path
+                            }
+                        ],
+                        request_body := <<"show_pet_by_id_request_body">>,
+                        response_body := <<"show_pet_by_id_response_body">>
+                    }
+                ]
+            }
+        ]
+    } = PetstoreAPI,
+
+    ok.
+
+with_refs(_Conf) ->
+    WithRefsOAS = unicode:characters_to_binary(
+        code:lib_dir(erf, test) ++ "/fixtures/with_refs_oas_3_0_spec.json"
+    ),
+
+    {ok, WithRefsAPI} = erf_parser:parse(WithRefsOAS),
+    #{
+        name := <<"With refs">>,
+        version := <<"1.0.0">>,
+        schemas := #{
+            <<"get_foo_enabled">> := #{
+                <<"type">> := <<"boolean">>
+            },
+            <<"delete_foo_response_body">> := #{
+                <<"anyOf">> := [
+                    undefined,
+                    #{
+                        <<"anyOf">> := [
+                            #{
+                                <<"properties">> := #{
+                                    <<"description">> := #{
+                                        <<"type">> := <<"string">>
+                                    }
+                                },
+                                <<"type">> := <<"object">>
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    } = WithRefsAPI,
+
+    ok.
+
+invalid(_Conf) ->
+    Invalid = unicode:characters_to_binary(
+        code:lib_dir(erf, test) ++ "/fixtures/invalid_oas_3_0_spec.json"
+    ),
 
     {error, {invalid_spec, <<"Invalid OpenAPI Specification 3.0">>}} = erf_parser:parse(Invalid),
 

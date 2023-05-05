@@ -76,67 +76,26 @@ get([Key | Keys], Val) ->
 parse_api(Val, CTX) ->
     Name = parse_name(Val),
     Version = parse_version(Val),
-    Components = parse_components(Val, CTX#ctx{namespace = Name}),
+    Schemas = parse_schemas(Val, CTX),
     Endpoints = parse_endpoints(Val),
     #{
         name => Name,
         version => Version,
         endpoints => Endpoints,
-        components => Components
+        schemas => Schemas
     }.
 
-parse_components(Val, #ctx{namespace = NS} = CTX) ->
-    EndpointsComponents = lists:flatmap(
-        fun(E) ->
-            parse_endpoint_components(E, CTX)
-        end,
-        maps:to_list(maps:get(<<"paths">>, Val))
-    ),
-    OASComponents = maps:get(<<"components">>, Val, #{}),
-    Components = lists:flatten([
-        lists:map(
-            fun({SchemaName, Schema}) ->
-                {
-                    <<NS/binary, "_", (erf_parser:to_snake_case(SchemaName))/binary>>,
-                    parse_schema(Schema, CTX)
-                }
+parse_schemas(Val, CTX) ->
+    maps:from_list(
+        lists:flatmap(
+            fun(E) ->
+                parse_endpoint_schemas(E, CTX)
             end,
-            maps:to_list(maps:get(<<"schemas">>, OASComponents, #{}))
-        ),
-        lists:map(
-            fun({ResponseName, Response}) ->
-                {
-                    <<NS/binary, "_", (erf_parser:to_snake_case(ResponseName))/binary>>,
-                    parse_response(Response, CTX)
-                }
-            end,
-            maps:to_list(maps:get(<<"responses">>, OASComponents, #{}))
-        ),
-        lists:map(
-            fun({ParameterName, Parameter}) ->
-                {
-                    <<NS/binary, "_", (erf_parser:to_snake_case(ParameterName))/binary>>,
-                    parse_parameter(Parameter, CTX)
-                }
-            end,
-            maps:to_list(maps:get(<<"parameters">>, OASComponents, #{}))
-        ),
-        lists:map(
-            fun({RequestBodyName, RequestBody}) ->
-                {
-                    <<NS/binary, "_", (erf_parser:to_snake_case(RequestBodyName))/binary>>,
-                    parse_request_body(RequestBody, CTX)
-                }
-            end,
-            maps:to_list(maps:get(<<"requestBodies">>, OASComponents, #{}))
+            maps:to_list(maps:get(<<"paths">>, Val))
         )
-    ]),
-    lists:delete(
-        undefined,
-        lists:uniq(EndpointsComponents ++ Components)
     ).
 
-parse_endpoint_components({Path, Endpoint}, #ctx{namespace = NS} = CTX) ->
+parse_endpoint_schemas({Path, Endpoint}, #ctx{namespace = NS} = CTX) ->
     NewCTX = CTX#ctx{namespace = erf_parser:to_snake_case(<<NS/binary, Path/binary>>)},
     EndpointParameters =
         lists:map(
@@ -157,13 +116,13 @@ parse_endpoint_components({Path, Endpoint}, #ctx{namespace = NS} = CTX) ->
             end,
             ?METHODS
         ),
-    OperationsComponents = lists:map(
+    OperationsSchemas = lists:flatmap(
         fun(RawOperation) ->
-            parse_operation_components(RawOperation, CTX)
+            parse_operation_schemas(RawOperation, CTX)
         end,
         Operations
     ),
-    lists:flatten([EndpointParameters | OperationsComponents]).
+    EndpointParameters ++ OperationsSchemas.
 
 parse_endpoints(_OAS) ->
     %% TODO: Implement
@@ -172,21 +131,15 @@ parse_endpoints(_OAS) ->
 parse_name(#{<<"info">> := #{<<"title">> := Name}}) ->
     erf_parser:to_snake_case(Name).
 
-parse_operation_components(
-    {Path, Method, #{<<"responses">> := Responses} = Operation}, #ctx{namespace = NS} = CTX
+parse_operation_schemas(
+    {Path, Method, #{<<"responses">> := Responses} = Operation}, CTX
 ) ->
     NewCTX =
         case maps:get(<<"operationId">>, Operation, undefined) of
             undefined ->
-                CTX#ctx{
-                    namespace = erf_parser:to_snake_case(
-                        <<NS/binary, Path/binary, "_", Method/binary>>
-                    )
-                };
+                CTX#ctx{namespace = erf_parser:to_snake_case(<<Path/binary, "_", Method/binary>>)};
             OperationId ->
-                CTX#ctx{
-                    namespace = erf_parser:to_snake_case(<<NS/binary, "_", OperationId/binary>>)
-                }
+                CTX#ctx{namespace = erf_parser:to_snake_case(OperationId)}
         end,
     Parameters =
         lists:map(
@@ -195,15 +148,27 @@ parse_operation_components(
             end,
             maps:get(<<"parameters">>, Operation, [])
         ),
-    RawRequestBody = maps:get(<<"requestBody">>, Operation, undefined),
-    RequestBody = parse_request_body(RawRequestBody, NewCTX),
-    ResponsesComponents = lists:map(
-        fun({_StatusCode, RawResponse}) ->
-            parse_response(RawResponse, NewCTX)
+    RequestBodyName = erf_parser:to_snake_case(<<(NewCTX#ctx.namespace)/binary, "_request_body">>),
+    RequestBodySchema =
+        case maps:get(<<"requestBody">>, Operation, undefined) of
+            undefined ->
+                undefined;
+            RawRequestBody ->
+                parse_request_body(RawRequestBody, NewCTX)
         end,
-        maps:to_list(Responses)
-    ),
-    lists:flatten([Parameters, RequestBody, ResponsesComponents]).
+    RequestBody = {RequestBodyName, RequestBodySchema},
+    ResponseBodyName = erf_parser:to_snake_case(<<(NewCTX#ctx.namespace)/binary, "_response_body">>),
+    ResponseBodySchema = #{
+        <<"anyOf">> =>
+            lists:map(
+                fun({_StatusCode, RawResponse}) ->
+                    parse_response(RawResponse, NewCTX)
+                end,
+                maps:to_list(Responses)
+            )
+    },
+    ResponseBody = {ResponseBodyName, ResponseBodySchema},
+    lists:flatten([RequestBody, ResponseBody | Parameters]).
 
 parse_parameter(#{<<"$ref">> := Ref}, CTX) ->
     Parameter = parse_ref(Ref, CTX),
@@ -229,19 +194,18 @@ parse_parameter(#{<<"content">> := Content} = Parameter, #ctx{namespace = NS} = 
                 false
         end,
     Required = maps:get(<<"required">>, Parameter, DefaultRequired),
-    {<<NS/binary, "_", Name/binary>>, #{
-        type => Type,
-        schema => #{
-            <<"anyOf">> =>
-                lists:map(
-                    fun({_MediaType, #{<<"schema">> := RawSchema}}) ->
-                        Schema = parse_schema(RawSchema, CTX),
-                        Schema#{<<"nullable">> => not Required}
-                    end,
-                    maps:to_list(Content)
-                )
-        }
-    }};
+    ParameterName = erf_parser:to_snake_case(<<NS/binary, "_", Name/binary>>),
+    ParameterSchema = #{
+        <<"anyOf">> =>
+            lists:map(
+                fun({_MediaType, #{<<"schema">> := RawSchema}}) ->
+                    Schema = parse_schema(RawSchema, CTX),
+                    Schema#{<<"nullable">> => not Required}
+                end,
+                maps:to_list(Content)
+            )
+    },
+    {ParameterName, ParameterSchema};
 parse_parameter(#{<<"schema">> := RawSchema} = Parameter, #ctx{namespace = NS} = CTX) ->
     Name = maps:get(<<"name">>, Parameter),
     Type =
@@ -264,10 +228,9 @@ parse_parameter(#{<<"schema">> := RawSchema} = Parameter, #ctx{namespace = NS} =
         end,
     Required = maps:get(<<"required">>, Parameter, DefaultRequired),
     Schema = parse_schema(RawSchema, CTX),
-    {<<NS/binary, "_", Name/binary>>, #{
-        type => Type,
-        schema => Schema#{<<"nullable">> => not Required}
-    }}.
+    ParameterName = erf_parser:to_snake_case(<<NS/binary, "_", Name/binary>>),
+    ParameterSchema = Schema#{<<"nullable">> => not Required},
+    {ParameterName, ParameterSchema}.
 
 parse_ref(Ref, #ctx{base_path = BasePath, oas = OAS}) ->
     [FilePath, ElementPath] = binary:split(Ref, <<"#">>, [global]),
@@ -292,38 +255,32 @@ parse_request_body(#{<<"$ref">> := Ref}, CTX) ->
     parse_request_body(RequestBody, CTX);
 parse_request_body(#{<<"content">> := Content} = ReqBody, #ctx{namespace = NS} = CTX) ->
     Required = maps:get(<<"required">>, ReqBody, false),
-    {<<NS/binary, "_request_body">>, #{
-        type => request_body,
-        schema => #{
-            <<"anyOf">> =>
-                lists:map(
-                    fun({_MediaType, #{<<"schema">> := RawSchema}}) ->
-                        Schema = parse_schema(RawSchema, CTX),
-                        Schema#{<<"nullable">> => not Required}
-                    end,
-                    maps:to_list(Content)
-                )
-        }
-    }};
-parse_request_body(_RequestBody, _CTX) ->
-    undefined.
+    RequestBodyName = erf_parser:to_snake_case(<<NS/binary, "_request_body">>),
+    RequestBodySchema = #{
+        <<"anyOf">> =>
+            lists:map(
+                fun({_MediaType, #{<<"schema">> := RawSchema}}) ->
+                    Schema = parse_schema(RawSchema, CTX),
+                    Schema#{<<"nullable">> => not Required}
+                end,
+                maps:to_list(Content)
+            )
+    },
+    {RequestBodyName, RequestBodySchema}.
 
 parse_response(#{<<"$ref">> := Ref}, CTX) ->
     Response = parse_ref(Ref, CTX),
     parse_response(Response, CTX);
-parse_response(#{<<"content">> := Content}, #ctx{namespace = NS} = CTX) ->
-    {<<NS/binary, "_response_body">>, #{
-        type => response_body,
-        schema => #{
-            <<"anyOf">> =>
-                lists:map(
-                    fun({_MediaType, #{<<"schema">> := Schema}}) ->
-                        parse_schema(Schema, CTX)
-                    end,
-                    maps:to_list(Content)
-                )
-        }
-    }};
+parse_response(#{<<"content">> := Content}, CTX) ->
+    #{
+        <<"anyOf">> =>
+            lists:map(
+                fun({_MediaType, #{<<"schema">> := Schema}}) ->
+                    parse_schema(Schema, CTX)
+                end,
+                maps:to_list(Content)
+            )
+    };
 parse_response(_Response, _CTX) ->
     undefined.
 

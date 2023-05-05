@@ -44,6 +44,16 @@ RawXRefIgnores =
     end.
 XRefIgnores = {xref_ignores, RawXRefIgnores ++ DTOMods}.
 
+%%% COVER
+RawCoverExcludeMods =
+    case lists:keyfind(cover_excl_mods, 1, CONFIG) of
+        false ->
+            [];
+        {cover_excl_mods, CoverExclude} ->
+            CoverExclude
+    end.
+CoverExcludeMods = {cover_excl_mods, RawCoverExcludeMods ++ DTOMods}.
+
 %%% GRADUALIZER
 RawGradualizerOpts =
     case lists:keyfind(gradualizer_opts, 1, CONFIG) of
@@ -68,4 +78,5 @@ GradualizerOpts =
 %%% UPDATE CONFIG
 CONFIG1 = lists:keystore(dialyzer, 1, CONFIG, DialyzerConf).
 CONFIG2 = lists:keystore(xref_ignores, 1, CONFIG1, XRefIgnores).
-lists:keystore(gradualizer, 1, CONFIG2, GradualizerOpts).
+CONFIG3 = lists:keystore(cover_excl_mods, 1, CONFIG2, CoverExcludeMods).
+lists:keystore(gradualizer, 1, CONFIG3, GradualizerOpts).

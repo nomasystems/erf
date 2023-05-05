@@ -31,7 +31,7 @@ main([]) ->
 %%% INTERNAL FUNCTIONS
 %%%-----------------------------------------------------------------------------
 oas_3_0() ->
-    {ok, Bin} = file:read_file("priv/oas-spec/oas_3_0.json"),
+    {ok, Bin} = file:read_file("priv/oas/3.0/specs/oas_3_0.json"),
     JSONSchema = njson:decode(Bin),
     Definitions = maps:to_list(maps:get(<<"definitions">>, JSONSchema, #{})),
     filelib:ensure_dir("_gen/dtos/"),

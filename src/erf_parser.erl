@@ -27,10 +27,9 @@
     endpoints := [endpoint()],
     schemas := #{ref() => schema()}
 }.
--type schema() :: erf_dto:schema().
 -type endpoint() :: #{
     path := path(),
-    parameters := [{ref(), parameter_name(), parameter_type()}],
+    parameters := [parameter()],
     operations := [operation()]
 }.
 -type method() ::
@@ -46,19 +45,31 @@
 -type operation() :: #{
     id := binary(),
     method := method(),
-    parameters := [{ref(), parameter_name(), parameter_type()}],
+    parameters := [parameter()],
     request_body => ref(),
     response_body => ref()
+}.
+-type parameter() :: #{
+    ref => ref(),
+    name := parameter_name(),
+    type := parameter_type()
 }.
 -type parameter_name() :: binary().
 -type parameter_type() :: header | cookie | path | query.
 -type path() :: binary().
 -type ref() :: binary().
+-type schema() :: erf_dto:schema().
 -type spec_format() :: oas_3_0.
 
 %%% TYPE EXPORTS
 -export_type([
     api/0,
+    endpoint/0,
+    method/0,
+    operation/0,
+    parameter/0,
+    ref/0,
+    schema/0,
     spec_format/0
 ]).
 

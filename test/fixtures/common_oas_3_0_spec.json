@@ -1,0 +1,69 @@
+{
+    "components": {
+        "schemas": {
+            "Foo": {
+                "type": "string",
+                "description": "A foo",
+                "enum": [
+                    "bar",
+                    "baz"
+                ]
+            },
+            "Error": {
+                "type": "object",
+                "properties": {
+                    "description": {
+                        "type": "string",
+                        "description": "An English human-friendly description of the error."
+                    }
+                }
+            }
+        },
+        "responses": {
+            "NoContent": {
+                "description": "The request was successful but there is no representation to return."
+            },
+            "NotFound": {
+                "description": "The requested resource was not found.",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "parameters": {
+            "Version": {
+                "in": "path",
+                "name": "version",
+                "schema": {
+                    "type": "integer"
+                },
+                "required": true,
+                "description": "Version of the API"
+            },
+            "Enabled": {
+                "in": "query",
+                "name": "enabled",
+                "schema": {
+                    "type": "boolean"
+                },
+                "required": false,
+                "description": "Filter by enabled"
+            }
+        },
+        "requestBodies": {
+            "Foo": {
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/Foo"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,84 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "version": "1.0.0",
+        "title": "With refs",
+        "license": {
+            "name": "Apache 2.0"
+        }
+    },
+    "paths": {
+        "/{version}/foo":{
+            "parameters":[
+                {"$ref": "common_oas_3_0_spec.json#/components/parameters/Version"}
+            ],
+            "get":{
+                "summary":"Get foo",
+                "operationId":"getFoo",
+                "parameters": [
+                    {"$ref": "common_oas_3_0_spec.json#/components/parameters/Enabled"}
+                ],
+                "responses":{
+                    "200":{
+                        "description":"OK",
+                        "content":{
+                            "application/json":{
+                                "schema":{
+                                    "$ref":"common_oas_3_0_spec.json#/components/schemas/Foo"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "common_oas_3_0_spec.json#/components/responses/NotFound"
+                    }
+                }
+            },
+            "post": {
+                "summary": "Create foo",
+                "operationId": "createFoo",
+                "requestBody": {
+                    "$ref": "common_oas_3_0_spec.json#/components/requestBodies/Foo"
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "common_oas_3_0_spec.json#/components/schemas/Foo"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/{version}/foo/{id}": {
+            "parameters": [
+                {"$ref": "common_oas_3_0_spec.json#/components/parameters/Version"},
+                {
+                    "in": "path",
+                    "name": "id",
+                    "schema": {
+                        "type": "string"
+                    },
+                    "required": true,
+                    "description": "Foo's identifier"
+                }
+            ],
+            "delete": {
+                "summary": "Delete foo",
+                "operationId": "deleteFoo",
+                "responses": {
+                    "204": {
+                        "$ref": "common_oas_3_0_spec.json#/components/responses/NoContent"
+                    },
+                    "404": {
+                        "$ref": "common_oas_3_0_spec.json#/components/responses/NotFound"
+                    }
+                }
+            }
+        }
+    }
+}

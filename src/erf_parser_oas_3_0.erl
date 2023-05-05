@@ -27,9 +27,13 @@
 -record(ctx, {
     base_path :: binary(),
     namespace = <<"">> :: binary(),
-    oas :: map()
+    oas :: oas()
 }).
 
+%%% TYPES
+-type oas() :: term().
+
+%%% MACROS
 -define(METHODS, [
     <<"get">>,
     <<"put">>,
@@ -53,11 +57,11 @@
 parse(SpecPath) ->
     case file:read_file(SpecPath) of
         {ok, Bin} ->
-            Val = njson:decode(Bin),
-            case oas_3_0:is_valid(Val) of
+            OAS = njson:decode(Bin),
+            case oas_3_0:is_valid(OAS) of
                 true ->
                     BasePath = filename:dirname(SpecPath),
-                    {ok, parse_api(Val, #ctx{base_path = BasePath, oas = Val})};
+                    {ok, parse_api(OAS, #ctx{base_path = BasePath, oas = OAS})};
                 false ->
                     {error, {invalid_spec, <<"Invalid OpenAPI Specification 3.0">>}}
             end;
@@ -68,16 +72,32 @@ parse(SpecPath) ->
 %%%-----------------------------------------------------------------------------
 %%% INTERNAL FUNCTIONS
 %%%-----------------------------------------------------------------------------
-get([], Val) ->
-    Val;
-get([Key | Keys], Val) ->
-    get(Keys, maps:get(Key, Val)).
+-spec get(Keys, OAS) -> Result when
+    Keys :: [binary()],
+    OAS :: oas(),
+    Result :: term().
+get([], OAS) ->
+    OAS;
+get([Key | Keys], OAS) ->
+    get(Keys, maps:get(Key, OAS)).
 
-parse_api(Val, CTX) ->
-    Name = parse_name(Val),
-    Version = parse_version(Val),
-    Schemas = parse_schemas(Val, CTX),
-    Endpoints = parse_endpoints(Val),
+-spec parse_api(OAS, CTX) -> Result when
+    OAS :: oas(),
+    CTX :: #ctx{},
+    Result :: erf:api().
+parse_api(OAS, CTX) ->
+    Name = parse_name(OAS),
+    Version = parse_version(OAS),
+    {RawEndpoints, RawSchemas} = lists:foldl(
+        fun({Path, RawEndpoint}, {AccEndpoints, AccSchemas}) ->
+            {Endpoint, EndpointSchemas} = parse_endpoint(Path, RawEndpoint, CTX),
+            {[Endpoint | AccEndpoints], EndpointSchemas ++ AccSchemas}
+        end,
+        {[], []},
+        maps:to_list(maps:get(<<"paths">>, OAS))
+    ),
+    Endpoints = lists:reverse(RawEndpoints),
+    Schemas = maps:from_list(RawSchemas),
     #{
         name => Name,
         version => Version,
@@ -85,116 +105,178 @@ parse_api(Val, CTX) ->
         schemas => Schemas
     }.
 
-parse_schemas(Val, CTX) ->
-    maps:from_list(
-        lists:flatmap(
-            fun(E) ->
-                parse_endpoint_schemas(E, CTX)
-            end,
-            maps:to_list(maps:get(<<"paths">>, Val))
-        )
-    ).
-
-parse_endpoint_schemas({Path, Endpoint}, #ctx{namespace = NS} = CTX) ->
+-spec parse_endpoint(Path, Endpoint, CTX) -> Result when
+    Path :: binary(),
+    Endpoint :: oas(),
+    CTX :: #ctx{},
+    Result :: {Endpoint, Schemas},
+    Endpoint :: erf_parser:endpoint(),
+    Schemas :: [{erf_parser:ref(), erf_parser:schema()}].
+parse_endpoint(Path, RawEndpoint, #ctx{namespace = NS} = CTX) ->
     NewCTX = CTX#ctx{namespace = erf_parser:to_snake_case(<<NS/binary, Path/binary>>)},
-    EndpointParameters =
+
+    RawParameters =
         lists:map(
             fun(RawParameter) ->
                 parse_parameter(RawParameter, NewCTX)
             end,
-            maps:get(<<"parameters">>, Endpoint, [])
+            maps:get(<<"parameters">>, RawEndpoint, [])
         ),
-    Operations =
+    {Parameters, ParametersSchemas} = lists:unzip(RawParameters),
+
+    RawOperations =
         lists:filtermap(
             fun(Method) ->
-                case maps:get(Method, Endpoint, undefined) of
+                case maps:get(Method, RawEndpoint, undefined) of
                     undefined ->
                         false;
                     Operation ->
-                        {true, {Path, Method, Operation}}
+                        {true, {Method, Operation}}
                 end
             end,
             ?METHODS
         ),
-    OperationsSchemas = lists:flatmap(
-        fun(RawOperation) ->
-            parse_operation_schemas(RawOperation, CTX)
-        end,
-        Operations
+    {Operations, RawOperationsSchemas} = lists:unzip(
+        lists:map(
+            fun({Method, RawOperation}) ->
+                parse_operation(Path, Method, RawOperation, CTX)
+            end,
+            RawOperations
+        )
     ),
-    EndpointParameters ++ OperationsSchemas.
+    OperationsSchemas = lists:flatten(RawOperationsSchemas),
 
-parse_endpoints(_OAS) ->
-    %% TODO: Implement
-    [].
+    Endpoint = #{
+        path => Path,
+        parameters => Parameters,
+        operations => Operations
+    },
+    Schemas = ParametersSchemas ++ OperationsSchemas,
+    {Endpoint, Schemas}.
 
+-spec parse_method(Method) -> Result when
+    Method :: binary(),
+    Result :: erf_parser:method().
+parse_method(<<"get">>) ->
+    get;
+parse_method(<<"post">>) ->
+    post;
+parse_method(<<"put">>) ->
+    put;
+parse_method(<<"delete">>) ->
+    delete;
+parse_method(<<"patch">>) ->
+    patch;
+parse_method(<<"head">>) ->
+    head;
+parse_method(<<"options">>) ->
+    options;
+parse_method(<<"trace">>) ->
+    trace;
+parse_method(<<"connect">>) ->
+    connect.
+
+-spec parse_name(Val) -> Result when
+    Val :: oas(),
+    Result :: binary().
 parse_name(#{<<"info">> := #{<<"title">> := Name}}) ->
-    erf_parser:to_snake_case(Name).
+    Name.
 
-parse_operation_schemas(
-    {Path, Method, #{<<"responses">> := Responses} = Operation}, CTX
+-spec parse_operation(Path, Method, RawOperation, CTX) -> Result when
+    Path :: binary(),
+    Method :: binary(),
+    RawOperation :: oas(),
+    CTX :: #ctx{},
+    Result :: {Operation, Schemas},
+    Operation :: erf_parser:operation(),
+    Schemas :: [{erf_parser:ref(), erf_parser:schema()}].
+parse_operation(
+    Path, RawMethod, #{<<"responses">> := Responses} = RawOperation, CTX
 ) ->
-    NewCTX =
-        case maps:get(<<"operationId">>, Operation, undefined) of
+    OperationId =
+        case maps:get(<<"operationId">>, RawOperation, undefined) of
             undefined ->
-                CTX#ctx{namespace = erf_parser:to_snake_case(<<Path/binary, "_", Method/binary>>)};
-            OperationId ->
-                CTX#ctx{namespace = erf_parser:to_snake_case(OperationId)}
+                erf_parser:to_snake_case(<<Path/binary, "_", RawMethod/binary>>);
+            RawOperationId ->
+                erf_parser:to_snake_case(RawOperationId)
         end,
-    Parameters =
+    NewCTX = CTX#ctx{namespace = OperationId},
+    Method = parse_method(RawMethod),
+
+    RawParameters =
         lists:map(
             fun(RawParameter) ->
                 parse_parameter(RawParameter, NewCTX)
             end,
-            maps:get(<<"parameters">>, Operation, [])
+            maps:get(<<"parameters">>, RawOperation, [])
         ),
-    RequestBodyName = erf_parser:to_snake_case(<<(NewCTX#ctx.namespace)/binary, "_request_body">>),
-    RequestBodySchema =
-        case maps:get(<<"requestBody">>, Operation, undefined) of
-            undefined ->
-                undefined;
-            RawRequestBody ->
-                parse_request_body(RawRequestBody, NewCTX)
-        end,
-    RequestBody = {RequestBodyName, RequestBodySchema},
-    ResponseBodyName = erf_parser:to_snake_case(<<(NewCTX#ctx.namespace)/binary, "_response_body">>),
+    {Parameters, ParametersSchemas} = lists:unzip(RawParameters),
+
+    RequestBodyRef = erf_parser:to_snake_case(<<(NewCTX#ctx.namespace)/binary, "_request_body">>),
+    RawRequestBody = maps:get(<<"requestBody">>, RawOperation, undefined),
+    RequestBodySchema = parse_request_body(RawRequestBody, NewCTX),
+
+    ResponseBodyRef = erf_parser:to_snake_case(<<(NewCTX#ctx.namespace)/binary, "_response_body">>),
     ResponseBodySchema = #{
         <<"anyOf">> =>
             lists:map(
                 fun({_StatusCode, RawResponse}) ->
-                    parse_response(RawResponse, NewCTX)
+                    parse_response_body(RawResponse, NewCTX)
                 end,
                 maps:to_list(Responses)
             )
     },
-    ResponseBody = {ResponseBodyName, ResponseBodySchema},
-    lists:flatten([RequestBody, ResponseBody | Parameters]).
 
+    Operation = #{
+        id => OperationId,
+        method => Method,
+        parameters => Parameters,
+        request_body => RequestBodyRef,
+        response_body => ResponseBodyRef
+    },
+    Schemas = lists:flatten([
+        {RequestBodyRef, RequestBodySchema},
+        {ResponseBodyRef, ResponseBodySchema}
+        | ParametersSchemas
+    ]),
+    {Operation, Schemas}.
+
+-spec parse_parameter(OAS, CTX) -> Result when
+    OAS :: oas(),
+    CTX :: #ctx{},
+    Result :: {Parameter, Schema},
+    Parameter :: erf_parser:parameter(),
+    Schema :: {erf_parser:ref(), erf_parser:schema()}.
 parse_parameter(#{<<"$ref">> := Ref}, CTX) ->
-    Parameter = parse_ref(Ref, CTX),
-    parse_parameter(Parameter, CTX);
+    {Parameter, NewCTX} = resolve_ref(Ref, CTX),
+    parse_parameter(Parameter, NewCTX);
 parse_parameter(#{<<"content">> := Content} = Parameter, #ctx{namespace = NS} = CTX) ->
-    Name = maps:get(<<"name">>, Parameter),
-    Type =
+    ParameterType =
         case maps:get(<<"in">>, Parameter) of
             <<"query">> ->
-                query_parameter;
+                query;
             <<"header">> ->
                 header;
             <<"path">> ->
-                path_parameter;
+                path;
             <<"cookie">> ->
                 cookie
         end,
     DefaultRequired =
-        case Type of
-            path_parameter ->
+        case ParameterType of
+            path ->
                 true;
-            _parameter ->
+            _Type ->
                 false
         end,
     Required = maps:get(<<"required">>, Parameter, DefaultRequired),
-    ParameterName = erf_parser:to_snake_case(<<NS/binary, "_", Name/binary>>),
+    ParameterName = maps:get(<<"name">>, Parameter),
+    ParameterRef = erf_parser:to_snake_case(<<NS/binary, "_", ParameterName/binary>>),
+    Parameter = #{
+        ref => ParameterRef,
+        name => ParameterName,
+        type => ParameterType
+    },
     ParameterSchema = #{
         <<"anyOf">> =>
             lists:map(
@@ -205,58 +287,70 @@ parse_parameter(#{<<"content">> := Content} = Parameter, #ctx{namespace = NS} = 
                 maps:to_list(Content)
             )
     },
-    {ParameterName, ParameterSchema};
-parse_parameter(#{<<"schema">> := RawSchema} = Parameter, #ctx{namespace = NS} = CTX) ->
-    Name = maps:get(<<"name">>, Parameter),
-    Type =
-        case maps:get(<<"in">>, Parameter) of
+    {Parameter, {ParameterRef, ParameterSchema}};
+parse_parameter(#{<<"schema">> := RawSchema} = RawParameter, #ctx{namespace = NS} = _CTX) ->
+    ParameterType =
+        case maps:get(<<"in">>, RawParameter) of
             <<"query">> ->
-                query_parameter;
+                query;
             <<"header">> ->
                 header;
             <<"path">> ->
-                path_parameter;
+                path;
             <<"cookie">> ->
                 cookie
         end,
     DefaultRequired =
-        case Type of
-            path_parameter ->
+        case ParameterType of
+            path ->
                 true;
-            _parameter ->
+            _Type ->
                 false
         end,
-    Required = maps:get(<<"required">>, Parameter, DefaultRequired),
-    Schema = parse_schema(RawSchema, CTX),
-    ParameterName = erf_parser:to_snake_case(<<NS/binary, "_", Name/binary>>),
-    ParameterSchema = Schema#{<<"nullable">> => not Required},
-    {ParameterName, ParameterSchema}.
+    Required = maps:get(<<"required">>, RawParameter, DefaultRequired),
+    ParameterName = maps:get(<<"name">>, RawParameter),
+    ParameterRef = erf_parser:to_snake_case(<<NS/binary, "_", ParameterName/binary>>),
+    Parameter = #{
+        ref => ParameterRef,
+        name => ParameterName,
+        type => ParameterType
+    },
+    ParameterSchema = RawSchema#{<<"nullable">> => not Required},
+    {Parameter, {ParameterRef, ParameterSchema}}.
 
-parse_ref(Ref, #ctx{base_path = BasePath, oas = OAS}) ->
+-spec resolve_ref(Ref, CTX) -> Result when
+    Ref :: binary(),
+    CTX :: #ctx{},
+    Result :: {oas(), #ctx{}}.
+resolve_ref(Ref, #ctx{base_path = BasePath, oas = OAS} = CTX) ->
     [FilePath, ElementPath] = binary:split(Ref, <<"#">>, [global]),
-    Schema =
+    {NewOAS, NewBasePath} =
         case FilePath of
             <<>> ->
-                OAS;
+                {OAS, BasePath};
             _FilePath ->
                 AbsPath = filename:join(BasePath, FilePath),
                 case file:read_file(AbsPath) of
                     {ok, Bin} ->
-                        njson:decode(Bin);
+                        {njson:decode(Bin), filename:dirname(AbsPath)};
                     {error, Reason} ->
                         erlang:error({invalid_spec, Reason})
                 end
         end,
     [<<>> | Steps] = binary:split(ElementPath, <<"/">>, [global]),
-    get(Steps, Schema).
+    Component = get(Steps, NewOAS),
+    {Component, CTX#ctx{base_path = NewBasePath, oas = NewOAS}}.
 
+-spec parse_request_body(OAS, CTX) -> Result when
+    OAS :: oas(),
+    CTX :: #ctx{},
+    Result :: erf_parser:schema().
 parse_request_body(#{<<"$ref">> := Ref}, CTX) ->
-    RequestBody = parse_ref(Ref, CTX),
-    parse_request_body(RequestBody, CTX);
-parse_request_body(#{<<"content">> := Content} = ReqBody, #ctx{namespace = NS} = CTX) ->
+    {RequestBody, NewCTX} = resolve_ref(Ref, CTX),
+    parse_request_body(RequestBody, NewCTX);
+parse_request_body(#{<<"content">> := Content} = ReqBody, CTX) ->
     Required = maps:get(<<"required">>, ReqBody, false),
-    RequestBodyName = erf_parser:to_snake_case(<<NS/binary, "_request_body">>),
-    RequestBodySchema = #{
+    #{
         <<"anyOf">> =>
             lists:map(
                 fun({_MediaType, #{<<"schema">> := RawSchema}}) ->
@@ -265,13 +359,18 @@ parse_request_body(#{<<"content">> := Content} = ReqBody, #ctx{namespace = NS} =
                 end,
                 maps:to_list(Content)
             )
-    },
-    {RequestBodyName, RequestBodySchema}.
+    };
+parse_request_body(_ReqBody, _CTX) ->
+    undefined.
 
-parse_response(#{<<"$ref">> := Ref}, CTX) ->
-    Response = parse_ref(Ref, CTX),
-    parse_response(Response, CTX);
-parse_response(#{<<"content">> := Content}, CTX) ->
+-spec parse_response_body(OAS, CTX) -> Result when
+    OAS :: oas(),
+    CTX :: #ctx{},
+    Result :: erf_parser:schema().
+parse_response_body(#{<<"$ref">> := Ref}, CTX) ->
+    {Response, NewCTX} = resolve_ref(Ref, CTX),
+    parse_response_body(Response, NewCTX);
+parse_response_body(#{<<"content">> := Content}, CTX) ->
     #{
         <<"anyOf">> =>
             lists:map(
@@ -281,12 +380,16 @@ parse_response(#{<<"content">> := Content}, CTX) ->
                 maps:to_list(Content)
             )
     };
-parse_response(_Response, _CTX) ->
+parse_response_body(_Response, _CTX) ->
     undefined.
 
+-spec parse_schema(OAS, CTX) -> Result when
+    OAS :: oas(),
+    CTX :: #ctx{},
+    Result :: erf_parser:schema().
 parse_schema(#{<<"$ref">> := Ref}, CTX) ->
-    Schema = parse_ref(Ref, CTX),
-    parse_schema(Schema, CTX);
+    {Schema, NewCTX} = resolve_ref(Ref, CTX),
+    parse_schema(Schema, NewCTX);
 parse_schema(#{<<"items">> := Items} = Schema, CTX) ->
     Schema#{
         <<"items">> => parse_schema(Items, CTX)
@@ -351,5 +454,8 @@ parse_schema(#{<<"not">> := Not} = Schema, CTX) ->
 parse_schema(Schema, _CTX) ->
     Schema.
 
+-spec parse_version(OAS) -> Version when
+    OAS :: oas(),
+    Version :: binary().
 parse_version(#{<<"info">> := #{<<"version">> := Version}}) ->
     Version.

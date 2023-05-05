@@ -59,8 +59,8 @@ RawGradualizerOpts =
     case lists:keyfind(gradualizer_opts, 1, CONFIG) of
         false ->
             [];
-        {gradualizer_opts, GradualizerOpts} ->
-            GradualizerOpts
+        {gradualizer_opts, Gradualizer} ->
+            Gradualizer
     end.
 RawGradualizerExcludes =
     case lists:keyfind(exclude, 1, RawGradualizerOpts) of
@@ -79,4 +79,4 @@ GradualizerOpts =
 CONFIG1 = lists:keystore(dialyzer, 1, CONFIG, DialyzerConf).
 CONFIG2 = lists:keystore(xref_ignores, 1, CONFIG1, XRefIgnores).
 CONFIG3 = lists:keystore(cover_excl_mods, 1, CONFIG2, CoverExcludeMods).
-lists:keystore(gradualizer, 1, CONFIG3, GradualizerOpts).
+lists:keystore(gradualizer_opts, 1, CONFIG3, GradualizerOpts).

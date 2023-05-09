@@ -3,6 +3,10 @@
 
 A design-first Erlang REST framework.
 
+## Specification requirements
+
+### OAS 3.0
+- Path parameters MUST be of type string. You can use the `pattern` keyword to refine your type spec.
 
 ## License
 

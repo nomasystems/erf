@@ -39,7 +39,8 @@
                 "in": "path",
                 "name": "version",
                 "schema": {
-                    "type": "integer"
+                    "type": "string",
+                    "pattern": "^[0-9]+$"
                 },
                 "required": true,
                 "description": "Version of the API"

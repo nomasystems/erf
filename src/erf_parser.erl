@@ -16,8 +16,7 @@
 %%% EXTERNAL EXPORTS
 -export([
     parse/1,
-    parse/2,
-    to_snake_case/1
+    parse/2
 ]).
 
 %%% TYPES
@@ -50,7 +49,7 @@
     response_body => ref()
 }.
 -type parameter() :: #{
-    ref => ref(),
+    ref := ref(),
     name := parameter_name(),
     type := parameter_type()
 }.
@@ -109,13 +108,6 @@ parse(SpecPath, SpecFormat) ->
             {error, Reason}
     end.
 
--spec to_snake_case(Binary) -> SnakeCase when
-    Binary :: binary(),
-    SnakeCase :: binary().
-%% @doc Naive function to convert a string to snake_case.
-to_snake_case(Binary) ->
-    to_snake_case(erlang:binary_to_list(Binary), []).
-
 %%%-----------------------------------------------------------------------------
 %%% INTERNAL FUNCTIONS
 %%%-----------------------------------------------------------------------------
@@ -123,17 +115,3 @@ parser(oas_3_0) ->
     {ok, erf_parser_oas_3_0};
 parser(SpecFormat) ->
     {error, {unsupported_spec_format, SpecFormat}}.
-
-to_snake_case([], Acc) ->
-    unicode:characters_to_binary(lists:reverse(Acc));
-to_snake_case([C1, C2 | Rest], Acc) when
-    ((C1 >= $a andalso C1 =< $z) orelse (C1 >= $0 andalso C1 =< $9)) andalso
-        C2 >= $A andalso C2 =< $Z
-->
-    to_snake_case(Rest, [C2 + 32, $_, C1 | Acc]);
-to_snake_case([C | Rest], Acc) when (C >= $a andalso C =< $z); (C >= $0 andalso C =< $9) ->
-    to_snake_case(Rest, [C | Acc]);
-to_snake_case([C | Rest], Acc) when C >= $A andalso C =< $Z ->
-    to_snake_case(Rest, [C + 32 | Acc]);
-to_snake_case([_C | Rest], Acc) ->
-    to_snake_case(Rest, [$_ | Acc]).

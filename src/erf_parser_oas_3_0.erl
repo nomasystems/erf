@@ -113,7 +113,7 @@ parse_api(OAS, CTX) ->
     Endpoint :: erf_parser:endpoint(),
     Schemas :: [{erf_parser:ref(), erf_parser:schema()}].
 parse_endpoint(Path, RawEndpoint, #ctx{namespace = NS} = CTX) ->
-    NewCTX = CTX#ctx{namespace = erf_parser:to_snake_case(<<NS/binary, Path/binary>>)},
+    NewCTX = CTX#ctx{namespace = erf_util:to_snake_case(<<NS/binary, Path/binary>>)},
 
     RawParameters =
         lists:map(
@@ -196,9 +196,9 @@ parse_operation(
     OperationId =
         case maps:get(<<"operationId">>, RawOperation, undefined) of
             undefined ->
-                erf_parser:to_snake_case(<<Path/binary, "_", RawMethod/binary>>);
+                erf_util:to_snake_case(<<Path/binary, "_", RawMethod/binary>>);
             RawOperationId ->
-                erf_parser:to_snake_case(RawOperationId)
+                erf_util:to_snake_case(RawOperationId)
         end,
     NewCTX = CTX#ctx{namespace = OperationId},
     Method = parse_method(RawMethod),
@@ -212,11 +212,11 @@ parse_operation(
         ),
     {Parameters, ParametersSchemas} = lists:unzip(RawParameters),
 
-    RequestBodyRef = erf_parser:to_snake_case(<<(NewCTX#ctx.namespace)/binary, "_request_body">>),
+    RequestBodyRef = erf_util:to_snake_case(<<(NewCTX#ctx.namespace)/binary, "_request_body">>),
     RawRequestBody = maps:get(<<"requestBody">>, RawOperation, undefined),
     RequestBodySchema = parse_request_body(RawRequestBody, NewCTX),
 
-    ResponseBodyRef = erf_parser:to_snake_case(<<(NewCTX#ctx.namespace)/binary, "_response_body">>),
+    ResponseBodyRef = erf_util:to_snake_case(<<(NewCTX#ctx.namespace)/binary, "_response_body">>),
     ResponseBodySchema = #{
         <<"anyOf">> =>
             lists:map(
@@ -271,7 +271,7 @@ parse_parameter(#{<<"content">> := Content} = Parameter, #ctx{namespace = NS} = 
         end,
     Required = maps:get(<<"required">>, Parameter, DefaultRequired),
     ParameterName = maps:get(<<"name">>, Parameter),
-    ParameterRef = erf_parser:to_snake_case(<<NS/binary, "_", ParameterName/binary>>),
+    ParameterRef = erf_util:to_snake_case(<<NS/binary, "_", ParameterName/binary>>),
     Parameter = #{
         ref => ParameterRef,
         name => ParameterName,
@@ -309,7 +309,7 @@ parse_parameter(#{<<"schema">> := RawSchema} = RawParameter, #ctx{namespace = NS
         end,
     Required = maps:get(<<"required">>, RawParameter, DefaultRequired),
     ParameterName = maps:get(<<"name">>, RawParameter),
-    ParameterRef = erf_parser:to_snake_case(<<NS/binary, "_", ParameterName/binary>>),
+    ParameterRef = erf_util:to_snake_case(<<NS/binary, "_", ParameterName/binary>>),
     Parameter = #{
         ref => ParameterRef,
         name => ParameterName,

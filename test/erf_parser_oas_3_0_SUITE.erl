@@ -196,14 +196,13 @@ petstore(_Conf) ->
                     #{
                         id := <<"list_pets">>,
                         method := get,
-                        parameters :=
-                            [
-                                #{
-                                    ref := <<"list_pets_limit">>,
-                                    name := <<"limit">>,
-                                    type := query
-                                }
-                            ],
+                        parameters := [
+                            #{
+                                ref := <<"list_pets_limit">>,
+                                name := <<"limit">>,
+                                type := query
+                            }
+                        ],
                         request_body := <<"list_pets_request_body">>,
                         response_body := <<"list_pets_response_body">>
                     },
@@ -253,6 +252,11 @@ with_refs(_Conf) ->
         schemas := #{
             <<"get_foo_enabled">> := #{
                 <<"type">> := <<"boolean">>
+            },
+            <<"version_foo_version">> := #{
+                <<"type">> := <<"string">>,
+                <<"pattern">> := <<"^[0-9]+$">>,
+                <<"nullable">> := false
             },
             <<"delete_foo_response_body">> := #{
                 <<"anyOf">> := [

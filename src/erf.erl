@@ -105,8 +105,8 @@ build_dtos([{Ref, Schema} | Schemas]) ->
 
 -spec build_elli_conf(RouterMod, Conf) -> ElliConf when
     RouterMod :: module(),
-    Conf :: map(),
-    ElliConf :: elli:conf().
+    Conf :: conf(),
+    ElliConf :: [{atom(), term()}].
 build_elli_conf(RouterMod, RawConf) ->
     lists:filter(
         fun
@@ -132,9 +132,9 @@ build_elli_conf(RouterMod, RawConf) ->
 -spec build_router(API, Conf) -> Result when
     API :: api(),
     Conf :: conf(),
-    Result :: {ok, Module} | {error, Errors},
+    Result :: {ok, Module} | {error, Reason},
     Module :: module(),
-    Errors :: [term()].
+    Reason :: term().
 build_router(API, Conf) ->
     {RouterMod, Router} = erf_router:generate(API, #{callback => maps:get(callback, Conf)}),
     case erf_router:load(Router) of

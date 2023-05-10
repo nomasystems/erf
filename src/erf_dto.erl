@@ -35,7 +35,7 @@
 %%% EXTERNAL EXPORTS
 %%%-----------------------------------------------------------------------------
 -spec generate(Name, Schema) -> Result when
-    Name :: atom(),
+    Name :: module(),
     Schema :: schema(),
     Result :: t().
 %% @doc Generates an Erlang Syntax Tree of a DTO module from a schema.

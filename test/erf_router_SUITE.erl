@@ -169,4 +169,10 @@ foo(_Conf) ->
 
     {400, [], <<>>} = Mod:handle(Req, Args),
 
+    meck:unload([
+        foo_callback,
+        version_foo_version,
+        get_foo_request_body
+    ]),
+
     ok.

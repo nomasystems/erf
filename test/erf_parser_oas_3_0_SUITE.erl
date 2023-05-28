@@ -80,41 +80,47 @@ petstore(_Conf) ->
             },
             <<"list_pets_request_body">> := undefined,
             <<"list_pets_response_body_200">> := #{
-                <<"anyOf">> := [#{
-                    <<"items">> := #{
-                        <<"properties">> := #{
-                            <<"id">> := #{<<"type">> := <<"integer">>},
-                            <<"name">> := #{<<"type">> := <<"string">>},
-                            <<"tag">> := #{<<"type">> := <<"string">>}
+                <<"anyOf">> := [
+                    #{
+                        <<"items">> := #{
+                            <<"properties">> := #{
+                                <<"id">> := #{<<"type">> := <<"integer">>},
+                                <<"name">> := #{<<"type">> := <<"string">>},
+                                <<"tag">> := #{<<"type">> := <<"string">>}
+                            },
+                            <<"required">> := [<<"id">>, <<"name">>],
+                            <<"type">> := <<"object">>
                         },
-                        <<"required">> := [<<"id">>,<<"name">>],
-                        <<"type">> := <<"object">>
-                    },
-                    <<"maxItems">> := 100,
-                    <<"type">> := <<"array">>
-                }]
+                        <<"maxItems">> := 100,
+                        <<"type">> := <<"array">>
+                    }
+                ]
             },
             <<"list_pets_response_body_default">> := #{
-                <<"anyOf">> := [#{
-                    <<"properties">> := #{
-                        <<"code">> := #{<<"type">> := <<"integer">>},
-                        <<"message">> := #{<<"type">> := <<"string">>}
-                    },
-                    <<"required">> := [<<"code">>,<<"message">>],
-                    <<"type">> := <<"object">>
-                }]
+                <<"anyOf">> := [
+                    #{
+                        <<"properties">> := #{
+                            <<"code">> := #{<<"type">> := <<"integer">>},
+                            <<"message">> := #{<<"type">> := <<"string">>}
+                        },
+                        <<"required">> := [<<"code">>, <<"message">>],
+                        <<"type">> := <<"object">>
+                    }
+                ]
             },
             <<"create_pets_request_body">> := undefined,
             <<"create_pets_response_body_201">> := undefined,
             <<"create_pets_response_body_default">> := #{
-                <<"anyOf">> := [#{
-                    <<"properties">> := #{
-                        <<"code">> := #{<<"type">> := <<"integer">>},
-                        <<"message">> := #{<<"type">> := <<"string">>}
-                    },
-                    <<"required">> := [<<"code">>,<<"message">>],
-                    <<"type">> := <<"object">>
-                }]
+                <<"anyOf">> := [
+                    #{
+                        <<"properties">> := #{
+                            <<"code">> := #{<<"type">> := <<"integer">>},
+                            <<"message">> := #{<<"type">> := <<"string">>}
+                        },
+                        <<"required">> := [<<"code">>, <<"message">>],
+                        <<"type">> := <<"object">>
+                    }
+                ]
             },
             <<"show_pet_by_id_pet_id">> := #{
                 <<"type">> := <<"string">>,
@@ -122,25 +128,29 @@ petstore(_Conf) ->
             },
             <<"show_pet_by_id_request_body">> := undefined,
             <<"show_pet_by_id_response_body_200">> := #{
-                <<"anyOf">> := [#{
-                    <<"properties">> := #{
-                        <<"id">> := #{<<"type">> := <<"integer">>},
-                        <<"name">> := #{<<"type">> := <<"string">>},
-                        <<"tag">> := #{<<"type">> := <<"string">>}
-                    },
-                    <<"required">> := [<<"id">>,<<"name">>],
-                    <<"type">> := <<"object">>
-                }]
+                <<"anyOf">> := [
+                    #{
+                        <<"properties">> := #{
+                            <<"id">> := #{<<"type">> := <<"integer">>},
+                            <<"name">> := #{<<"type">> := <<"string">>},
+                            <<"tag">> := #{<<"type">> := <<"string">>}
+                        },
+                        <<"required">> := [<<"id">>, <<"name">>],
+                        <<"type">> := <<"object">>
+                    }
+                ]
             },
             <<"show_pet_by_id_response_body_default">> := #{
-                <<"anyOf">> := [#{
-                    <<"properties">> := #{
-                        <<"code">> := #{<<"type">> := <<"integer">>},
-                        <<"message">> := #{<<"type">> := <<"string">>}
-                    },
-                    <<"required">> := [<<"code">>,<<"message">>],
-                    <<"type">> := <<"object">>
-                }]
+                <<"anyOf">> := [
+                    #{
+                        <<"properties">> := #{
+                            <<"code">> := #{<<"type">> := <<"integer">>},
+                            <<"message">> := #{<<"type">> := <<"string">>}
+                        },
+                        <<"required">> := [<<"code">>, <<"message">>],
+                        <<"type">> := <<"object">>
+                    }
+                ]
             }
         },
         endpoints := [
@@ -223,12 +233,14 @@ with_refs(_Conf) ->
             },
             <<"delete_foo_response_body_204">> := undefined,
             <<"delete_foo_response_body_404">> := #{
-                <<"anyOf">> := [#{
-                    <<"properties">> := #{
-                        <<"description">> := #{<<"type">> := <<"string">>}
-                    },
-                    <<"type">> := <<"object">>
-                }]
+                <<"anyOf">> := [
+                    #{
+                        <<"properties">> := #{
+                            <<"description">> := #{<<"type">> := <<"string">>}
+                        },
+                        <<"type">> := <<"object">>
+                    }
+                ]
             }
         }
     } = WithRefsAPI,
@@ -240,6 +252,8 @@ invalid(_Conf) ->
         code:lib_dir(erf, test) ++ "/fixtures/invalid_oas_3_0_spec.json"
     ),
 
-    {error, {invalid_spec, <<"Invalid OpenAPI Specification 3.0">>}} = erf_parser:parse(Invalid, oas_3_0),
+    {error, {invalid_spec, <<"Invalid OpenAPI Specification 3.0">>}} = erf_parser:parse(
+        Invalid, oas_3_0
+    ),
 
     ok.

@@ -191,7 +191,7 @@ parse_name(#{<<"info">> := #{<<"title">> := Name}}) ->
     Operation :: erf_parser:operation(),
     Schemas :: [{erf_parser:ref(), erf_parser:schema()}].
 parse_operation(
-    Path, RawMethod, #{<<"responses">> := Responses} = RawOperation, CTX
+    Path, RawMethod, #{<<"responses">> := RawResponses} = RawOperation, CTX
 ) ->
     OperationId =
         case maps:get(<<"operationId">>, RawOperation, undefined) of
@@ -216,27 +216,56 @@ parse_operation(
     RawRequestBody = maps:get(<<"requestBody">>, RawOperation, undefined),
     RequestBodySchema = parse_request_body(RawRequestBody, NewCTX),
 
-    ResponseBodyRef = erf_util:to_snake_case(<<(NewCTX#ctx.namespace)/binary, "_response_body">>),
-    ResponseBodySchema = #{
-        <<"anyOf">> =>
-            lists:map(
-                fun({_StatusCode, RawResponse}) ->
-                    parse_response_body(RawResponse, NewCTX)
-                end,
-                maps:to_list(Responses)
-            )
-    },
+    ResponsesList =
+        lists:map(
+            fun({RawStatusCode, RawResponse}) ->
+                StatusCode =
+                    case RawStatusCode of
+                        <<"default">> ->
+                            '*';
+                        _RawStatusCode ->
+                            erlang:binary_to_integer(RawStatusCode)
+                    end,
+                Body = parse_response_body(RawResponse, NewCTX),
+                RawRef =
+                    case StatusCode of
+                        '*' ->
+                            <<"default">>;
+                        _StatusCode ->
+                            erlang:integer_to_binary(StatusCode)
+                    end,
+                Ref = erf_util:to_snake_case(<<
+                    (NewCTX#ctx.namespace)/binary, "_response_body_", RawRef/binary
+                >>),
+                #{status_code => StatusCode, schema => Body, ref => Ref}
+            end,
+            maps:to_list(RawResponses)
+        ),
+
+    {ResponsesSchemas, Responses} =
+        lists:foldl(
+            fun(
+                #{status_code := StatusCode, schema := Schema, ref := Ref},
+                {SchemasAcc, ResponsesAcc}
+            ) ->
+                {[{Ref, Schema} | SchemasAcc], ResponsesAcc#{StatusCode => Ref}}
+            end,
+            {[], #{}},
+            ResponsesList
+        ),
 
     Operation = #{
         id => OperationId,
         method => Method,
         parameters => Parameters,
         request_body => RequestBodyRef,
-        response_body => ResponseBodyRef
+        responses => Responses
     },
     Schemas = lists:flatten([
-        {RequestBodyRef, RequestBodySchema},
-        {ResponseBodyRef, ResponseBodySchema}
+        [
+            {RequestBodyRef, RequestBodySchema}
+            | ResponsesSchemas
+        ]
         | ParametersSchemas
     ]),
     {Operation, Schemas}.

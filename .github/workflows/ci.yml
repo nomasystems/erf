@@ -40,3 +40,10 @@ jobs:
           rebar3 compile
 
       - run: rebar3 check
+
+      - run: rebar3 test
+
+      - uses: test-summary/action@v2
+        if: always()
+        with:
+          paths: '_build/test/logs/**/report.xml'

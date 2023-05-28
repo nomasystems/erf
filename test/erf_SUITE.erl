@@ -13,9 +13,6 @@
 %% limitations under the License.
 -module(erf_SUITE).
 
-%%% INCLUDE FILES
--include_lib("elli/include/elli.hrl").
-
 %%% EXTERNAL EXPORTS
 -compile([export_all, nowarn_export_all]).
 

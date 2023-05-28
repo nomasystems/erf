@@ -11,6 +11,9 @@
 %% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 %% See the License for the specific language governing permissions and
 %% limitations under the License
+
+%% @doc <code>erf</code> is a library that provides a design-first framework to build
+%% RESTful APIs in Erlang. This is the main interface to the library.
 -module(erf).
 
 %%% INCLUDE FILES
@@ -82,15 +85,15 @@ start_link(Conf) ->
 %%% INTERNAL FUNCTIONS
 %%%-----------------------------------------------------------------------------
 -spec build_dtos(Schemas) -> Result when
-    Schemas :: [{erf_parser:ref(), erf_dto:schema()}],
+    Schemas :: [{erf_parser:ref(), ndto:schema()}],
     Result :: ok | {error, Reason},
     Reason :: term().
 build_dtos([]) ->
     ok;
 build_dtos([{Ref, Schema} | Schemas]) ->
     Name = erlang:binary_to_atom(Ref),
-    DTO = erf_dto:generate(Name, Schema),
-    case erf_dto:load(DTO) of
+    DTO = ndto:generate(Name, Schema),
+    case ndto:load(DTO) of
         ok ->
             build_dtos(Schemas);
         {ok, Warnings} ->

@@ -69,7 +69,7 @@ petstore(_Conf) ->
         code:priv_dir(erf) ++ "/oas/3.0/examples/petstore.json"
     ),
 
-    {ok, PetstoreAPI} = erf_parser:parse(PetstoreOAS),
+    {ok, PetstoreAPI} = erf_parser:parse(PetstoreOAS, oas_3_0),
     #{
         name := <<"Swagger Petstore">>,
         version := <<"1.0.0">>,
@@ -79,113 +79,68 @@ petstore(_Conf) ->
                 <<"maximum">> := 100
             },
             <<"list_pets_request_body">> := undefined,
-            <<"list_pets_response_body">> := #{
-                <<"anyOf">> := [
-                    #{
-                        <<"anyOf">> := [
-                            #{
-                                <<"type">> := <<"array">>,
-                                <<"items">> := #{
-                                    <<"type">> := <<"object">>,
-                                    <<"required">> := [<<"id">>, <<"name">>],
-                                    <<"properties">> := #{
-                                        <<"id">> := #{
-                                            <<"type">> := <<"integer">>
-                                        },
-                                        <<"name">> := #{
-                                            <<"type">> := <<"string">>
-                                        },
-                                        <<"tag">> := #{
-                                            <<"type">> := <<"string">>
-                                        }
-                                    }
-                                }
-                            }
-                        ]
+            <<"list_pets_response_body_200">> := #{
+                <<"anyOf">> := [#{
+                    <<"items">> := #{
+                        <<"properties">> := #{
+                            <<"id">> := #{<<"type">> := <<"integer">>},
+                            <<"name">> := #{<<"type">> := <<"string">>},
+                            <<"tag">> := #{<<"type">> := <<"string">>}
+                        },
+                        <<"required">> := [<<"id">>,<<"name">>],
+                        <<"type">> := <<"object">>
                     },
-                    #{
-                        <<"anyOf">> := [
-                            #{
-                                <<"type">> := <<"object">>,
-                                <<"required">> := [<<"code">>, <<"message">>],
-                                <<"properties">> := #{
-                                    <<"code">> := #{
-                                        <<"type">> := <<"integer">>
-                                    },
-                                    <<"message">> := #{
-                                        <<"type">> := <<"string">>
-                                    }
-                                }
-                            }
-                        ]
-                    }
-                ]
+                    <<"maxItems">> := 100,
+                    <<"type">> := <<"array">>
+                }]
+            },
+            <<"list_pets_response_body_default">> := #{
+                <<"anyOf">> := [#{
+                    <<"properties">> := #{
+                        <<"code">> := #{<<"type">> := <<"integer">>},
+                        <<"message">> := #{<<"type">> := <<"string">>}
+                    },
+                    <<"required">> := [<<"code">>,<<"message">>],
+                    <<"type">> := <<"object">>
+                }]
             },
             <<"create_pets_request_body">> := undefined,
-            <<"create_pets_response_body">> := #{
-                <<"anyOf">> := [
-                    undefined,
-                    #{
-                        <<"anyOf">> := [
-                            #{
-                                <<"type">> := <<"object">>,
-                                <<"required">> := [<<"code">>, <<"message">>],
-                                <<"properties">> := #{
-                                    <<"code">> := #{
-                                        <<"type">> := <<"integer">>
-                                    },
-                                    <<"message">> := #{
-                                        <<"type">> := <<"string">>
-                                    }
-                                }
-                            }
-                        ]
-                    }
-                ]
+            <<"create_pets_response_body_201">> := undefined,
+            <<"create_pets_response_body_default">> := #{
+                <<"anyOf">> := [#{
+                    <<"properties">> := #{
+                        <<"code">> := #{<<"type">> := <<"integer">>},
+                        <<"message">> := #{<<"type">> := <<"string">>}
+                    },
+                    <<"required">> := [<<"code">>,<<"message">>],
+                    <<"type">> := <<"object">>
+                }]
             },
             <<"show_pet_by_id_pet_id">> := #{
                 <<"type">> := <<"string">>,
                 <<"nullable">> := false
             },
             <<"show_pet_by_id_request_body">> := undefined,
-            <<"show_pet_by_id_response_body">> := #{
-                <<"anyOf">> := [
-                    #{
-                        <<"anyOf">> := [
-                            #{
-                                <<"type">> := <<"object">>,
-                                <<"required">> := [<<"id">>, <<"name">>],
-                                <<"properties">> := #{
-                                    <<"id">> := #{
-                                        <<"type">> := <<"integer">>
-                                    },
-                                    <<"name">> := #{
-                                        <<"type">> := <<"string">>
-                                    },
-                                    <<"tag">> := #{
-                                        <<"type">> := <<"string">>
-                                    }
-                                }
-                            }
-                        ]
+            <<"show_pet_by_id_response_body_200">> := #{
+                <<"anyOf">> := [#{
+                    <<"properties">> := #{
+                        <<"id">> := #{<<"type">> := <<"integer">>},
+                        <<"name">> := #{<<"type">> := <<"string">>},
+                        <<"tag">> := #{<<"type">> := <<"string">>}
                     },
-                    #{
-                        <<"anyOf">> := [
-                            #{
-                                <<"type">> := <<"object">>,
-                                <<"required">> := [<<"code">>, <<"message">>],
-                                <<"properties">> := #{
-                                    <<"code">> := #{
-                                        <<"type">> := <<"integer">>
-                                    },
-                                    <<"message">> := #{
-                                        <<"type">> := <<"string">>
-                                    }
-                                }
-                            }
-                        ]
-                    }
-                ]
+                    <<"required">> := [<<"id">>,<<"name">>],
+                    <<"type">> := <<"object">>
+                }]
+            },
+            <<"show_pet_by_id_response_body_default">> := #{
+                <<"anyOf">> := [#{
+                    <<"properties">> := #{
+                        <<"code">> := #{<<"type">> := <<"integer">>},
+                        <<"message">> := #{<<"type">> := <<"string">>}
+                    },
+                    <<"required">> := [<<"code">>,<<"message">>],
+                    <<"type">> := <<"object">>
+                }]
             }
         },
         endpoints := [
@@ -204,15 +159,20 @@ petstore(_Conf) ->
                             }
                         ],
                         request_body := <<"list_pets_request_body">>,
-                        response_body := <<"list_pets_response_body">>
+                        responses := #{
+                            200 := <<"list_pets_response_body_200">>,
+                            '*' := <<"list_pets_response_body_default">>
+                        }
                     },
                     #{
                         id := <<"create_pets">>,
                         method := post,
                         parameters := [],
                         request_body := <<"create_pets_request_body">>,
-                        response_body :=
-                            <<"create_pets_response_body">>
+                        responses := #{
+                            201 := <<"create_pets_response_body_201">>,
+                            '*' := <<"create_pets_response_body_default">>
+                        }
                     }
                 ]
             },
@@ -231,7 +191,10 @@ petstore(_Conf) ->
                             }
                         ],
                         request_body := <<"show_pet_by_id_request_body">>,
-                        response_body := <<"show_pet_by_id_response_body">>
+                        responses := #{
+                            200 := <<"show_pet_by_id_response_body_200">>,
+                            '*' := <<"show_pet_by_id_response_body_default">>
+                        }
                     }
                 ]
             }
@@ -245,7 +208,7 @@ with_refs(_Conf) ->
         code:lib_dir(erf, test) ++ "/fixtures/with_refs_oas_3_0_spec.json"
     ),
 
-    {ok, WithRefsAPI} = erf_parser:parse(WithRefsOAS),
+    {ok, WithRefsAPI} = erf_parser:parse(WithRefsOAS, oas_3_0),
     #{
         name := <<"With refs">>,
         version := <<"1.0.0">>,
@@ -258,22 +221,14 @@ with_refs(_Conf) ->
                 <<"pattern">> := <<"^[0-9]+$">>,
                 <<"nullable">> := false
             },
-            <<"delete_foo_response_body">> := #{
-                <<"anyOf">> := [
-                    undefined,
-                    #{
-                        <<"anyOf">> := [
-                            #{
-                                <<"properties">> := #{
-                                    <<"description">> := #{
-                                        <<"type">> := <<"string">>
-                                    }
-                                },
-                                <<"type">> := <<"object">>
-                            }
-                        ]
-                    }
-                ]
+            <<"delete_foo_response_body_204">> := undefined,
+            <<"delete_foo_response_body_404">> := #{
+                <<"anyOf">> := [#{
+                    <<"properties">> := #{
+                        <<"description">> := #{<<"type">> := <<"string">>}
+                    },
+                    <<"type">> := <<"object">>
+                }]
             }
         }
     } = WithRefsAPI,
@@ -285,6 +240,6 @@ invalid(_Conf) ->
         code:lib_dir(erf, test) ++ "/fixtures/invalid_oas_3_0_spec.json"
     ),
 
-    {error, {invalid_spec, <<"Invalid OpenAPI Specification 3.0">>}} = erf_parser:parse(Invalid),
+    {error, {invalid_spec, <<"Invalid OpenAPI Specification 3.0">>}} = erf_parser:parse(Invalid, oas_3_0),
 
     ok.

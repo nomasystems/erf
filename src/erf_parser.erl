@@ -11,11 +11,12 @@
 %% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 %% See the License for the specific language governing permissions and
 %% limitations under the License
+
+%% @doc Module that parses an specification file into an API AST.
 -module(erf_parser).
 
 %%% EXTERNAL EXPORTS
 -export([
-    parse/1,
     parse/2
 ]).
 
@@ -46,7 +47,9 @@
     method := method(),
     parameters := [parameter()],
     request_body => ref(),
-    response_body => ref()
+    responses => #{
+        '*' | inet:status_code() := ref()
+    }
 }.
 -type parameter() :: #{
     ref := ref(),
@@ -57,7 +60,7 @@
 -type parameter_type() :: header | cookie | path | query.
 -type path() :: binary().
 -type ref() :: binary().
--type schema() :: erf_dto:schema().
+-type schema() :: ndto:schema().
 -type spec_format() :: oas_3_0.
 
 %%% TYPE EXPORTS
@@ -84,15 +87,6 @@
 %%%-----------------------------------------------------------------------------
 %%% EXTERNAL EXPORTS
 %%%-----------------------------------------------------------------------------
--spec parse(SpecPath) -> Result when
-    SpecPath :: binary(),
-    Result :: {ok, API} | {error, Reason},
-    API :: api(),
-    Reason :: term().
-%% @equiv parse(SpecPath, oas_3_0).
-parse(SpecPath) ->
-    parse(SpecPath, oas_3_0).
-
 -spec parse(SpecPath, SpecFormat) -> Result when
     SpecPath :: binary(),
     SpecFormat :: spec_format(),

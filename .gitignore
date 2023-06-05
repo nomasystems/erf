@@ -1,5 +1,6 @@
 _build/
 _checkouts/
+doc/
 _gen/
 *.dump
 *.crashdump

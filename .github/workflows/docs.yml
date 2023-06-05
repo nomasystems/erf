@@ -1,0 +1,40 @@
+name: erf docs
+on:
+  push:
+    branches:
+      - main
+
+env:
+  OTP-VERSION: 25.2.3
+  REBAR3-VERSION: 3.20.0
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - uses: erlef/setup-beam@v1
+        with:
+          otp-version: ${{ env.OTP-VERSION }}
+          rebar3-version: ${{ env.REBAR3-VERSION }}
+
+      - uses: actions/cache@v3.2.6
+        id: rebar3-cache
+        with:
+          path: |
+            ~/.cache/rebar3
+            _build
+          key: ${{ runner.os }}-${{ env.OTP-VERSION }}-${{ env.REBAR3-VERSION }}-${{ hashFiles('rebar.lock') }}
+
+      - run: rebar3 doc
+
+      - uses: peaceiris/actions-gh-pages@v3.9.3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./doc

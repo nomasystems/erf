@@ -48,7 +48,7 @@
     parameters := [parameter()],
     request_body => ref(),
     responses => #{
-        '*' | inet:status_code() := ref()
+        '*' | status_code() := ref()
     }
 }.
 -type parameter() :: #{
@@ -62,6 +62,7 @@
 -type ref() :: binary().
 -type schema() :: ndto:schema().
 -type spec_format() :: oas_3_0.
+-type status_code() :: 100..599.
 
 %%% TYPE EXPORTS
 -export_type([

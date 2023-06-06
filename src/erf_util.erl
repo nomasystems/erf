@@ -15,21 +15,23 @@
 
 %%% EXTERNAL EXPORTS
 -export([
-    to_camel_case/1,
+    to_pascal_case/1,
     to_snake_case/1
 ]).
 
 %%%-----------------------------------------------------------------------------
 %%% EXTERNAL EXPORTS
 %%%-----------------------------------------------------------------------------
--spec to_camel_case(BinOrStr) -> CamelCase when
+-spec to_pascal_case(BinOrStr) -> PascalCase when
     BinOrStr :: binary() | string(),
-    CamelCase :: binary().
-%% @doc Naive function to convert a binary or string to CamelCase.
-to_camel_case(Binary) when is_binary(Binary) ->
-    to_camel_case(erlang:binary_to_list(Binary));
-to_camel_case(String) ->
-    to_camel_case(String, []).
+    PascalCase :: binary().
+%% @doc Naive function to convert a binary or string to PascalCase.
+to_pascal_case(Binary) when is_binary(Binary) ->
+    to_pascal_case(erlang:binary_to_list(Binary));
+to_pascal_case([C | Rest]) when C >= $a andalso C =< $z ->
+    to_pascal_case([C - 32 | Rest], []);
+to_pascal_case(String) ->
+    to_pascal_case(String, []).
 
 -spec to_snake_case(BinOrStr) -> SnakeCase when
     BinOrStr :: binary() | string(),
@@ -37,29 +39,38 @@ to_camel_case(String) ->
 %% @doc Naive function to convert a binary or string to snake_case.
 to_snake_case(Binary) when is_binary(Binary) ->
     to_snake_case(erlang:binary_to_list(Binary));
-to_snake_case([C | _Rest] = List) when
+to_snake_case([C | Rest]) when
     (C >= $a andalso C =< $z) orelse (C >= $0 andalso C =< $9)
 ->
-    to_snake_case(List, []);
+    to_snake_case(Rest, [C]);
 to_snake_case([C | Rest]) when C >= $A andalso C =< $Z ->
-    to_snake_case([C + 32 | Rest], []);
+    to_snake_case(Rest, [C + 32]);
 to_snake_case([_C | Rest]) ->
-    to_snake_case(Rest, []).
+    to_snake_case(Rest).
 
 %%%-----------------------------------------------------------------------------
 %%% INTERNAL FUNCTIONS
 %%%-----------------------------------------------------------------------------
-to_camel_case([], Acc) ->
+to_pascal_case([], Acc) ->
     unicode:characters_to_binary(lists:reverse(Acc));
-to_camel_case([$_, C | Rest], Acc) when C >= $a andalso C =< $z ->
-    to_camel_case(Rest, [C - 32 | Acc]);
-to_camel_case([C | Rest], Acc) when C >= $a andalso C =< $z ->
-    to_camel_case(Rest, [C - 32 | Acc]);
-to_camel_case([$_ | Rest], Acc) ->
-    to_camel_case(Rest, Acc);
-to_camel_case([C | Rest], Acc) ->
-    to_camel_case(Rest, [C | Acc]).
+to_pascal_case([C1, C2 | Rest], Acc) when
+    ((C1 < $0) orelse (C1 > $9 andalso C1 < $A) orelse (C1 > $Z andalso C1 < $a) orelse (C1 > $z)) andalso
+        (C2 >= $a andalso C2 =< $z)
+->
+    to_pascal_case(Rest, [C2 - 32 | Acc]);
+to_pascal_case([C1, C2 | Rest], Acc) when
+    (C1 >= $0 andalso C1 =< $9) andalso (C2 >= $a andalso C2 =< $z)
+->
+    to_pascal_case(Rest, [C2 - 32, C1 | Acc]);
+to_pascal_case([C | Rest], Acc) when
+    ((C < $0) orelse (C > $9 andalso C < $A) orelse (C > $Z andalso C < $a) orelse (C > $z))
+->
+    to_pascal_case(Rest, Acc);
+to_pascal_case([C | Rest], Acc) ->
+    to_pascal_case(Rest, [C | Acc]).
 
+to_snake_case([], [$_ | Acc]) ->
+    to_snake_case([], Acc);
 to_snake_case([], Acc) ->
     unicode:characters_to_binary(lists:reverse(Acc));
 to_snake_case([C1, C2 | Rest], Acc) when

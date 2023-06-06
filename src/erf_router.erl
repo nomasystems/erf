@@ -239,7 +239,7 @@ handle(API, Opts) ->
                 lists:map(
                     fun
                         (<<${, Rest/binary>>) ->
-                            ParameterName = erf_util:to_camel_case(
+                            ParameterName = erf_util:to_pascal_case(
                                 string:trim(Rest, trailing, [$}])
                             ),
                             erl_syntax:variable(erlang:binary_to_atom(ParameterName));
@@ -398,7 +398,7 @@ is_valid_request(RawParameters, RequestBody) ->
                             [
                                 erl_syntax:variable(
                                     erlang:binary_to_atom(
-                                        erf_util:to_camel_case(ParameterName)
+                                        erf_util:to_pascal_case(ParameterName)
                                     )
                                 )
                             ]

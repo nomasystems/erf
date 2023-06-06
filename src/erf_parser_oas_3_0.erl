@@ -12,7 +12,7 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License
 
-%% @private
+%% @doc An OpenAPI Specification 3.0 <code>erf_parser</code>.
 -module(erf_parser_oas_3_0).
 
 %%% BEHAVIOURS
@@ -31,7 +31,8 @@
 }).
 
 %%% TYPES
--type oas() :: term().
+-type ctx() :: #ctx{}.
+-type oas() :: map().
 
 %%% MACROS
 -define(METHODS, [
@@ -83,7 +84,7 @@ get([Key | Keys], OAS) ->
 
 -spec parse_api(OAS, CTX) -> Result when
     OAS :: oas(),
-    CTX :: #ctx{},
+    CTX :: ctx(),
     Result :: erf:api().
 parse_api(OAS, CTX) ->
     Name = parse_name(OAS),
@@ -105,10 +106,10 @@ parse_api(OAS, CTX) ->
         schemas => Schemas
     }.
 
--spec parse_endpoint(Path, Endpoint, CTX) -> Result when
+-spec parse_endpoint(Path, RawEndpoint, CTX) -> Result when
     Path :: binary(),
-    Endpoint :: oas(),
-    CTX :: #ctx{},
+    RawEndpoint :: oas(),
+    CTX :: ctx(),
     Result :: {Endpoint, Schemas},
     Endpoint :: erf_parser:endpoint(),
     Schemas :: [{erf_parser:ref(), erf_parser:schema()}].
@@ -186,7 +187,7 @@ parse_name(#{<<"info">> := #{<<"title">> := Name}}) ->
     Path :: binary(),
     Method :: binary(),
     RawOperation :: oas(),
-    CTX :: #ctx{},
+    CTX :: ctx(),
     Result :: {Operation, Schemas},
     Operation :: erf_parser:operation(),
     Schemas :: [{erf_parser:ref(), erf_parser:schema()}].
@@ -272,7 +273,7 @@ parse_operation(
 
 -spec parse_parameter(OAS, CTX) -> Result when
     OAS :: oas(),
-    CTX :: #ctx{},
+    CTX :: ctx(),
     Result :: {Parameter, Schema},
     Parameter :: erf_parser:parameter(),
     Schema :: {erf_parser:ref(), erf_parser:schema()}.
@@ -349,7 +350,7 @@ parse_parameter(#{<<"schema">> := RawSchema} = RawParameter, #ctx{namespace = NS
 
 -spec resolve_ref(Ref, CTX) -> Result when
     Ref :: binary(),
-    CTX :: #ctx{},
+    CTX :: ctx(),
     Result :: {oas(), #ctx{}}.
 resolve_ref(Ref, #ctx{base_path = BasePath, oas = OAS} = CTX) ->
     [FilePath, ElementPath] = binary:split(Ref, <<"#">>, [global]),
@@ -372,7 +373,7 @@ resolve_ref(Ref, #ctx{base_path = BasePath, oas = OAS} = CTX) ->
 
 -spec parse_request_body(OAS, CTX) -> Result when
     OAS :: oas(),
-    CTX :: #ctx{},
+    CTX :: ctx(),
     Result :: erf_parser:schema().
 parse_request_body(#{<<"$ref">> := Ref}, CTX) ->
     {RequestBody, NewCTX} = resolve_ref(Ref, CTX),
@@ -394,7 +395,7 @@ parse_request_body(_ReqBody, _CTX) ->
 
 -spec parse_response_body(OAS, CTX) -> Result when
     OAS :: oas(),
-    CTX :: #ctx{},
+    CTX :: ctx(),
     Result :: erf_parser:schema().
 parse_response_body(#{<<"$ref">> := Ref}, CTX) ->
     {Response, NewCTX} = resolve_ref(Ref, CTX),
@@ -414,7 +415,7 @@ parse_response_body(_Response, _CTX) ->
 
 -spec parse_schema(OAS, CTX) -> Result when
     OAS :: oas(),
-    CTX :: #ctx{},
+    CTX :: ctx(),
     Result :: erf_parser:schema().
 parse_schema(#{<<"$ref">> := Ref}, CTX) ->
     {Schema, NewCTX} = resolve_ref(Ref, CTX),

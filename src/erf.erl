@@ -13,7 +13,7 @@
 %% limitations under the License
 
 %% @doc <code>erf</code> is a library that provides a design-first framework to build
-%% RESTful APIs in Erlang. This is the main interface to the library.
+%% RESTful APIs in Erlang.
 -module(erf).
 
 %%% INCLUDE FILES

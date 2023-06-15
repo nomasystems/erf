@@ -46,8 +46,8 @@
     id := binary(),
     method := method(),
     parameters := [parameter()],
-    request_body => ref(),
-    responses => #{
+    request_body := ref(),
+    responses := #{
         '*' | status_code() := ref()
     }
 }.

@@ -26,11 +26,13 @@
 
 %%% TYPES
 -type api() :: erf_parser:api().
+-type body() :: njson:t().
 -type conf() :: #{
     spec_path := binary(),
-    spec_format => spec_format(),
+    spec_parser => module(),
     callback := module(),
-    callback_args => list(),
+    preprocess_middlewares => [module()],
+    postprocess_middlewares => [module()],
     port => inet:port_number(),
     ssl => boolean(),
     certfile => binary(),
@@ -42,13 +44,43 @@
     body_timeout => pos_integer(),
     max_body_size => pos_integer()
 }.
--type spec_format() :: erf_parser:spec_format().
+-type header() :: {binary(), binary()}.
+-type method() ::
+    get
+    | post
+    | put
+    | delete
+    | patch
+    | head
+    | options
+    | trace
+    | connect.
+-type path_parameter() :: {binary(), binary()}.
+-type query_parameter() :: {binary(), binary()}.
+-type request() :: {
+    Path :: [binary()],
+    Method :: method(),
+    Headers :: [header()],
+    QueryParameters :: [query_parameter()],
+    Body :: body()
+}.
+-type response() :: {
+    StatusCode :: pos_integer(),
+    Headers :: [header()],
+    Body :: body()
+}.
 
 %%% TYPE EXPORTS
 -export_type([
     api/0,
+    body/0,
     conf/0,
-    spec_format/0
+    header/0,
+    method/0,
+    path_parameter/0,
+    query_parameter/0,
+    request/0,
+    response/0
 ]).
 
 %%%-----------------------------------------------------------------------------
@@ -62,8 +94,8 @@
 %% @doc Starts the supervision tree for an instance of the server.
 start_link(Conf) ->
     SpecPath = maps:get(spec_path, Conf),
-    SpecFormat = maps:get(spec_format, Conf, oas_3_0),
-    case erf_parser:parse(SpecPath, SpecFormat) of
+    SpecParser = maps:get(spec_parser, Conf, erf_oas_3_0),
+    case erf_parser:parse(SpecPath, SpecParser) of
         {ok, API} ->
             Schemas = maps:to_list(maps:get(schemas, API)),
             case build_dtos(Schemas) of
@@ -118,8 +150,12 @@ build_elli_conf(RouterMod, RawConf) ->
             ({_K, _V}) -> true
         end,
         [
-            {callback, RouterMod},
-            {callback_args, maps:get(callback_args, RawConf, [])},
+            {callback, erf_router},
+            {callback_args, [
+                {preprocess_middlewares, maps:get(preprocess_middlewares, RawConf, [])},
+                {router, RouterMod},
+                {postprocess_middlewares, maps:get(postprocess_middlewares, RawConf, [])}
+            ]},
             {port, maps:get(port, RawConf, 8080)},
             {ssl, maps:get(ssl, RawConf, false)},
             {certfile, maps:get(certfile, RawConf, undefined)},

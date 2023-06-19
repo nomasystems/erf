@@ -32,16 +32,7 @@
     parameters := [parameter()],
     operations := [operation()]
 }.
--type method() ::
-    get
-    | post
-    | put
-    | delete
-    | patch
-    | head
-    | options
-    | trace
-    | connect.
+-type method() :: erf:method().
 -type operation() :: #{
     id := binary(),
     method := method(),
@@ -61,7 +52,6 @@
 -type path() :: binary().
 -type ref() :: binary().
 -type schema() :: ndto:schema().
--type spec_format() :: oas_3_0.
 -type status_code() :: 100..599.
 
 %%% TYPE EXPORTS
@@ -72,8 +62,7 @@
     operation/0,
     parameter/0,
     ref/0,
-    schema/0,
-    spec_format/0
+    schema/0
 ]).
 
 %%%-----------------------------------------------------------------------------
@@ -88,25 +77,12 @@
 %%%-----------------------------------------------------------------------------
 %%% EXTERNAL EXPORTS
 %%%-----------------------------------------------------------------------------
--spec parse(SpecPath, SpecFormat) -> Result when
+-spec parse(SpecPath, SpecParser) -> Result when
     SpecPath :: binary(),
-    SpecFormat :: spec_format(),
+    SpecParser :: module(),
     Result :: {ok, API} | {error, Reason},
     API :: api(),
     Reason :: term().
 %% @doc Parses an specification file into an API AST given a specification format.
-parse(SpecPath, SpecFormat) ->
-    case parser(SpecFormat) of
-        {ok, Parser} ->
-            Parser:parse(SpecPath);
-        {error, Reason} ->
-            {error, Reason}
-    end.
-
-%%%-----------------------------------------------------------------------------
-%%% INTERNAL FUNCTIONS
-%%%-----------------------------------------------------------------------------
-parser(oas_3_0) ->
-    {ok, erf_parser_oas_3_0};
-parser(SpecFormat) ->
-    {error, {unsupported_spec_format, SpecFormat}}.
+parse(SpecPath, SpecParser) ->
+    SpecParser:parse(SpecPath).

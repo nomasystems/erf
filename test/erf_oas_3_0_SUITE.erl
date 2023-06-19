@@ -11,7 +11,7 @@
 %% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
--module(erf_parser_oas_3_0_SUITE).
+-module(erf_oas_3_0_SUITE).
 
 %%% EXTERNAL EXPORTS
 -compile([export_all, nowarn_export_all]).
@@ -69,7 +69,7 @@ petstore(_Conf) ->
         code:priv_dir(erf) ++ "/oas/3.0/examples/petstore.json"
     ),
 
-    {ok, PetstoreAPI} = erf_parser:parse(PetstoreOAS, oas_3_0),
+    {ok, PetstoreAPI} = erf_parser:parse(PetstoreOAS, erf_oas_3_0),
     #{
         name := <<"Swagger Petstore">>,
         version := <<"1.0.0">>,
@@ -218,7 +218,7 @@ with_refs(_Conf) ->
         code:lib_dir(erf, test) ++ "/fixtures/with_refs_oas_3_0_spec.json"
     ),
 
-    {ok, WithRefsAPI} = erf_parser:parse(WithRefsOAS, oas_3_0),
+    {ok, WithRefsAPI} = erf_parser:parse(WithRefsOAS, erf_oas_3_0),
     #{
         name := <<"With refs">>,
         version := <<"1.0.0">>,
@@ -253,7 +253,7 @@ invalid(_Conf) ->
     ),
 
     {error, {invalid_spec, <<"Invalid OpenAPI Specification 3.0">>}} = erf_parser:parse(
-        Invalid, oas_3_0
+        Invalid, erf_oas_3_0
     ),
 
     ok.

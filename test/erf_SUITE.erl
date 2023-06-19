@@ -21,7 +21,8 @@
 %%%-----------------------------------------------------------------------------
 all() ->
     [
-        foo
+        foo,
+        middlewares
     ].
 
 %%%-----------------------------------------------------------------------------
@@ -61,21 +62,16 @@ foo(_Conf) ->
     meck:expect(
         erf_callback,
         get_foo,
-        fun(_Req, _Args) ->
+        fun(_PathParameters, _Headers, _QueryParameters, _Body) ->
             {200, [], <<"bar">>}
         end
     ),
     meck:expect(
         erf_callback,
         create_foo,
-        fun(_Req, _Args) ->
+        fun(_PathParameters, _Headers, _QueryParameters, _Body) ->
             {201, [], <<"bar">>}
         end
-    ),
-    meck:expect(
-        erf_callback,
-        handle_event,
-        fun(_Event, _Data, _Args) -> ok end
     ),
 
     {ok, _Pid} = erf:start_link(#{
@@ -86,7 +82,7 @@ foo(_Conf) ->
         port => 8789
     }),
 
-    {ok, {{"HTTP/1.1", 200, "OK"}, _ResultHeaders, <<"bar">>}} = httpc:request(
+    {ok, {{"HTTP/1.1", 200, "OK"}, _ResultHeaders, <<"\"bar\"">>}} = httpc:request(
         get,
         {"http://localhost:8789/1/foo", []},
         [],
@@ -95,15 +91,63 @@ foo(_Conf) ->
 
     {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, <<>>}} = httpc:request(
         post,
-        {"http://localhost:8789/1/foo", [], "application/json", <<"foobar">>},
+        {"http://localhost:8789/1/foo", [], "application/json", <<"\"foobar\"">>},
         [],
         [{body_format, binary}]
     ),
-    {ok, {{"HTTP/1.1", 201, "Created"}, _Result3Headers, <<"bar">>}} = httpc:request(
+    {ok, {{"HTTP/1.1", 201, "Created"}, _Result3Headers, <<"\"bar\"">>}} = httpc:request(
         post,
-        {"http://localhost:8789/1/foo", [], "application/json", <<"bar">>},
+        {"http://localhost:8789/1/foo", [], "application/json", <<"\"bar\"">>},
         [],
         [{body_format, binary}]
     ),
+
+    meck:unload(erf_callback),
+
+    ok.
+
+middlewares(_Conf) ->
+    meck:new([erf_preprocess_middleware, erf_callback, erf_postprocess_middleware], [non_strict, no_link]),
+
+    meck:expect(
+        erf_preprocess_middleware,
+        preprocess,
+        fun({[_Version | Path], Method, Headers, QueryParameters, Body}) ->
+            {[<<"1">> | Path], Method, Headers, QueryParameters, Body}
+        end
+    ),
+    meck:expect(
+        erf_callback,
+        get_foo,
+        fun([{<<"version">>, <<"1">>}], _Headers, _QueryParameters, _Body) ->
+            {200, [], <<"bar">>}
+        end
+    ),
+    meck:expect(
+        erf_postprocess_middleware,
+        postprocess,
+        fun(_Req, {StatusCode, Headers, Body}) ->
+            {StatusCode, [{<<"Accept">>, <<"application/json">>} | Headers], Body}
+        end
+    ),
+
+    {ok, _Pid} = erf:start_link(#{
+        spec_path => erlang:list_to_binary(
+            code:lib_dir(erf, test) ++ "/fixtures/with_refs_oas_3_0_spec.json"
+        ),
+        preprocess_middlewares => [erf_preprocess_middleware],
+        callback => erf_callback,
+        postprocess_middlewares => [erf_postprocess_middleware],
+        port => 8789
+    }),
+
+    {ok, {{"HTTP/1.1", 200, "OK"}, _ResultHeaders, <<"\"bar\"">>}} = httpc:request(
+        get,
+        {"http://localhost:8789/2/foo", []},
+        [],
+        [{body_format, binary}]
+    ),
+
+    meck:unload([erf_preprocess_middleware, erf_callback, erf_postprocess_middleware]),
 
     ok.

@@ -13,7 +13,7 @@
 
     <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
     <script src="dist/handlebars.templates-IV5W3OL2.js"></script>
-    <script src="dist/sidebar_items-DA23C265.js"></script>
+    <script src="dist/sidebar_items-F81AE110.js"></script>
 
       <script src="docs_config.js"></script>
 
@@ -207,14 +207,6 @@ Module that parses an specification file into an API AST.
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#t:spec_format/0" translate="no">spec_format/0</a>
-
-      </div>
-
-    </div>
-
-    <div class="summary-row">
-      <div class="summary-signature">
         <a href="#t:status_code/0" translate="no">status_code/0</a>
 
       </div>
@@ -243,7 +235,7 @@ Module that parses an specification file into an API AST.
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#parse/2" translate="no">parse(SpecPath, SpecFormat)</a>
+        <a href="#parse/2" translate="no">parse(SpecPath, SpecParser)</a>
 
       </div>
 
@@ -346,7 +338,7 @@ Types
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">-type</span> method() :: get | post | put | delete | patch | head | options | trace | connect.</pre>
+          <pre translate="no"><span class="attribute">-type</span> method() :: <a href="erf.html#t:method/0">erf:method</a>().</pre>
 
       </div>
 
@@ -362,7 +354,7 @@ Types
     </a>
     <h1 class="signature" translate="no">operation/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf_parser.erl#L45" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf_parser.erl#L36" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -395,7 +387,7 @@ Types
     </a>
     <h1 class="signature" translate="no">parameter/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf_parser.erl#L54" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf_parser.erl#L45" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -423,7 +415,7 @@ Types
     </a>
     <h1 class="signature" translate="no">parameter_name/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf_parser.erl#L59" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf_parser.erl#L50" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -451,7 +443,7 @@ Types
     </a>
     <h1 class="signature" translate="no">parameter_type/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf_parser.erl#L60" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf_parser.erl#L51" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -479,7 +471,7 @@ Types
     </a>
     <h1 class="signature" translate="no">path/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf_parser.erl#L61" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf_parser.erl#L52" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -507,7 +499,7 @@ Types
     </a>
     <h1 class="signature" translate="no">ref/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf_parser.erl#L62" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf_parser.erl#L53" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -535,7 +527,7 @@ Types
     </a>
     <h1 class="signature" translate="no">schema/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf_parser.erl#L63" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf_parser.erl#L54" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -554,34 +546,6 @@ Types
 
   </section>
 </section>
-<section class="detail" id="t:spec_format/0">
-
-  <div class="detail-header">
-    <a href="#t:spec_format/0" class="detail-link" title="Link to this type">
-      <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this type</span>
-    </a>
-    <h1 class="signature" translate="no">spec_format/0</h1>
-
-      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf_parser.erl#L64" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
-
-
-  </div>
-
-  <section class="docstring">
-
-      <div class="specs">
-
-          <pre translate="no"><span class="attribute">-type</span> spec_format() :: oas_3_0.</pre>
-
-      </div>
-
-
-  </section>
-</section>
 <section class="detail" id="t:status_code/0">
 
   <div class="detail-header">
@@ -591,7 +555,7 @@ Types
     </a>
     <h1 class="signature" translate="no">status_code/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf_parser.erl#L65" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf_parser.erl#L55" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -632,7 +596,7 @@ Callbacks
     </a>
     <h1 class="signature" translate="no">parse/1</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf_parser.erl#L82" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf_parser.erl#L71" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -676,9 +640,9 @@ Functions
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">parse(SpecPath, SpecFormat)</h1>
+    <h1 class="signature" translate="no">parse(SpecPath, SpecParser)</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf_parser.erl#L98" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf_parser.erl#L87" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -690,10 +654,10 @@ Functions
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">-spec</span> parse(SpecPath, SpecFormat) -> Result
+          <pre translate="no"><span class="attribute">-spec</span> parse(SpecPath, SpecParser) -> Result
          when
              SpecPath :: binary(),
-             SpecFormat :: <a href="#t:spec_format/0">spec_format</a>(),
+             SpecParser :: module(),
              Result :: {ok, API} | {error, Reason},
              API :: <a href="#t:api/0">api</a>(),
              Reason :: term().</pre>

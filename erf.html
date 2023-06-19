@@ -13,7 +13,7 @@
 
     <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
     <script src="dist/handlebars.templates-IV5W3OL2.js"></script>
-    <script src="dist/sidebar_items-DA23C265.js"></script>
+    <script src="dist/sidebar_items-F81AE110.js"></script>
 
       <script src="docs_config.js"></script>
 
@@ -135,6 +135,14 @@ erf
 
     <div class="summary-row">
       <div class="summary-signature">
+        <a href="#t:body/0" translate="no">body/0</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
         <a href="#t:conf/0" translate="no">conf/0</a>
 
       </div>
@@ -143,7 +151,47 @@ erf
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#t:spec_format/0" translate="no">spec_format/0</a>
+        <a href="#t:header/0" translate="no">header/0</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:method/0" translate="no">method/0</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:path_parameter/0" translate="no">path_parameter/0</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:query_parameter/0" translate="no">query_parameter/0</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:request/0" translate="no">request/0</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:response/0" translate="no">response/0</a>
 
       </div>
 
@@ -207,14 +255,14 @@ Types
 
   </section>
 </section>
-<section class="detail" id="t:conf/0">
+<section class="detail" id="t:body/0">
 
   <div class="detail-header">
-    <a href="#t:conf/0" class="detail-link" title="Link to this type">
+    <a href="#t:body/0" class="detail-link" title="Link to this type">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this type</span>
     </a>
-    <h1 class="signature" translate="no">conf/0</h1>
+    <h1 class="signature" translate="no">body/0</h1>
 
       <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf.erl#L29" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
@@ -228,11 +276,40 @@ Types
 
       <div class="specs">
 
+          <pre translate="no"><span class="attribute">-type</span> body() :: <a href="https://hexdocs.pm/njson/njson.html#t:t/0">njson:t</a>().</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="t:conf/0">
+
+  <div class="detail-header">
+    <a href="#t:conf/0" class="detail-link" title="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this type</span>
+    </a>
+    <h1 class="signature" translate="no">conf/0</h1>
+
+      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf.erl#L30" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
           <pre translate="no"><span class="attribute">-type</span> conf() ::
     #{spec_path := binary(),
-      spec_format => <a href="#t:spec_format/0">spec_format</a>(),
+      spec_parser => module(),
       callback := module(),
-      callback_args => list(),
+      preprocess_middlewares => [module()],
+      postprocess_middlewares => [module()],
       port => <a href="https://www.erlang.org/doc/man/inet.html#type-port_number">inet:port_number</a>(),
       ssl => boolean(),
       certfile => binary(),
@@ -249,16 +326,16 @@ Types
 
   </section>
 </section>
-<section class="detail" id="t:spec_format/0">
+<section class="detail" id="t:header/0">
 
   <div class="detail-header">
-    <a href="#t:spec_format/0" class="detail-link" title="Link to this type">
+    <a href="#t:header/0" class="detail-link" title="Link to this type">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this type</span>
     </a>
-    <h1 class="signature" translate="no">spec_format/0</h1>
+    <h1 class="signature" translate="no">header/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf.erl#L45" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf.erl#L47" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -270,7 +347,152 @@ Types
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">-type</span> spec_format() :: <a href="erf_parser.html#t:spec_format/0">erf_parser:spec_format</a>().</pre>
+          <pre translate="no"><span class="attribute">-type</span> header() :: {binary(), binary()}.</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="t:method/0">
+
+  <div class="detail-header">
+    <a href="#t:method/0" class="detail-link" title="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this type</span>
+    </a>
+    <h1 class="signature" translate="no">method/0</h1>
+
+      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf.erl#L48" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">-type</span> method() :: get | post | put | delete | patch | head | options | trace | connect.</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="t:path_parameter/0">
+
+  <div class="detail-header">
+    <a href="#t:path_parameter/0" class="detail-link" title="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this type</span>
+    </a>
+    <h1 class="signature" translate="no">path_parameter/0</h1>
+
+      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf.erl#L58" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">-type</span> path_parameter() :: {binary(), binary()}.</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="t:query_parameter/0">
+
+  <div class="detail-header">
+    <a href="#t:query_parameter/0" class="detail-link" title="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this type</span>
+    </a>
+    <h1 class="signature" translate="no">query_parameter/0</h1>
+
+      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf.erl#L59" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">-type</span> query_parameter() :: {binary(), binary()}.</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="t:request/0">
+
+  <div class="detail-header">
+    <a href="#t:request/0" class="detail-link" title="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this type</span>
+    </a>
+    <h1 class="signature" translate="no">request/0</h1>
+
+      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf.erl#L60" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">-type</span> request() ::
+    {Path :: [binary()],
+     Method :: <a href="#t:method/0">method</a>(),
+     Headers :: [<a href="#t:header/0">header</a>()],
+     QueryParameters :: [<a href="#t:query_parameter/0">query_parameter</a>()],
+     Body :: <a href="#t:body/0">body</a>()}.</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="t:response/0">
+
+  <div class="detail-header">
+    <a href="#t:response/0" class="detail-link" title="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this type</span>
+    </a>
+    <h1 class="signature" translate="no">response/0</h1>
+
+      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf.erl#L67" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">-type</span> response() :: {StatusCode :: pos_integer(), Headers :: [<a href="#t:header/0">header</a>()], Body :: <a href="#t:body/0">body</a>()}.</pre>
 
       </div>
 
@@ -299,7 +521,7 @@ Functions
     </a>
     <h1 class="signature" translate="no">start_link(Conf)</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf.erl#L63" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf.erl#L95" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>

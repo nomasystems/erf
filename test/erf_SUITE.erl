@@ -107,7 +107,9 @@ foo(_Conf) ->
     ok.
 
 middlewares(_Conf) ->
-    meck:new([erf_preprocess_middleware, erf_callback, erf_postprocess_middleware], [non_strict, no_link]),
+    meck:new([erf_preprocess_middleware, erf_callback, erf_postprocess_middleware], [
+        non_strict, no_link
+    ]),
 
     meck:expect(
         erf_preprocess_middleware,

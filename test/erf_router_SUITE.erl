@@ -13,9 +13,6 @@
 %% limitations under the License.
 -module(erf_router_SUITE).
 
-%%% INCLUDE FILES
--include_lib("elli/include/elli.hrl").
-
 %%% EXTERNAL EXPORTS
 -compile([export_all, nowarn_export_all]).
 
@@ -141,33 +138,25 @@ foo(_Conf) ->
         ]
     ),
 
-    meck:expect(foo_callback, get_foo, fun(_Req, _Params) -> {200, [], <<"bar">>} end),
+    meck:expect(foo_callback, get_foo, fun(_PathParameters, _Headers, _QueryParameters, _Body) ->
+        {200, [], <<"bar">>}
+    end),
     meck:expect(version_foo_version, is_valid, fun(_Value) -> true end),
     meck:expect(get_foo_request_body, is_valid, fun(_Value) -> true end),
 
-    Args = [arg1, arg2],
-    Req = #req{
-        method = 'GET',
-        scheme = https,
-        host = <<"foo.com">>,
-        port = 443,
-        path = [<<"1">>, <<"foo">>],
-        args = [],
-        raw_path = <<"/1/foo">>,
-        version = {1, 1},
-        headers = [],
-        original_headers = [],
-        body = <<>>,
-        pid = erlang:self(),
-        socket = undefined,
-        callback = {foo_callback, Args}
+    Req = {
+        _Path = [<<"1">>, <<"foo">>],
+        _Method = get,
+        _QueryParameters = [],
+        _Headers = [],
+        _Body = <<>>
     },
 
-    {200, [], <<"bar">>} = Mod:handle(Req, Args),
+    {200, [], <<"bar">>} = Mod:handle(Req),
 
     meck:expect(version_foo_version, is_valid, fun(_Value) -> false end),
 
-    {400, [], <<>>} = Mod:handle(Req, Args),
+    {400, [], undefined} = Mod:handle(Req),
 
     meck:unload([
         foo_callback,

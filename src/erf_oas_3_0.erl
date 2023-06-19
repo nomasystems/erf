@@ -13,7 +13,7 @@
 %% limitations under the License
 
 %% @doc An OpenAPI Specification 3.0 <code>erf_parser</code>.
--module(erf_parser_oas_3_0).
+-module(erf_oas_3_0).
 
 %%% BEHAVIOURS
 -behaviour(erf_parser).
@@ -32,7 +32,7 @@
 
 %%% TYPES
 -type ctx() :: #ctx{}.
--type oas() :: map().
+-type oas() :: njson:t().
 
 %%% MACROS
 -define(METHODS, [

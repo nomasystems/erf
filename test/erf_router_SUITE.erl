@@ -13,6 +13,9 @@
 %% limitations under the License.
 -module(erf_router_SUITE).
 
+%%% INCLUDE FILES
+-include_lib("stdlib/include/assert.hrl").
+
 %%% EXTERNAL EXPORTS
 -compile([export_all, nowarn_export_all]).
 
@@ -152,11 +155,11 @@ foo(_Conf) ->
         _Body = <<>>
     },
 
-    {200, [], <<"bar">>} = Mod:handle(Req),
+    ?assertEqual({200, [], <<"bar">>}, Mod:handle(Req)),
 
     meck:expect(version_foo_version, is_valid, fun(_Value) -> false end),
 
-    {400, [], undefined} = Mod:handle(Req),
+    ?assertEqual({400, [], undefined}, Mod:handle(Req)),
 
     meck:unload([
         foo_callback,

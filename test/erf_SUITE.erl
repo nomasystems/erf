@@ -13,6 +13,9 @@
 %% limitations under the License.
 -module(erf_SUITE).
 
+%%% INCLUDE FILES
+-include_lib("stdlib/include/assert.hrl").
+
 %%% EXTERNAL EXPORTS
 -compile([export_all, nowarn_export_all]).
 
@@ -82,24 +85,34 @@ foo(_Conf) ->
         port => 8789
     }),
 
-    {ok, {{"HTTP/1.1", 200, "OK"}, _ResultHeaders, <<"\"bar\"">>}} = httpc:request(
-        get,
-        {"http://localhost:8789/1/foo", []},
-        [],
-        [{body_format, binary}]
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 200, "OK"}, _ResultHeaders, <<"\"bar\"">>}},
+        httpc:request(
+            get,
+            {"http://localhost:8789/1/foo", []},
+            [],
+            [{body_format, binary}]
+        )
     ),
 
-    {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, <<>>}} = httpc:request(
-        post,
-        {"http://localhost:8789/1/foo", [], "application/json", <<"\"foobar\"">>},
-        [],
-        [{body_format, binary}]
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, <<>>}},
+        httpc:request(
+            post,
+            {"http://localhost:8789/1/foo", [], "application/json", <<"\"foobar\"">>},
+            [],
+            [{body_format, binary}]
+        )
     ),
-    {ok, {{"HTTP/1.1", 201, "Created"}, _Result3Headers, <<"\"bar\"">>}} = httpc:request(
-        post,
-        {"http://localhost:8789/1/foo", [], "application/json", <<"\"bar\"">>},
-        [],
-        [{body_format, binary}]
+
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 201, "Created"}, _Result3Headers, <<"\"bar\"">>}},
+        httpc:request(
+            post,
+            {"http://localhost:8789/1/foo", [], "application/json", <<"\"bar\"">>},
+            [],
+            [{body_format, binary}]
+        )
     ),
 
     meck:unload(erf_callback),
@@ -143,11 +156,14 @@ middlewares(_Conf) ->
         port => 8789
     }),
 
-    {ok, {{"HTTP/1.1", 200, "OK"}, _ResultHeaders, <<"\"bar\"">>}} = httpc:request(
-        get,
-        {"http://localhost:8789/2/foo", []},
-        [],
-        [{body_format, binary}]
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 200, "OK"}, _ResultHeaders, <<"\"bar\"">>}},
+        httpc:request(
+            get,
+            {"http://localhost:8789/2/foo", []},
+            [],
+            [{body_format, binary}]
+        )
     ),
 
     meck:unload([erf_preprocess_middleware, erf_callback, erf_postprocess_middleware]),

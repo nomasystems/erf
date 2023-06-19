@@ -13,6 +13,9 @@
 %% limitations under the License.
 -module(erf_oas_3_0_SUITE).
 
+%%% INCLUDE FILES
+-include_lib("stdlib/include/assert.hrl").
+
 %%% EXTERNAL EXPORTS
 -compile([export_all, nowarn_export_all]).
 
@@ -70,146 +73,98 @@ petstore(_Conf) ->
     ),
 
     {ok, PetstoreAPI} = erf_parser:parse(PetstoreOAS, erf_oas_3_0),
-    #{
-        name := <<"Swagger Petstore">>,
-        version := <<"1.0.0">>,
-        schemas := #{
-            <<"list_pets_limit">> := #{
-                <<"type">> := <<"integer">>,
-                <<"maximum">> := 100
+    ?assertMatch(
+        #{
+            name := <<"Swagger Petstore">>,
+            version := <<"1.0.0">>,
+            schemas := #{
+                <<"petstore_list_pets_limit">> := #{
+                    <<"type">> := <<"integer">>,
+                    <<"maximum">> := 100
+                },
+                <<"petstore_list_pets_request_body">> := undefined,
+                <<"petstore_list_pets_response_body_200">> := #{
+                    <<"anyOf">> := [#{<<"$ref">> := <<"petstore_Pets">>}]
+                },
+                <<"petstore_list_pets_response_body_default">> := #{
+                    <<"anyOf">> := [#{<<"$ref">> := <<"petstore_Error">>}]
+                },
+                <<"petstore_create_pets_request_body">> := undefined,
+                <<"petstore_create_pets_response_body_201">> := undefined,
+                <<"petstore_create_pets_response_body_default">> := #{
+                    <<"anyOf">> := [#{<<"$ref">> := <<"petstore_Error">>}]
+                },
+                <<"petstore_show_pet_by_id_pet_id">> := #{
+                    <<"type">> := <<"string">>,
+                    <<"nullable">> := false
+                },
+                <<"petstore_show_pet_by_id_request_body">> := undefined,
+                <<"petstore_show_pet_by_id_response_body_200">> := #{
+                    <<"anyOf">> := [#{<<"$ref">> := <<"petstore_Pet">>}]
+                },
+                <<"petstore_show_pet_by_id_response_body_default">> := #{
+                    <<"anyOf">> := [#{<<"$ref">> := <<"petstore_Error">>}]
+                }
             },
-            <<"list_pets_request_body">> := undefined,
-            <<"list_pets_response_body_200">> := #{
-                <<"anyOf">> := [
-                    #{
-                        <<"items">> := #{
-                            <<"properties">> := #{
-                                <<"id">> := #{<<"type">> := <<"integer">>},
-                                <<"name">> := #{<<"type">> := <<"string">>},
-                                <<"tag">> := #{<<"type">> := <<"string">>}
-                            },
-                            <<"required">> := [<<"id">>, <<"name">>],
-                            <<"type">> := <<"object">>
+            endpoints := [
+                #{
+                    path := <<"/pets">>,
+                    parameters := [],
+                    operations := [
+                        #{
+                            id := <<"list_pets">>,
+                            method := get,
+                            parameters := [
+                                #{
+                                    ref := <<"petstore_list_pets_limit">>,
+                                    name := <<"limit">>,
+                                    type := query
+                                }
+                            ],
+                            request_body := <<"petstore_list_pets_request_body">>,
+                            responses := #{
+                                200 := <<"petstore_list_pets_response_body_200">>,
+                                '*' := <<"petstore_list_pets_response_body_default">>
+                            }
                         },
-                        <<"maxItems">> := 100,
-                        <<"type">> := <<"array">>
-                    }
-                ]
-            },
-            <<"list_pets_response_body_default">> := #{
-                <<"anyOf">> := [
-                    #{
-                        <<"properties">> := #{
-                            <<"code">> := #{<<"type">> := <<"integer">>},
-                            <<"message">> := #{<<"type">> := <<"string">>}
-                        },
-                        <<"required">> := [<<"code">>, <<"message">>],
-                        <<"type">> := <<"object">>
-                    }
-                ]
-            },
-            <<"create_pets_request_body">> := undefined,
-            <<"create_pets_response_body_201">> := undefined,
-            <<"create_pets_response_body_default">> := #{
-                <<"anyOf">> := [
-                    #{
-                        <<"properties">> := #{
-                            <<"code">> := #{<<"type">> := <<"integer">>},
-                            <<"message">> := #{<<"type">> := <<"string">>}
-                        },
-                        <<"required">> := [<<"code">>, <<"message">>],
-                        <<"type">> := <<"object">>
-                    }
-                ]
-            },
-            <<"show_pet_by_id_pet_id">> := #{
-                <<"type">> := <<"string">>,
-                <<"nullable">> := false
-            },
-            <<"show_pet_by_id_request_body">> := undefined,
-            <<"show_pet_by_id_response_body_200">> := #{
-                <<"anyOf">> := [
-                    #{
-                        <<"properties">> := #{
-                            <<"id">> := #{<<"type">> := <<"integer">>},
-                            <<"name">> := #{<<"type">> := <<"string">>},
-                            <<"tag">> := #{<<"type">> := <<"string">>}
-                        },
-                        <<"required">> := [<<"id">>, <<"name">>],
-                        <<"type">> := <<"object">>
-                    }
-                ]
-            },
-            <<"show_pet_by_id_response_body_default">> := #{
-                <<"anyOf">> := [
-                    #{
-                        <<"properties">> := #{
-                            <<"code">> := #{<<"type">> := <<"integer">>},
-                            <<"message">> := #{<<"type">> := <<"string">>}
-                        },
-                        <<"required">> := [<<"code">>, <<"message">>],
-                        <<"type">> := <<"object">>
-                    }
-                ]
-            }
+                        #{
+                            id := <<"create_pets">>,
+                            method := post,
+                            parameters := [],
+                            request_body := <<"petstore_create_pets_request_body">>,
+                            responses := #{
+                                201 := <<"petstore_create_pets_response_body_201">>,
+                                '*' := <<"petstore_create_pets_response_body_default">>
+                            }
+                        }
+                    ]
+                },
+                #{
+                    path := <<"/pets/{petId}">>,
+                    parameters := [],
+                    operations := [
+                        #{
+                            id := <<"show_pet_by_id">>,
+                            method := get,
+                            parameters := [
+                                #{
+                                    ref := <<"petstore_show_pet_by_id_pet_id">>,
+                                    name := <<"petId">>,
+                                    type := path
+                                }
+                            ],
+                            request_body := <<"petstore_show_pet_by_id_request_body">>,
+                            responses := #{
+                                200 := <<"petstore_show_pet_by_id_response_body_200">>,
+                                '*' := <<"petstore_show_pet_by_id_response_body_default">>
+                            }
+                        }
+                    ]
+                }
+            ]
         },
-        endpoints := [
-            #{
-                path := <<"/pets">>,
-                parameters := [],
-                operations := [
-                    #{
-                        id := <<"list_pets">>,
-                        method := get,
-                        parameters := [
-                            #{
-                                ref := <<"list_pets_limit">>,
-                                name := <<"limit">>,
-                                type := query
-                            }
-                        ],
-                        request_body := <<"list_pets_request_body">>,
-                        responses := #{
-                            200 := <<"list_pets_response_body_200">>,
-                            '*' := <<"list_pets_response_body_default">>
-                        }
-                    },
-                    #{
-                        id := <<"create_pets">>,
-                        method := post,
-                        parameters := [],
-                        request_body := <<"create_pets_request_body">>,
-                        responses := #{
-                            201 := <<"create_pets_response_body_201">>,
-                            '*' := <<"create_pets_response_body_default">>
-                        }
-                    }
-                ]
-            },
-            #{
-                path := <<"/pets/{petId}">>,
-                parameters := [],
-                operations := [
-                    #{
-                        id := <<"show_pet_by_id">>,
-                        method := get,
-                        parameters := [
-                            #{
-                                ref := <<"show_pet_by_id_pet_id">>,
-                                name := <<"petId">>,
-                                type := path
-                            }
-                        ],
-                        request_body := <<"show_pet_by_id_request_body">>,
-                        responses := #{
-                            200 := <<"show_pet_by_id_response_body_200">>,
-                            '*' := <<"show_pet_by_id_response_body_default">>
-                        }
-                    }
-                ]
-            }
-        ]
-    } = PetstoreAPI,
+        PetstoreAPI
+    ),
 
     ok.
 
@@ -219,31 +174,30 @@ with_refs(_Conf) ->
     ),
 
     {ok, WithRefsAPI} = erf_parser:parse(WithRefsOAS, erf_oas_3_0),
-    #{
-        name := <<"With refs">>,
-        version := <<"1.0.0">>,
-        schemas := #{
-            <<"get_foo_enabled">> := #{
-                <<"type">> := <<"boolean">>
-            },
-            <<"version_foo_version">> := #{
-                <<"type">> := <<"string">>,
-                <<"pattern">> := <<"^[0-9]+$">>,
-                <<"nullable">> := false
-            },
-            <<"delete_foo_response_body_204">> := undefined,
-            <<"delete_foo_response_body_404">> := #{
-                <<"anyOf">> := [
-                    #{
-                        <<"properties">> := #{
-                            <<"description">> := #{<<"type">> := <<"string">>}
-                        },
-                        <<"type">> := <<"object">>
-                    }
-                ]
+    ?assertMatch(
+        #{
+            name := <<"With refs">>,
+            version := <<"1.0.0">>,
+            schemas := #{
+                <<"common_oas_3_0_spec_enabled">> := #{
+                    <<"type">> := <<"boolean">>
+                },
+                <<"common_oas_3_0_spec_version">> := #{
+                    <<"type">> := <<"string">>,
+                    <<"pattern">> := <<"^[0-9]+$">>,
+                    <<"nullable">> := false
+                },
+                <<"with_refs_oas_3_0_spec_delete_foo_request_body">> := undefined,
+                <<"with_refs_oas_3_0_spec_delete_foo_response_body_204">> := #{
+                    <<"$ref">> := <<"common_oas_3_0_spec_NoContent">>
+                },
+                <<"with_refs_oas_3_0_spec_delete_foo_response_body_404">> := #{
+                    <<"$ref">> := <<"common_oas_3_0_spec_NotFound">>
+                }
             }
-        }
-    } = WithRefsAPI,
+        },
+        WithRefsAPI
+    ),
 
     ok.
 

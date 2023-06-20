@@ -607,12 +607,15 @@ preprocess_request(Req) ->
     Request :: erf:request(),
     Response :: erf:response(),
     Resp :: elli_handler:result().
-postprocess_response(_Request, {Status, Headers, {file, File}}) ->
+postprocess_response(
+    {_ReqPath, _ReqMethod, ReqHeaders, _ReqQueryParameters, _ReqBody},
+    {Status, Headers, {file, File}}
+) ->
     % File responses are handled by elli_sendfile
     Range = elli_request:get_range(
         % elli:req() mock
-        {req, 'GET', undefined, undefined, undefined, [], [], <<>>, {1, 1}, Headers, Headers, <<>>,
-            erlang:self(), undefined, {undefined, []}}
+        {req, 'GET', undefined, undefined, undefined, [], [], <<>>, {1, 1}, ReqHeaders, ReqHeaders,
+            <<>>, erlang:self(), undefined, {undefined, []}}
     ),
     {Status, Headers, {file, File, Range}};
 postprocess_response(_Request, {Status, RawHeaders, RawBody}) ->

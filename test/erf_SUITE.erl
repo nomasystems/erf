@@ -209,10 +209,10 @@ statics(_Conf) ->
     ),
 
     ?assertMatch(
-        {ok, {{"HTTP/1.1", 200, "OK"}, _ResultHeaders, Common}},
+        {ok, {{"HTTP/1.1", 206, "Partial Content"}, _ResultHeaders, <<"{">>}},
         httpc:request(
             get,
-            {"http://localhost:8789/static/common_oas_3_0_spec.json", []},
+            {"http://localhost:8789/static/common_oas_3_0_spec.json", [{"range", "bytes=0-0"}]},
             [],
             [{body_format, binary}]
         )

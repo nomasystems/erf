@@ -12,7 +12,7 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License
 
-%% @private
+%% <code>erf</code>'s router module.
 -module(erf_router).
 
 %%% INCLUDE FILES
@@ -33,15 +33,15 @@
 %%% TYPES
 -type t() :: erl_syntax:syntaxTree().
 -type callback() :: module().
--type middlewares_conf() :: proplists:proplist().
--type opts() :: #{callback := callback()}.
+-type generator_opts() :: #{callback := callback(), static_routes := [erf:static_route()]}.
+-type handler_opts() :: proplists:proplist().
 
 %%%-----------------------------------------------------------------------------
 %%% EXTERNAL EXPORTS
 %%%-----------------------------------------------------------------------------
 -spec generate(API, Opts) -> Result when
     API :: erf:api(),
-    Opts :: opts(),
+    Opts :: generator_opts(),
     Result :: {Mod, Router},
     Mod :: module(),
     Router :: t().
@@ -116,39 +116,39 @@ load(Router) ->
 %%%-----------------------------------------------------------------------------
 %%% ELLI HANDLER EXPORTS
 %%%-----------------------------------------------------------------------------
--spec handle(InitialRequest, MiddlewaresConf) -> Result when
+-spec handle(InitialRequest, HandlerOpts) -> Result when
     InitialRequest :: elli:req(),
-    MiddlewaresConf :: middlewares_conf(),
+    HandlerOpts :: handler_opts(),
     Result :: elli:response().
 %% @doc Handles an HTTP request.
 %% @private
-handle(ElliRequest, MiddlewaresConf) ->
+handle(ElliRequest, HandlerOpts) ->
     InitialRequest = preprocess_request(ElliRequest),
     Request = lists:foldl(
         fun(Middleware, ReqAcc) ->
             Middleware:preprocess(ReqAcc)
         end,
         InitialRequest,
-        proplists:get_value(preprocess_middlewares, MiddlewaresConf, [])
+        proplists:get_value(preprocess_middlewares, HandlerOpts, [])
     ),
-    Router = proplists:get_value(router, MiddlewaresConf),
+    Router = proplists:get_value(router, HandlerOpts),
     InitialResponse = Router:handle(Request),
     Response = lists:foldl(
         fun(Middleware, RespAcc) ->
             Middleware:postprocess(Request, RespAcc)
         end,
         InitialResponse,
-        proplists:get_value(postprocess_middlewares, MiddlewaresConf, [])
+        proplists:get_value(postprocess_middlewares, HandlerOpts, [])
     ),
-    postprocess_response(Response).
+    postprocess_response(Request, Response).
 
--spec handle_event(Event, Data, MiddlewaresConf) -> ok when
+-spec handle_event(Event, Data, HandlerOpts) -> ok when
     Event :: atom(),
     Data :: term(),
-    MiddlewaresConf :: proplists:proplist().
+    HandlerOpts :: handler_opts().
 %% @doc Handles an elli event.
 %% @private
-handle_event(_Event, _Data, _MiddlewaresConf) ->
+handle_event(_Event, _Data, _HandlerOpts) ->
     % TODO: address the event system
     ok.
 
@@ -174,11 +174,10 @@ chain_conditions([FunCall | Rest], Operator, Acc) ->
 
 -spec handle_ast(API, Opts) -> Result when
     API :: erf:api(),
-    Opts :: opts(),
+    Opts :: generator_opts(),
     Result :: t().
-handle_ast(API, Opts) ->
-    Callback = maps:get(callback, Opts),
-    Clauses = lists:flatmap(
+handle_ast(API, #{callback := Callback} = Opts) ->
+    RESTClauses = lists:flatmap(
         fun(Endpoint) ->
             RawPath = lists:filter(
                 fun
@@ -197,10 +196,10 @@ handle_ast(API, Opts) ->
                                 string:trim(Rest, trailing, [$}])
                             ),
                             erl_syntax:variable(erlang:binary_to_atom(ParameterName));
-                        (Part) ->
+                        (Segment) ->
                             erl_syntax:binary([
                                 erl_syntax:binary_field(
-                                    erl_syntax:string(erlang:binary_to_list(Part))
+                                    erl_syntax:string(erlang:binary_to_list(Segment))
                                 )
                             ])
                     end,
@@ -317,9 +316,144 @@ handle_ast(API, Opts) ->
         end,
         maps:get(endpoints, API, [])
     ),
+    StaticRoutes = maps:get(static_routes, Opts, []),
+    StaticClauses =
+        lists:map(
+            fun({Path, Resource}) ->
+                PathSegments = lists:filter(
+                    fun
+                        (<<>>) ->
+                            false;
+                        (_Part) ->
+                            true
+                    end,
+                    binary:split(Path, [<<"/">>], [global])
+                ),
+                {PatternPathAST, FilePathAST} =
+                    case Resource of
+                        {file, File} ->
+                            PatternPath =
+                                erl_syntax:list(
+                                    lists:map(
+                                        fun(Segment) ->
+                                            erl_syntax:binary([
+                                                erl_syntax:binary_field(
+                                                    erl_syntax:string(
+                                                        erlang:binary_to_list(Segment)
+                                                    )
+                                                )
+                                            ])
+                                        end,
+                                        PathSegments
+                                    )
+                                ),
+                            FilePath =
+                                erl_syntax:binary([
+                                    erl_syntax:binary_field(
+                                        erl_syntax:string(erlang:binary_to_list(File))
+                                    )
+                                ]),
+                            {PatternPath, FilePath};
+                        {dir, Dir} ->
+                            PatternPath =
+                                erl_syntax:list(
+                                    lists:map(
+                                        fun(Segment) ->
+                                            erl_syntax:binary([
+                                                erl_syntax:binary_field(
+                                                    erl_syntax:string(
+                                                        erlang:binary_to_list(Segment)
+                                                    )
+                                                )
+                                            ])
+                                        end,
+                                        PathSegments
+                                    ),
+                                    erl_syntax:variable('Resource')
+                                ),
+                            GetFile =
+                                erl_syntax:application(
+                                    erl_syntax:atom(filename),
+                                    erl_syntax:atom(join),
+                                    [
+                                        erl_syntax:list(
+                                            [
+                                                erl_syntax:binary([
+                                                    erl_syntax:binary_field(
+                                                        erl_syntax:string(
+                                                            erlang:binary_to_list(Dir)
+                                                        )
+                                                    )
+                                                ])
+                                            ],
+                                            erl_syntax:variable('Resource')
+                                        )
+                                    ]
+                                ),
+                            {PatternPath, GetFile}
+                    end,
+                erl_syntax:clause(
+                    [
+                        erl_syntax:tuple([
+                            PatternPathAST,
+                            erl_syntax:atom(get),
+                            erl_syntax:variable('_Headers'),
+                            erl_syntax:variable('_QueryParameters'),
+                            erl_syntax:variable('_Body')
+                        ])
+                    ],
+                    none,
+                    [
+                        erl_syntax:match_expr(
+                            erl_syntax:variable('File'),
+                            FilePathAST
+                        ),
+                        erl_syntax:tuple([
+                            erl_syntax:integer(200),
+                            erl_syntax:list([
+                                erl_syntax:tuple([
+                                    erl_syntax:binary([
+                                        erl_syntax:binary_field(
+                                            erl_syntax:string("content-type")
+                                        )
+                                    ]),
+                                    erl_syntax:application(
+                                        erl_syntax:atom(erf_static),
+                                        erl_syntax:atom(mime_type),
+                                        [
+                                            erl_syntax:application(
+                                                erl_syntax:atom(filename),
+                                                erl_syntax:atom(extension),
+                                                [erl_syntax:variable('File')]
+                                            )
+                                        ]
+                                    )
+                                ])
+                            ]),
+                            erl_syntax:tuple([erl_syntax:atom(file), erl_syntax:variable('File')])
+                        ])
+                    ]
+                )
+            end,
+            StaticRoutes
+        ),
+    NotFoundClause =
+        erl_syntax:clause(
+            [erl_syntax:variable('_Req')],
+            none,
+            [
+                erl_syntax:tuple(
+                    [
+                        erl_syntax:integer(404),
+                        erl_syntax:list([]),
+                        erl_syntax:atom(undefined)
+                    ]
+                )
+            ]
+        ),
     erl_syntax:function(
         erl_syntax:atom(handle),
-        Clauses
+        RESTClauses ++ StaticClauses ++ [NotFoundClause]
     ).
 
 -spec is_valid_request(Parameters, RequestBody) -> Result when
@@ -434,20 +568,67 @@ load_binary(ModuleName, Bin) ->
             {error, Reason}
     end.
 
+-spec preprocess_method(ElliMethod) -> Result when
+    ElliMethod :: elli_request:method(),
+    Result :: erf:method().
+preprocess_method('GET') ->
+    get;
+preprocess_method('POST') ->
+    post;
+preprocess_method('PUT') ->
+    put;
+preprocess_method('DELETE') ->
+    delete;
+preprocess_method('OPTIONS') ->
+    options;
+preprocess_method('HEAD') ->
+    head;
+preprocess_method('TRACE') ->
+    trace;
+preprocess_method(Other) when is_binary(Other) ->
+    erlang:list_to_atom(
+        string:to_lower(
+            erlang:binary_to_list(Other)
+        )
+    ).
+
 -spec preprocess_request(Req) -> Request when
     Req :: elli:req(),
     Request :: erf:request().
 preprocess_request(Req) ->
     Path = elli_request:path(Req),
-    Method = erlang:list_to_atom(string:lowercase(erlang:atom_to_list(elli_request:method(Req)))),
+    Method = preprocess_method(elli_request:method(Req)),
     Headers = elli_request:headers(Req),
     QueryParameters = elli_request:get_args_decoded(Req),
     Body = njson:decode(elli_request:body(Req)),
     {Path, Method, Headers, QueryParameters, Body}.
 
--spec postprocess_response(Response) -> Resp when
+-spec postprocess_response(Request, Response) -> Resp when
+    Request :: erf:request(),
     Response :: erf:response(),
     Resp :: elli_handler:result().
-postprocess_response(Response) ->
-    {Status, Headers, Body} = Response,
-    {Status, Headers, njson:encode(Body)}.
+postprocess_response(_Request, {Status, Headers, {file, File}}) ->
+    % File responses are handled by elli_sendfile
+    Range = elli_request:get_range(
+        % elli:req() mock
+        {req, 'GET', undefined, undefined, undefined, [], [], <<>>, {1, 1}, Headers, Headers, <<>>,
+            erlang:self(), undefined, {undefined, []}}
+    ),
+    {Status, Headers, {file, File, Range}};
+postprocess_response(_Request, {Status, RawHeaders, RawBody}) ->
+    {Headers, Body} =
+        case proplists:get_value(<<"content-type">>, RawHeaders, undefined) of
+            undefined ->
+                {
+                    [{<<"content-type">>, <<"application/json">>} | RawHeaders],
+                    njson:encode(RawBody)
+                };
+            _Otherwise ->
+                case RawBody of
+                    undefined ->
+                        {RawHeaders, <<>>};
+                    _RawBody ->
+                        {RawHeaders, RawBody}
+                end
+        end,
+    {Status, Headers, Body}.

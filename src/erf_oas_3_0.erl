@@ -320,10 +320,8 @@ parse_operation(
     ExtraSchemas :: [{erf_parser:ref(), erf_parser:schema()}],
     NewCTX :: ctx().
 parse_parameter(#{<<"$ref">> := Ref}, CTX) ->
-    %% TODO: lack of consistency
     {_RefResolved, RefOAS, RefCTX} = resolve_ref(Ref, CTX),
-    {Parameter, NewExtraSchemas, NewCTX} = parse_parameter(RefOAS, RefCTX),
-    {Parameter, NewExtraSchemas, NewCTX};
+    parse_parameter(RefOAS, RefCTX);
 parse_parameter(#{<<"content">> := Content} = RawParameter, #ctx{namespace = Namespace} = CTX) ->
     ParameterType =
         case maps:get(<<"in">>, RawParameter) of
@@ -399,8 +397,8 @@ parse_parameter(#{<<"schema">> := RawSchema} = RawParameter, #ctx{namespace = Na
 -spec parse_request_body(OAS, CTX) -> Result when
     OAS :: oas(),
     CTX :: ctx(),
-    Result :: {Schema, ExtraSchemas, NewCTX},
-    Schema :: erf_parser:schema(),
+    Result :: {RequestBody, ExtraSchemas, NewCTX},
+    RequestBody :: erf_parser:schema(),
     ExtraSchemas :: [{erf_parser:ref(), erf_parser:schema()}],
     NewCTX :: ctx().
 parse_request_body(#{<<"$ref">> := Ref}, CTX) ->
@@ -428,8 +426,8 @@ parse_request_body(_ReqBody, CTX) ->
 -spec parse_response_body(OAS, CTX) -> Result when
     OAS :: oas(),
     CTX :: ctx(),
-    Result :: {Schema, ExtraSchemas, NewCTX},
-    Schema :: erf_parser:schema(),
+    Result :: {ResponseBody, ExtraSchemas, NewCTX},
+    ResponseBody :: erf_parser:schema(),
     ExtraSchemas :: [{erf_parser:ref(), erf_parser:schema()}],
     NewCTX :: ctx().
 parse_response_body(#{<<"$ref">> := Ref}, CTX) ->

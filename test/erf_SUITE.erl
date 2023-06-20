@@ -25,7 +25,8 @@
 all() ->
     [
         foo,
-        middlewares
+        middlewares,
+        statics
     ].
 
 %%%-----------------------------------------------------------------------------
@@ -167,5 +168,54 @@ middlewares(_Conf) ->
     ),
 
     meck:unload([erf_preprocess_middleware, erf_callback, erf_postprocess_middleware]),
+
+    ok.
+
+statics(_Conf) ->
+    {ok, _Pid} = erf:start_link(#{
+        spec_path => erlang:list_to_binary(
+            code:lib_dir(erf, test) ++ "/fixtures/with_refs_oas_3_0_spec.json"
+        ),
+        callback => erf_callback,
+        port => 8789,
+        static_routes => [
+            {<<"/static">>,
+                {dir,
+                    erlang:list_to_binary(
+                        code:lib_dir(erf, test) ++ "/fixtures"
+                    )}},
+            {<<"/common">>,
+                {file,
+                    erlang:list_to_binary(
+                        code:lib_dir(erf, test) ++ "/fixtures/common_oas_3_0_spec.json"
+                    )}}
+        ]
+    }),
+
+    {ok, Common} = file:read_file(
+        erlang:list_to_binary(
+            code:lib_dir(erf, test) ++ "/fixtures/common_oas_3_0_spec.json"
+        )
+    ),
+
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 200, "OK"}, _ResultHeaders, Common}},
+        httpc:request(
+            get,
+            {"http://localhost:8789/common", []},
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 206, "Partial Content"}, _ResultHeaders, <<"{">>}},
+        httpc:request(
+            get,
+            {"http://localhost:8789/static/common_oas_3_0_spec.json", [{"range", "bytes=0-0"}]},
+            [],
+            [{body_format, binary}]
+        )
+    ),
 
     ok.

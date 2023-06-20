@@ -37,6 +37,7 @@
     ssl => boolean(),
     certfile => binary(),
     keyfile => binary(),
+    static_routes => [static_route()],
     min_acceptors => pos_integer(),
     accept_timeout => pos_integer(),
     request_timeout => pos_integer(),
@@ -67,8 +68,11 @@
 -type response() :: {
     StatusCode :: pos_integer(),
     Headers :: [header()],
-    Body :: body()
+    Body :: body() | {file, binary()}
 }.
+-type static_dir() :: {dir, binary()}.
+-type static_file() :: {file, binary()}.
+-type static_route() :: {Path :: binary(), Resource :: static_file() | static_dir()}.
 
 %%% TYPE EXPORTS
 -export_type([
@@ -176,7 +180,10 @@ build_elli_conf(RouterMod, RawConf) ->
     Module :: module(),
     Reason :: term().
 build_router(API, Conf) ->
-    {RouterMod, Router} = erf_router:generate(API, #{callback => maps:get(callback, Conf)}),
+    {RouterMod, Router} = erf_router:generate(API, #{
+        callback => maps:get(callback, Conf),
+        static_routes => maps:get(static_routes, Conf, [])
+    }),
     case erf_router:load(Router) of
         ok ->
             {ok, RouterMod};

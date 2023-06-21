@@ -38,6 +38,7 @@
     certfile => binary(),
     keyfile => binary(),
     static_routes => [static_route()],
+    swagger_ui => boolean(),
     min_acceptors => pos_integer(),
     accept_timeout => pos_integer(),
     request_timeout => pos_integer(),
@@ -84,7 +85,8 @@
     path_parameter/0,
     query_parameter/0,
     request/0,
-    response/0
+    response/0,
+    static_route/0
 ]).
 
 %%%-----------------------------------------------------------------------------
@@ -180,9 +182,28 @@ build_elli_conf(RouterMod, RawConf) ->
     Module :: module(),
     Reason :: term().
 build_router(API, Conf) ->
+    RawStaticRoutes = maps:get(static_routes, Conf, []),
+    StaticRoutes =
+        case maps:get(swagger_ui, Conf, false) of
+            true ->
+                IndexHTML =
+                    case code:priv_dir(erf) of
+                        {error, bad_name} ->
+                            {error, <<"Cannot build `swagger-ui`">>};
+                        Priv ->
+                            filename:join([Priv, <<"swagger-ui">>, <<"index.html">>])
+                    end,
+                [
+                    {<<"/swagger">>, {file, IndexHTML}},
+                    {<<"/swagger/spec.json">>, {file, maps:get(spec_path, Conf)}}
+                    | RawStaticRoutes
+                ];
+            false ->
+                RawStaticRoutes
+        end,
     {RouterMod, Router} = erf_router:generate(API, #{
         callback => maps:get(callback, Conf),
-        static_routes => maps:get(static_routes, Conf, [])
+        static_routes => StaticRoutes
     }),
     case erf_router:load(Router) of
         ok ->

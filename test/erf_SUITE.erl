@@ -26,7 +26,8 @@ all() ->
     [
         foo,
         middlewares,
-        statics
+        statics,
+        swagger_ui
     ].
 
 %%%-----------------------------------------------------------------------------
@@ -79,8 +80,8 @@ foo(_Conf) ->
     ),
 
     {ok, _Pid} = erf:start_link(#{
-        spec_path => erlang:list_to_binary(
-            code:lib_dir(erf, test) ++ "/fixtures/with_refs_oas_3_0_spec.json"
+        spec_path => filename:join(
+            code:lib_dir(erf, test), <<"fixtures/with_refs_oas_3_0_spec.json">>
         ),
         callback => erf_callback,
         port => 8789
@@ -148,8 +149,8 @@ middlewares(_Conf) ->
     ),
 
     {ok, _Pid} = erf:start_link(#{
-        spec_path => erlang:list_to_binary(
-            code:lib_dir(erf, test) ++ "/fixtures/with_refs_oas_3_0_spec.json"
+        spec_path => filename:join(
+            code:lib_dir(erf, test), <<"fixtures/with_refs_oas_3_0_spec.json">>
         ),
         preprocess_middlewares => [erf_preprocess_middleware],
         callback => erf_callback,
@@ -173,28 +174,24 @@ middlewares(_Conf) ->
 
 statics(_Conf) ->
     {ok, _Pid} = erf:start_link(#{
-        spec_path => erlang:list_to_binary(
-            code:lib_dir(erf, test) ++ "/fixtures/with_refs_oas_3_0_spec.json"
+        spec_path => filename:join(
+            code:lib_dir(erf, test), <<"fixtures/with_refs_oas_3_0_spec.json">>
         ),
         callback => erf_callback,
         port => 8789,
         static_routes => [
-            {<<"/static">>,
-                {dir,
-                    erlang:list_to_binary(
-                        code:lib_dir(erf, test) ++ "/fixtures"
-                    )}},
+            {<<"/static">>, {dir, filename:join(code:lib_dir(erf, test), <<"fixtures">>)}},
             {<<"/common">>,
                 {file,
-                    erlang:list_to_binary(
-                        code:lib_dir(erf, test) ++ "/fixtures/common_oas_3_0_spec.json"
+                    filename:join(
+                        code:lib_dir(erf, test), <<"fixtures/common_oas_3_0_spec.json">>
                     )}}
         ]
     }),
 
     {ok, Common} = file:read_file(
-        erlang:list_to_binary(
-            code:lib_dir(erf, test) ++ "/fixtures/common_oas_3_0_spec.json"
+        filename:join(
+            code:lib_dir(erf, test), <<"fixtures/common_oas_3_0_spec.json">>
         )
     ),
 
@@ -219,3 +216,39 @@ statics(_Conf) ->
     ),
 
     ok.
+
+swagger_ui(_Conf) ->
+    {ok, Petstore} = file:read_file(
+        filename:join(
+            code:priv_dir(erf), <<"oas/3.0/examples/petstore.json">>
+        )
+    ),
+
+    {ok, _Pid} = erf:start_link(#{
+        spec_path => filename:join(
+            code:priv_dir(erf), <<"oas/3.0/examples/petstore.json">>
+        ),
+        callback => erf_callback,
+        port => 8789,
+        swagger_ui => true
+    }),
+
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 200, "OK"}, _ResultHeaders, <<"<!DOCTYPE html", _SwaggerUI/binary>>}},
+        httpc:request(
+            get,
+            {"http://localhost:8789/swagger", []},
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 200, "OK"}, _ResultHeaders, Petstore}},
+        httpc:request(
+            get,
+            {"http://localhost:8789/swagger/spec.json", []},
+            [],
+            [{body_format, binary}]
+        )
+    ).

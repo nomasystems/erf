@@ -134,7 +134,9 @@ handle(ElliRequest, HandlerOpts) ->
             Request ->
                 Router:handle(Request)
         end,
-    Response = apply_postprocess_middlewares(InitialRequest, InitialResponse, PostProcessMiddlewares),
+    Response = apply_postprocess_middlewares(
+        InitialRequest, InitialResponse, PostProcessMiddlewares
+    ),
     postprocess(InitialRequest, Response).
 
 -spec handle_event(Event, Data, HandlerOpts) -> ok when

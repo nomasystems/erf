@@ -121,15 +121,33 @@ foo(_Conf) ->
     ok.
 
 middlewares(_Conf) ->
-    meck:new([erf_preprocess_middleware, erf_callback, erf_postprocess_middleware], [
-        non_strict, no_link
-    ]),
+    meck:new(
+        [
+            erf_preprocess_middleware,
+            erf_preprocess_stop_middleware,
+            erf_callback,
+            erf_postprocess_middleware
+        ],
+        [
+            non_strict, no_link
+        ]
+    ),
 
     meck:expect(
         erf_preprocess_middleware,
         preprocess,
         fun({[_Version | Path], Method, Headers, QueryParameters, Body}) ->
             {[<<"1">> | Path], Method, Headers, QueryParameters, Body}
+        end
+    ),
+    meck:expect(
+        erf_preprocess_stop_middleware,
+        preprocess,
+        fun
+            ({_Path, trace, _Headers, _QueryParameters, _Body}) ->
+                {stop, {403, [], undefined}};
+            (Req) ->
+                Req
         end
     ),
     meck:expect(
@@ -143,7 +161,7 @@ middlewares(_Conf) ->
         erf_postprocess_middleware,
         postprocess,
         fun(_Req, {StatusCode, Headers, Body}) ->
-            {StatusCode, [{<<"Accept">>, <<"application/json">>} | Headers], Body}
+            {StatusCode, [{<<"Content-Type">>, <<"application/json">>} | Headers], Body}
         end
     ),
 
@@ -151,23 +169,44 @@ middlewares(_Conf) ->
         spec_path => erlang:list_to_binary(
             code:lib_dir(erf, test) ++ "/fixtures/with_refs_oas_3_0_spec.json"
         ),
-        preprocess_middlewares => [erf_preprocess_middleware],
+        preprocess_middlewares => [erf_preprocess_middleware, erf_preprocess_stop_middleware],
         callback => erf_callback,
         postprocess_middlewares => [erf_postprocess_middleware],
         port => 8789
     }),
 
-    ?assertMatch(
-        {ok, {{"HTTP/1.1", 200, "OK"}, _ResultHeaders, <<"\"bar\"">>}},
+    {ok, {{"HTTP/1.1", ResultStatusCode, _ResultHTTPBody}, ResultHeaders, ResultBody}} =
         httpc:request(
             get,
             {"http://localhost:8789/2/foo", []},
             [],
             [{body_format, binary}]
+        ),
+    ?assertEqual(200, ResultStatusCode),
+    ?assertEqual(
+        true,
+        lists:member(
+            {"content-type", "application/json"},
+            ResultHeaders
         )
     ),
+    ?assertEqual(<<"\"bar\"">>, ResultBody),
 
-    meck:unload([erf_preprocess_middleware, erf_callback, erf_postprocess_middleware]),
+    {ok, {{"HTTP/1.1", Result2StatusCode, _Result2HTTPBody}, _Result2Headers, _Result2Body}} =
+        httpc:request(
+            trace,
+            {"http://localhost:8789/2/foo", []},
+            [],
+            [{body_format, binary}]
+        ),
+    ?assertEqual(403, Result2StatusCode),
+
+    meck:unload([
+        erf_preprocess_middleware,
+        erf_preprocess_stop_middleware,
+        erf_callback,
+        erf_postprocess_middleware
+    ]),
 
     ok.
 

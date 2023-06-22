@@ -20,4 +20,4 @@
 %%%-----------------------------------------------------------------------------
 -callback preprocess(Request) -> Result when
     Request :: erf:request(),
-    Result :: erf:request().
+    Result :: erf:request() | {stop, erf:response()}.

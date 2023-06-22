@@ -123,24 +123,21 @@ load(Router) ->
 %% @doc Handles an HTTP request.
 %% @private
 handle(ElliRequest, HandlerOpts) ->
-    InitialRequest = preprocess_request(ElliRequest),
-    Request = lists:foldl(
-        fun(Middleware, ReqAcc) ->
-            Middleware:preprocess(ReqAcc)
-        end,
-        InitialRequest,
-        proplists:get_value(preprocess_middlewares, HandlerOpts, [])
-    ),
+    InitialRequest = preprocess(ElliRequest),
+    PreProcessMiddlewares = proplists:get_value(preprocess_middlewares, HandlerOpts, []),
     Router = proplists:get_value(router, HandlerOpts),
-    InitialResponse = Router:handle(Request),
-    Response = lists:foldl(
-        fun(Middleware, RespAcc) ->
-            Middleware:postprocess(Request, RespAcc)
+    PostProcessMiddlewares = proplists:get_value(postprocess_middlewares, HandlerOpts, []),
+    InitialResponse =
+        case apply_preprocess_middlewares(InitialRequest, PreProcessMiddlewares) of
+            {stop, Resp} ->
+                Resp;
+            Request ->
+                Router:handle(Request)
         end,
-        InitialResponse,
-        proplists:get_value(postprocess_middlewares, HandlerOpts, [])
+    Response = apply_postprocess_middlewares(
+        InitialRequest, InitialResponse, PostProcessMiddlewares
     ),
-    postprocess_response(Request, Response).
+    postprocess(InitialRequest, Response).
 
 -spec handle_event(Event, Data, HandlerOpts) -> ok when
     Event :: atom(),
@@ -155,6 +152,31 @@ handle_event(_Event, _Data, _HandlerOpts) ->
 %%%-----------------------------------------------------------------------------
 %%% INTERNAL FUNCTIONS
 %%%-----------------------------------------------------------------------------
+-spec apply_preprocess_middlewares(Request, Middlewares) -> Result when
+    Request :: erf:request(),
+    Middlewares :: [erf_preprocess_middleware:callback()],
+    Result :: erf:request() | {stop, erf:response()}.
+apply_preprocess_middlewares(Request, []) ->
+    Request;
+apply_preprocess_middlewares(RawRequest, [Middleware | Rest]) ->
+    case Middleware:preprocess(RawRequest) of
+        {stop, Response} ->
+            {stop, Response};
+        Request ->
+            apply_preprocess_middlewares(Request, Rest)
+    end.
+
+-spec apply_postprocess_middlewares(Request, Response, Middlewares) -> Result when
+    Request :: erf:request(),
+    Response :: erf:response(),
+    Middlewares :: [erf_postprocess_middleware:callback()],
+    Result :: erf:response().
+apply_postprocess_middlewares(_Request, Response, []) ->
+    Response;
+apply_postprocess_middlewares(Request, RawResponse, [Middleware | Rest]) ->
+    Response = Middleware:postprocess(Request, RawResponse),
+    apply_postprocess_middlewares(Request, Response, Rest).
+
 -spec chain_conditions(FunCalls, Operator) -> Result when
     FunCalls :: [erl_syntax:syntaxTree()],
     Operator :: 'andalso',
@@ -568,6 +590,50 @@ load_binary(ModuleName, Bin) ->
             {error, Reason}
     end.
 
+-spec postprocess(Request, Response) -> Resp when
+    Request :: erf:request(),
+    Response :: erf:response(),
+    Resp :: elli_handler:result().
+postprocess(
+    {_ReqPath, _ReqMethod, ReqHeaders, _ReqQueryParameters, _ReqBody},
+    {Status, Headers, {file, File}}
+) ->
+    % File responses are handled by elli_sendfile
+    Range = elli_request:get_range(
+        % elli:req() mock
+        {req, 'GET', undefined, undefined, undefined, [], [], <<>>, {1, 1}, ReqHeaders, ReqHeaders,
+            <<>>, erlang:self(), undefined, {undefined, []}}
+    ),
+    {Status, Headers, {file, File, Range}};
+postprocess(_Request, {Status, RawHeaders, RawBody}) ->
+    {Headers, Body} =
+        case proplists:get_value(<<"content-type">>, RawHeaders, undefined) of
+            undefined ->
+                {
+                    [{<<"content-type">>, <<"application/json">>} | RawHeaders],
+                    njson:encode(RawBody)
+                };
+            _Otherwise ->
+                case RawBody of
+                    undefined ->
+                        {RawHeaders, <<>>};
+                    _RawBody ->
+                        {RawHeaders, RawBody}
+                end
+        end,
+    {Status, Headers, Body}.
+
+-spec preprocess(Req) -> Request when
+    Req :: elli:req(),
+    Request :: erf:request().
+preprocess(Req) ->
+    Path = elli_request:path(Req),
+    Method = preprocess_method(elli_request:method(Req)),
+    Headers = elli_request:headers(Req),
+    QueryParameters = elli_request:get_args_decoded(Req),
+    Body = njson:decode(elli_request:body(Req)),
+    {Path, Method, Headers, QueryParameters, Body}.
+
 -spec preprocess_method(ElliMethod) -> Result when
     ElliMethod :: elli_request:method(),
     Result :: erf:method().
@@ -591,47 +657,3 @@ preprocess_method(Other) when is_binary(Other) ->
             erlang:binary_to_list(Other)
         )
     ).
-
--spec preprocess_request(Req) -> Request when
-    Req :: elli:req(),
-    Request :: erf:request().
-preprocess_request(Req) ->
-    Path = elli_request:path(Req),
-    Method = preprocess_method(elli_request:method(Req)),
-    Headers = elli_request:headers(Req),
-    QueryParameters = elli_request:get_args_decoded(Req),
-    Body = njson:decode(elli_request:body(Req)),
-    {Path, Method, Headers, QueryParameters, Body}.
-
--spec postprocess_response(Request, Response) -> Resp when
-    Request :: erf:request(),
-    Response :: erf:response(),
-    Resp :: elli_handler:result().
-postprocess_response(
-    {_ReqPath, _ReqMethod, ReqHeaders, _ReqQueryParameters, _ReqBody},
-    {Status, Headers, {file, File}}
-) ->
-    % File responses are handled by elli_sendfile
-    Range = elli_request:get_range(
-        % elli:req() mock
-        {req, 'GET', undefined, undefined, undefined, [], [], <<>>, {1, 1}, ReqHeaders, ReqHeaders,
-            <<>>, erlang:self(), undefined, {undefined, []}}
-    ),
-    {Status, Headers, {file, File, Range}};
-postprocess_response(_Request, {Status, RawHeaders, RawBody}) ->
-    {Headers, Body} =
-        case proplists:get_value(<<"content-type">>, RawHeaders, undefined) of
-            undefined ->
-                {
-                    [{<<"content-type">>, <<"application/json">>} | RawHeaders],
-                    njson:encode(RawBody)
-                };
-            _Otherwise ->
-                case RawBody of
-                    undefined ->
-                        {RawHeaders, <<>>};
-                    _RawBody ->
-                        {RawHeaders, RawBody}
-                end
-        end,
-    {Status, Headers, Body}.

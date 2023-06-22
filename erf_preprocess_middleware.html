@@ -168,7 +168,8 @@ Callbacks
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">-callback</span> preprocess(Request) -> Result when Request :: <a href="erf.html#t:request/0">erf:request</a>(), Result :: <a href="erf.html#t:request/0">erf:request</a>().</pre>
+          <pre translate="no"><span class="attribute">-callback</span> preprocess(Request) -> Result
+              when Request :: <a href="erf.html#t:request/0">erf:request</a>(), Result :: <a href="erf.html#t:request/0">erf:request</a>() | {stop, <a href="erf.html#t:response/0">erf:response</a>()}.</pre>
 
       </div>
 

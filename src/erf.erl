@@ -62,8 +62,8 @@
 -type request() :: {
     Path :: [binary()],
     Method :: method(),
-    Headers :: [header()],
     QueryParameters :: [query_parameter()],
+    Headers :: [header()],
     Body :: body()
 }.
 -type response() :: {

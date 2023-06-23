@@ -274,8 +274,8 @@ handle_ast(API, #{callback := Callback} = Opts) ->
                             erl_syntax:tuple([
                                 Path,
                                 Method,
-                                erl_syntax:variable('Headers'),
                                 erl_syntax:variable('QueryParameters'),
+                                erl_syntax:variable('Headers'),
                                 erl_syntax:variable('Body')
                             ])
                         ],
@@ -308,8 +308,8 @@ handle_ast(API, #{callback := Callback} = Opts) ->
                                                 ),
                                                 [
                                                     erl_syntax:variable('PathParameters'),
-                                                    erl_syntax:variable('Headers'),
                                                     erl_syntax:variable('QueryParameters'),
+                                                    erl_syntax:variable('Headers'),
                                                     erl_syntax:variable('Body')
                                                 ]
                                             )
@@ -419,8 +419,8 @@ handle_ast(API, #{callback := Callback} = Opts) ->
                         erl_syntax:tuple([
                             PatternPathAST,
                             erl_syntax:atom(get),
-                            erl_syntax:variable('_Headers'),
                             erl_syntax:variable('_QueryParameters'),
+                            erl_syntax:variable('_Headers'),
                             erl_syntax:variable('_Body')
                         ])
                     ],
@@ -595,7 +595,7 @@ load_binary(ModuleName, Bin) ->
     Response :: erf:response(),
     Resp :: elli_handler:result().
 postprocess(
-    {_ReqPath, _ReqMethod, ReqHeaders, _ReqQueryParameters, _ReqBody},
+    {_ReqPath, _ReqMethod, _ReqQueryParameters, ReqHeaders, _ReqBody},
     {Status, Headers, {file, File}}
 ) ->
     % File responses are handled by elli_sendfile
@@ -629,10 +629,10 @@ postprocess(_Request, {Status, RawHeaders, RawBody}) ->
 preprocess(Req) ->
     Path = elli_request:path(Req),
     Method = preprocess_method(elli_request:method(Req)),
-    Headers = elli_request:headers(Req),
     QueryParameters = elli_request:get_args_decoded(Req),
+    Headers = elli_request:headers(Req),
     Body = njson:decode(elli_request:body(Req)),
-    {Path, Method, Headers, QueryParameters, Body}.
+    {Path, Method, QueryParameters, Headers, Body}.
 
 -spec preprocess_method(ElliMethod) -> Result when
     ElliMethod :: elli_request:method(),

@@ -138,7 +138,7 @@ middlewares(_Conf) ->
         erf_preprocess_middleware,
         preprocess,
         fun({[_Version | Path], Method, QueryParameters, Headers, Body}) ->
-            {[<<"1">> | Path], Method,  QueryParameters, Headers, Body}
+            {[<<"1">> | Path], Method, QueryParameters, Headers, Body}
         end
     ),
     meck:expect(

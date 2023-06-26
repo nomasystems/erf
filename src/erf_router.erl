@@ -17,6 +17,7 @@
 
 %%% INCLUDE FILES
 -include("erf_generator.hrl").
+-include_lib("kernel/include/logger.hrl").
 
 %%% EXTERNAL EXPORTS
 -export([
@@ -145,8 +146,24 @@ handle(ElliRequest, HandlerOpts) ->
     HandlerOpts :: handler_opts().
 %% @doc Handles an elli event.
 %% @private
+handle_event(request_throw, [Request, Exception, Stacktrace], HandlerOpts) ->
+    LogLevel = proplists:get_value(log_level, HandlerOpts),
+    ?LOG(LogLevel, "[erf] Request ~p threw exception ~p:~n~p", [Request, Exception, Stacktrace]);
+handle_event(request_error, [Request, Exception, Stacktrace], HandlerOpts) ->
+    LogLevel = proplists:get_value(log_level, HandlerOpts),
+    ?LOG(LogLevel, "[erf] Request ~p errored with exception ~p.~nStacktrace:~n~p", [
+        preprocess(Request), Exception, Stacktrace
+    ]);
+handle_event(request_exit, [Request, Exception, Stacktrace], HandlerOpts) ->
+    LogLevel = proplists:get_value(log_level, HandlerOpts),
+    ?LOG(LogLevel, "[erf] Request ~p exited with exception ~p.~nStacktrace:~n~p", [
+        preprocess(Request), Exception, Stacktrace
+    ]);
+handle_event(file_error, [ErrorReason], HandlerOpts) ->
+    LogLevel = proplists:get_value(log_level, HandlerOpts),
+    ?LOG(LogLevel, "[erf] Returning file errored with reason: ~p", [ErrorReason]);
 handle_event(_Event, _Data, _HandlerOpts) ->
-    % TODO: address the event system
+    % TODO: take better advantage of the event system
     ok.
 
 %%%-----------------------------------------------------------------------------

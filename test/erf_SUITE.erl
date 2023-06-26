@@ -67,14 +67,14 @@ foo(_Conf) ->
     meck:expect(
         erf_callback,
         get_foo,
-        fun(_PathParameters, _Headers, _QueryParameters, _Body) ->
+        fun(_PathParameters, _QueryParameters, _Headers, _Body) ->
             {200, [], <<"bar">>}
         end
     ),
     meck:expect(
         erf_callback,
         create_foo,
-        fun(_PathParameters, _Headers, _QueryParameters, _Body) ->
+        fun(_PathParameters, _QueryParameters, _Headers, _Body) ->
             {201, [], <<"bar">>}
         end
     ),
@@ -137,15 +137,15 @@ middlewares(_Conf) ->
     meck:expect(
         erf_preprocess_middleware,
         preprocess,
-        fun({[_Version | Path], Method, Headers, QueryParameters, Body}) ->
-            {[<<"1">> | Path], Method, Headers, QueryParameters, Body}
+        fun({[_Version | Path], Method, QueryParameters, Headers, Body}) ->
+            {[<<"1">> | Path], Method, QueryParameters, Headers, Body}
         end
     ),
     meck:expect(
         erf_preprocess_stop_middleware,
         preprocess,
         fun
-            ({_Path, trace, _Headers, _QueryParameters, _Body}) ->
+            ({_Path, trace, _QueryParameters, _Headers, _Body}) ->
                 {stop, {403, [], undefined}};
             (Req) ->
                 Req
@@ -154,7 +154,7 @@ middlewares(_Conf) ->
     meck:expect(
         erf_callback,
         get_foo,
-        fun([{<<"version">>, <<"1">>}], _Headers, _QueryParameters, _Body) ->
+        fun([{<<"version">>, <<"1">>}], _QueryParameters, _Headers, _Body) ->
             {200, [], <<"bar">>}
         end
     ),

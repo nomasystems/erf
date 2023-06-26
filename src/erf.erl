@@ -44,7 +44,8 @@
     request_timeout => pos_integer(),
     header_timeout => pos_integer(),
     body_timeout => pos_integer(),
-    max_body_size => pos_integer()
+    max_body_size => pos_integer(),
+    log_level => logger:level()
 }.
 -type header() :: {binary(), binary()}.
 -type method() ::
@@ -160,7 +161,8 @@ build_elli_conf(RouterMod, RawConf) ->
             {callback_args, [
                 {preprocess_middlewares, maps:get(preprocess_middlewares, RawConf, [])},
                 {router, RouterMod},
-                {postprocess_middlewares, maps:get(postprocess_middlewares, RawConf, [])}
+                {postprocess_middlewares, maps:get(postprocess_middlewares, RawConf, [])},
+                {log_level, maps:get(log_level, RawConf, error)}
             ]},
             {port, maps:get(port, RawConf, 8080)},
             {ssl, maps:get(ssl, RawConf, false)},

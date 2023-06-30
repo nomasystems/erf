@@ -27,7 +27,8 @@ all() ->
         foo,
         middlewares,
         statics,
-        swagger_ui
+        swagger_ui,
+        start_stop
     ].
 
 %%%-----------------------------------------------------------------------------
@@ -291,3 +292,27 @@ swagger_ui(_Conf) ->
             [{body_format, binary}]
         )
     ).
+
+start_stop(_Conf) ->
+    {ok, Pid} = erf:start_link(#{
+        spec_path => filename:join(
+            code:lib_dir(erf, test), <<"fixtures/with_refs_oas_3_0_spec.json">>
+        ),
+        callback => erf_callback,
+        port => 8789,
+        name => erf_server
+    }),
+
+    ?assertMatch(
+        {state, _, _, _, _, _},
+        sys:get_state(Pid)
+    ),
+
+    ok = erf:stop(erf_server),
+
+    ?assertExit(
+        {noproc, {sys, get_state, [Pid]}},
+        sys:get_state(Pid)
+    ),
+
+    ok.

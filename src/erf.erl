@@ -21,7 +21,8 @@
 
 %%% START/STOP EXPORTS
 -export([
-    start_link/1
+    start_link/1,
+    stop/1
 ]).
 
 %%% TYPES
@@ -39,6 +40,7 @@
     keyfile => binary(),
     static_routes => [static_route()],
     swagger_ui => boolean(),
+    name => atom(),
     min_acceptors => pos_integer(),
     accept_timeout => pos_integer(),
     request_timeout => pos_integer(),
@@ -90,6 +92,11 @@
     static_route/0
 ]).
 
+%%% MACROS
+-define(ELLI_SERVER_NAME(Name),
+    (erlang:binary_to_atom(<<"erf_", (erlang:atom_to_binary(Name))/binary>>))
+).
+
 %%%-----------------------------------------------------------------------------
 %%% START/STOP EXPORTS
 %%%-----------------------------------------------------------------------------
@@ -121,6 +128,13 @@ start_link(Conf) ->
             {error, Reason}
     end.
 
+-spec stop(Name) -> ok when
+    Name :: atom().
+%% @doc Stops the supervision tree for an instance of the server.
+stop(Name) ->
+    elli:stop(?ELLI_SERVER_NAME(Name)),
+    ok.
+
 %%%-----------------------------------------------------------------------------
 %%% INTERNAL FUNCTIONS
 %%%-----------------------------------------------------------------------------
@@ -151,6 +165,13 @@ build_dtos([{Ref, Schema} | Schemas]) ->
     Conf :: conf(),
     ElliConf :: [{atom(), term()}].
 build_elli_conf(RouterMod, RawConf) ->
+    Name =
+        case maps:get(name, RawConf, undefined) of
+            undefined ->
+                undefined;
+            RawName ->
+                {local, ?ELLI_SERVER_NAME(RawName)}
+        end,
     lists:filter(
         fun
             ({_K, undefined}) -> false;
@@ -168,6 +189,7 @@ build_elli_conf(RouterMod, RawConf) ->
             {ssl, maps:get(ssl, RawConf, false)},
             {certfile, maps:get(certfile, RawConf, undefined)},
             {keyfile, maps:get(keyfile, RawConf, undefined)},
+            {name, Name},
             {min_acceptors, maps:get(min_acceptors, RawConf, undefined)},
             {accept_timeout, maps:get(accept_timeout, RawConf, undefined)},
             {request_timeout, maps:get(request_timeout, RawConf, undefined)},

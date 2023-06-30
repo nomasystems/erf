@@ -391,8 +391,9 @@ parse_parameter(#{<<"schema">> := RawSchema} = RawParameter, #ctx{namespace = Na
         name => ParameterName,
         type => ParameterType
     },
-    ParameterSchema = RawSchema#{<<"nullable">> => not Required},
-    {Parameter, [{ParameterRef, ParameterSchema}], CTX}.
+    {RawParameterSchema, NewExtraSchemas, NewCTX} = parse_schema(RawSchema, CTX),
+    ParameterSchema = maps:put(<<"nullable">>, not Required, RawParameterSchema),
+    {Parameter, [{ParameterRef, ParameterSchema} | NewExtraSchemas], NewCTX}.
 
 -spec parse_request_body(OAS, CTX) -> Result when
     OAS :: oas(),

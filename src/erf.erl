@@ -93,7 +93,9 @@
 ]).
 
 %%% MACROS
--define(ELLI_SERVER_NAME(Name), (erlang:binary_to_atom(<<"erf_", (erlang:atom_to_binary(Name))/binary>>))).
+-define(ELLI_SERVER_NAME(Name),
+    (erlang:binary_to_atom(<<"erf_", (erlang:atom_to_binary(Name))/binary>>))
+).
 
 %%%-----------------------------------------------------------------------------
 %%% START/STOP EXPORTS
@@ -130,7 +132,8 @@ start_link(Conf) ->
     Name :: atom().
 %% @doc Stops the supervision tree for an instance of the server.
 stop(Name) ->
-    elli:stop(?ELLI_SERVER_NAME(Name)).
+    elli:stop(?ELLI_SERVER_NAME(Name)),
+    ok.
 
 %%%-----------------------------------------------------------------------------
 %%% INTERNAL FUNCTIONS

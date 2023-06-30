@@ -311,7 +311,7 @@ start_stop(_Conf) ->
     ok = erf:stop(erf_server),
 
     ?assertExit(
-        {noproc,{sys,get_state,[Pid]}},
+        {noproc, {sys, get_state, [Pid]}},
         sys:get_state(Pid)
     ),
 

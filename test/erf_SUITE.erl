@@ -303,7 +303,7 @@ swagger_ui(_Conf) ->
             [{body_format, binary}]
         )
     ),
-    
+
     ok = erf:stop(erf_server).
 
 start_stop(_Conf) ->

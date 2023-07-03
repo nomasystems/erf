@@ -13,7 +13,7 @@
 
     <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
     <script src="dist/handlebars.templates-IV5W3OL2.js"></script>
-    <script src="dist/sidebar_items-38402E9B.js"></script>
+    <script src="dist/sidebar_items-776A5F26.js"></script>
 
       <script src="docs_config.js"></script>
 
@@ -229,6 +229,34 @@ erf
 
     <div class="summary-row">
       <div class="summary-signature">
+        <a href="#get_router/1" translate="no">get_router(Name)</a>
+
+      </div>
+
+        <div class="summary-synopsis">Returns the router for an instance of the server.</div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#init/1" translate="no">init(_)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#reload_conf/2" translate="no">reload_conf(Name, Conf)</a>
+
+      </div>
+
+        <div class="summary-synopsis">Reloads the configuration for an instance of the server.</div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
         <a href="#start_link/1" translate="no">start_link(Conf)</a>
 
       </div>
@@ -270,7 +298,7 @@ Types
     </a>
     <h1 class="signature" translate="no">api/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf.erl#L29" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf.erl#L43" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -298,7 +326,7 @@ Types
     </a>
     <h1 class="signature" translate="no">body/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf.erl#L30" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf.erl#L44" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -326,7 +354,7 @@ Types
     </a>
     <h1 class="signature" translate="no">conf/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf.erl#L31" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf.erl#L45" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -373,7 +401,7 @@ Types
     </a>
     <h1 class="signature" translate="no">header/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf.erl#L52" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf.erl#L66" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -401,7 +429,7 @@ Types
     </a>
     <h1 class="signature" translate="no">method/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf.erl#L53" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf.erl#L67" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -429,7 +457,7 @@ Types
     </a>
     <h1 class="signature" translate="no">path_parameter/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf.erl#L63" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf.erl#L77" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -457,7 +485,7 @@ Types
     </a>
     <h1 class="signature" translate="no">query_parameter/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf.erl#L64" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf.erl#L78" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -485,7 +513,7 @@ Types
     </a>
     <h1 class="signature" translate="no">request/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf.erl#L65" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf.erl#L79" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -518,7 +546,7 @@ Types
     </a>
     <h1 class="signature" translate="no">response/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf.erl#L72" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf.erl#L86" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -547,7 +575,7 @@ Types
     </a>
     <h1 class="signature" translate="no">static_dir/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf.erl#L77" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf.erl#L91" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -575,7 +603,7 @@ Types
     </a>
     <h1 class="signature" translate="no">static_file/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf.erl#L78" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf.erl#L92" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -603,7 +631,7 @@ Types
     </a>
     <h1 class="signature" translate="no">static_route/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf.erl#L79" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf.erl#L93" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -635,6 +663,94 @@ Types
 Functions
     </h1>
     <div class="functions-list">
+<section class="detail" id="get_router/1">
+
+  <div class="detail-header">
+    <a href="#get_router/1" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">get_router(Name)</h1>
+
+      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf.erl#L155" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">-spec</span> get_router(Name) -> Result
+              when
+                  Name :: atom(),
+                  Result :: {ok, Router} | {error, Reason},
+                  Router :: binary(),
+                  Reason :: term().</pre>
+
+      </div>
+
+Returns the router for an instance of the server.
+  </section>
+</section>
+<section class="detail" id="init/1">
+
+  <div class="detail-header">
+    <a href="#init/1" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">init(_)</h1>
+
+      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf.erl#L204" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+
+  </section>
+</section>
+<section class="detail" id="reload_conf/2">
+
+  <div class="detail-header">
+    <a href="#reload_conf/2" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">reload_conf(Name, Conf)</h1>
+
+      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf.erl#L176" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">-spec</span> reload_conf(Name, Conf) -> Result
+               when
+                   Name :: atom(),
+                   Conf :: <a href="erf_conf.html#t:t/0">erf_conf:t</a>(),
+                   Result :: ok | {error, Reason},
+                   Reason :: term().</pre>
+
+      </div>
+
+Reloads the configuration for an instance of the server.
+  </section>
+</section>
 <section class="detail" id="start_link/1">
 
   <div class="detail-header">
@@ -644,7 +760,7 @@ Functions
     </a>
     <h1 class="signature" translate="no">start_link(Conf)</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf.erl#L109" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf.erl#L123" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -677,7 +793,7 @@ Starts the supervision tree for an instance of the server.
     </a>
     <h1 class="signature" translate="no">stop(Name)</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf.erl#L134" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/v0.0.1/src/erf.erl#L136" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -689,7 +805,7 @@ Starts the supervision tree for an instance of the server.
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">-spec</span> stop(Name) -> ok when Name :: atom().</pre>
+          <pre translate="no"><span class="attribute">-spec</span> stop(Name) -> Result when Name :: atom(), Result :: ok | {error, Reason}, Reason :: term().</pre>
 
       </div>
 

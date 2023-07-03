@@ -25,9 +25,10 @@ dist/merriweather-latin-ext-300-normal-K6L27CZ5.woff2
 dist/merriweather-vietnamese-300-italic-EHHNZPUO.woff2
 dist/merriweather-vietnamese-300-normal-U376L4Z4.woff2
 dist/remixicon-NKANDIL5.woff2
-dist/search_items-F4B46F2D.js
-dist/sidebar_items-38402E9B.js
+dist/search_items-BDC316C8.js
+dist/sidebar_items-776A5F26.js
 erf.html
+erf_conf.html
 erf_oas_3_0.html
 erf_parser.html
 erf_postprocess_middleware.html

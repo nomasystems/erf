@@ -35,7 +35,6 @@
 -type t() :: erl_syntax:syntaxTree().
 -type callback() :: module().
 -type generator_opts() :: #{callback := callback(), static_routes := [erf:static_route()]}.
--type handler_opts() :: proplists:proplist().
 
 %%%-----------------------------------------------------------------------------
 %%% EXTERNAL EXPORTS
@@ -117,52 +116,52 @@ load(Router) ->
 %%%-----------------------------------------------------------------------------
 %%% ELLI HANDLER EXPORTS
 %%%-----------------------------------------------------------------------------
--spec handle(InitialRequest, HandlerOpts) -> Result when
+-spec handle(InitialRequest, CallbackArgs) -> Result when
     InitialRequest :: elli:req(),
-    HandlerOpts :: handler_opts(),
+    CallbackArgs :: [Name :: atom()],
     Result :: elli:response().
 %% @doc Handles an HTTP request.
 %% @private
-handle(ElliRequest, HandlerOpts) ->
+handle(ElliRequest, [Name]) ->
+    {ok, PreProcessMiddlewares} = erf_conf:preprocess_middlewares(Name),
+    {ok, RouterMod} = erf_conf:router_mod(Name),
+    {ok, PostProcessMiddlewares} = erf_conf:postprocess_middlewares(Name),
     InitialRequest = preprocess(ElliRequest),
-    PreProcessMiddlewares = proplists:get_value(preprocess_middlewares, HandlerOpts, []),
-    Router = proplists:get_value(router, HandlerOpts),
-    PostProcessMiddlewares = proplists:get_value(postprocess_middlewares, HandlerOpts, []),
     InitialResponse =
         case apply_preprocess_middlewares(InitialRequest, PreProcessMiddlewares) of
             {stop, Resp} ->
                 Resp;
             Request ->
-                Router:handle(Request)
+                RouterMod:handle(Request)
         end,
     Response = apply_postprocess_middlewares(
         InitialRequest, InitialResponse, PostProcessMiddlewares
     ),
     postprocess(InitialRequest, Response).
 
--spec handle_event(Event, Data, HandlerOpts) -> ok when
+-spec handle_event(Event, Data, CallbackArgs) -> ok when
     Event :: atom(),
     Data :: term(),
-    HandlerOpts :: handler_opts().
+    CallbackArgs :: [Name :: atom()].
 %% @doc Handles an elli event.
 %% @private
-handle_event(request_throw, [Request, Exception, Stacktrace], HandlerOpts) ->
-    LogLevel = proplists:get_value(log_level, HandlerOpts),
+handle_event(request_throw, [Request, Exception, Stacktrace], [Name]) ->
+    {ok, LogLevel} = erf_conf:log_level(Name),
     ?LOG(LogLevel, "[erf] Request ~p threw exception ~p:~n~p", [Request, Exception, Stacktrace]);
-handle_event(request_error, [Request, Exception, Stacktrace], HandlerOpts) ->
-    LogLevel = proplists:get_value(log_level, HandlerOpts),
+handle_event(request_error, [Request, Exception, Stacktrace], [Name]) ->
+    {ok, LogLevel} = erf_conf:log_level(Name),
     ?LOG(LogLevel, "[erf] Request ~p errored with exception ~p.~nStacktrace:~n~p", [
         preprocess(Request), Exception, Stacktrace
     ]);
-handle_event(request_exit, [Request, Exception, Stacktrace], HandlerOpts) ->
-    LogLevel = proplists:get_value(log_level, HandlerOpts),
+handle_event(request_exit, [Request, Exception, Stacktrace], [Name]) ->
+    {ok, LogLevel} = erf_conf:log_level(Name),
     ?LOG(LogLevel, "[erf] Request ~p exited with exception ~p.~nStacktrace:~n~p", [
         preprocess(Request), Exception, Stacktrace
     ]);
-handle_event(file_error, [ErrorReason], HandlerOpts) ->
-    LogLevel = proplists:get_value(log_level, HandlerOpts),
+handle_event(file_error, [ErrorReason], [Name]) ->
+    {ok, LogLevel} = erf_conf:log_level(Name),
     ?LOG(LogLevel, "[erf] Returning file errored with reason: ~p", [ErrorReason]);
-handle_event(_Event, _Data, _HandlerOpts) ->
+handle_event(_Event, _Data, _CallbackArgs) ->
     % TODO: take better advantage of the event system
     ok.
 

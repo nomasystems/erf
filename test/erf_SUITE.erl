@@ -28,7 +28,8 @@ all() ->
         middlewares,
         statics,
         swagger_ui,
-        start_stop
+        start_stop,
+        reload_conf
     ].
 
 %%%-----------------------------------------------------------------------------
@@ -85,7 +86,8 @@ foo(_Conf) ->
             code:lib_dir(erf, test), <<"fixtures/with_refs_oas_3_0_spec.json">>
         ),
         callback => erf_callback,
-        port => 8789
+        port => 8789,
+        name => erf_server
     }),
 
     ?assertMatch(
@@ -117,6 +119,8 @@ foo(_Conf) ->
             [{body_format, binary}]
         )
     ),
+
+    ok = erf:stop(erf_server),
 
     meck:unload(erf_callback),
 
@@ -174,7 +178,8 @@ middlewares(_Conf) ->
         preprocess_middlewares => [erf_preprocess_middleware, erf_preprocess_stop_middleware],
         callback => erf_callback,
         postprocess_middlewares => [erf_postprocess_middleware],
-        port => 8789
+        port => 8789,
+        name => erf_server
     }),
 
     {ok, {{"HTTP/1.1", ResultStatusCode, _ResultHTTPBody}, ResultHeaders, ResultBody}} =
@@ -203,6 +208,8 @@ middlewares(_Conf) ->
         ),
     ?assertEqual(403, Result2StatusCode),
 
+    ok = erf:stop(erf_server),
+
     meck:unload([
         erf_preprocess_middleware,
         erf_preprocess_stop_middleware,
@@ -226,7 +233,8 @@ statics(_Conf) ->
                     filename:join(
                         code:lib_dir(erf, test), <<"fixtures/common_oas_3_0_spec.json">>
                     )}}
-        ]
+        ],
+        name => erf_server
     }),
 
     {ok, Common} = file:read_file(
@@ -255,6 +263,8 @@ statics(_Conf) ->
         )
     ),
 
+    ok = erf:stop(erf_server),
+
     ok.
 
 swagger_ui(_Conf) ->
@@ -270,7 +280,8 @@ swagger_ui(_Conf) ->
         ),
         callback => erf_callback,
         port => 8789,
-        swagger_ui => true
+        swagger_ui => true,
+        name => erf_server
     }),
 
     ?assertMatch(
@@ -291,7 +302,9 @@ swagger_ui(_Conf) ->
             [],
             [{body_format, binary}]
         )
-    ).
+    ),
+    
+    ok = erf:stop(erf_server).
 
 start_stop(_Conf) ->
     {ok, Pid} = erf:start_link(#{
@@ -303,16 +316,74 @@ start_stop(_Conf) ->
         name => erf_server
     }),
 
-    ?assertMatch(
-        {state, _, _, _, _, _},
+    ?assertNotException(
+        exit,
+        {_Reason, {sys, get_state, [Pid]}},
         sys:get_state(Pid)
     ),
 
     ok = erf:stop(erf_server),
 
     ?assertExit(
-        {noproc, {sys, get_state, [Pid]}},
+        {_Reason, {sys, get_state, [Pid]}},
         sys:get_state(Pid)
     ),
+
+    ok.
+
+reload_conf(_Conf) ->
+    meck:new([erf_callback, erf_callback_2], [non_strict, no_link]),
+
+    meck:expect(
+        erf_callback,
+        get_foo,
+        fun(_PathParameters, _QueryParameters, _Headers, _Body) ->
+            {200, [], <<"bar">>}
+        end
+    ),
+
+    meck:expect(
+        erf_callback_2,
+        get_foo,
+        fun(_PathParameters, _QueryParameters, _Headers, _Body) ->
+            {200, [], <<"baz">>}
+        end
+    ),
+
+    {ok, _Pid} = erf:start_link(#{
+        spec_path => filename:join(
+            code:lib_dir(erf, test), <<"fixtures/with_refs_oas_3_0_spec.json">>
+        ),
+        callback => erf_callback,
+        port => 8789,
+        name => erf_server
+    }),
+
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 200, "OK"}, _ResultHeaders, <<"\"bar\"">>}},
+        httpc:request(
+            get,
+            {"http://localhost:8789/1/foo", []},
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
+    ok = erf:reload_conf(erf_server, #{callback => erf_callback_2}),
+
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 200, "OK"}, _Result2Headers, <<"\"baz\"">>}},
+        httpc:request(
+            get,
+            {"http://localhost:8789/1/foo", []},
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
+    erf:stop(erf_server),
+
+    meck:unload(erf_callback),
+    meck:unload(erf_callback_2),
 
     ok.

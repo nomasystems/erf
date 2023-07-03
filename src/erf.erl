@@ -16,6 +16,9 @@
 %% RESTful APIs in Erlang.
 -module(erf).
 
+%%% BEHAVIOURS
+-behaviour(supervisor).
+
 %%% INCLUDE FILES
 -include_lib("kernel/include/logger.hrl").
 
@@ -23,6 +26,17 @@
 -export([
     start_link/1,
     stop/1
+]).
+
+%%% EXTERNAL EXPORTS
+-export([
+    get_router/1,
+    reload_conf/2
+]).
+
+%%% INIT/TERMINATE EXPORTS
+-export([
+    init/1
 ]).
 
 %%% TYPES
@@ -107,33 +121,127 @@
     Reason :: term().
 %% @doc Starts the supervision tree for an instance of the server.
 start_link(Conf) ->
-    SpecPath = maps:get(spec_path, Conf),
-    SpecParser = maps:get(spec_parser, Conf, erf_oas_3_0),
-    case erf_parser:parse(SpecPath, SpecParser) of
-        {ok, API} ->
-            Schemas = maps:to_list(maps:get(schemas, API)),
-            case build_dtos(Schemas) of
-                ok ->
-                    case build_router(API, Conf) of
-                        {ok, RouterMod} ->
-                            ElliConf = build_elli_conf(RouterMod, Conf),
-                            elli:start_link(ElliConf);
-                        {error, Reason} ->
-                            {error, Reason}
-                    end;
-                {error, Reason} ->
-                    {error, Reason}
+    Name = maps:get(name, Conf, erf),
+    supervisor:start_link(
+        {local, Name},
+        ?MODULE,
+        [Name, Conf]
+    ).
+
+-spec stop(Name) -> Result when
+    Name :: atom(),
+    Result :: ok | {error, Reason},
+    Reason :: term().
+%% @doc Stops the supervision tree for an instance of the server.
+stop(Name) ->
+    case erlang:whereis(Name) of
+        undefined ->
+            {error, server_not_started};
+        Pid ->
+            true = erlang:exit(Pid, normal),
+            erf_conf:clear(Name),
+            ok
+    end.
+
+%%%-----------------------------------------------------------------------------
+%%% EXTERNAL EXPORTS
+%%%-----------------------------------------------------------------------------
+-spec get_router(Name) -> Result when
+    Name :: atom(),
+    Result :: {ok, Router} | {error, Reason},
+    Router :: binary(),
+    Reason :: term().
+%% @doc Returns the router for an instance of the server.
+get_router(Name) ->
+    case erf_conf:router(Name) of
+        {ok, RawRouter} ->
+            case unicode:characters_to_binary(erl_prettypr:format(RawRouter)) of
+                {error, _Bin, _RestData} ->
+                    {error, cannot_format_router};
+                {incomplete, _Bin, _RestData} ->
+                    {error, cannot_format_router};
+                Router ->
+                    {ok, Router}
             end;
+        {error, not_found} ->
+            {error, server_not_started}
+    end.
+
+-spec reload_conf(Name, Conf) -> Result when
+    Name :: atom(),
+    Conf :: erf_conf:t(),
+    Result :: ok | {error, Reason},
+    Reason :: term().
+%% @doc Reloads the configuration for an instance of the server.
+reload_conf(Name, NewConf) ->
+    OldConf =
+        case erf_conf:get(Name) of
+            {error, not_found} ->
+                #{};
+            {ok, Old} ->
+                Old
+        end,
+
+    Conf = maps:merge(OldConf, NewConf),
+
+    SpecPath = maps:get(spec_path, Conf),
+    SpecParser = maps:get(spec_parser, Conf),
+    Callback = maps:get(callback, Conf),
+    StaticRoutes = maps:get(static_routes, Conf),
+    SwaggerUI = maps:get(swagger_ui, Conf),
+
+    case build_router(SpecPath, SpecParser, Callback, StaticRoutes, SwaggerUI) of
+        {ok, RouterMod, Router} ->
+            erf_conf:set(Name, Conf#{router_mod => RouterMod, router => Router}),
+            ok;
         {error, Reason} ->
             {error, Reason}
     end.
 
--spec stop(Name) -> ok when
-    Name :: atom().
-%% @doc Stops the supervision tree for an instance of the server.
-stop(Name) ->
-    elli:stop(?ELLI_SERVER_NAME(Name)),
-    ok.
+%%%-----------------------------------------------------------------------------
+%%% INIT/TERMINATE EXPORTS
+%%%-----------------------------------------------------------------------------
+init([Name, RawConf]) ->
+    RawErfConf = #{
+        spec_path => maps:get(spec_path, RawConf),
+        spec_parser => maps:get(spec_parser, RawConf, erf_oas_3_0),
+        callback => maps:get(callback, RawConf),
+        static_routes => maps:get(static_routes, RawConf, []),
+        swagger_ui => maps:get(swagger_ui, RawConf, false),
+        preprocess_middlewares => maps:get(preprocess_middlewares, RawConf, []),
+        postprocess_middlewares => maps:get(postprocess_middlewares, RawConf, []),
+        log_level => maps:get(log_level, RawConf, error)
+    },
+
+    SpecPath = maps:get(spec_path, RawErfConf),
+    SpecParser = maps:get(spec_parser, RawErfConf),
+    Callback = maps:get(callback, RawErfConf),
+    StaticRoutes = maps:get(static_routes, RawErfConf),
+    SwaggerUI = maps:get(swagger_ui, RawErfConf),
+
+    case build_router(SpecPath, SpecParser, Callback, StaticRoutes, SwaggerUI) of
+        {ok, RouterMod, Router} ->
+            ErfConf = RawErfConf#{router_mod => RouterMod, router => Router},
+            ok = erf_conf:set(Name, ErfConf),
+
+            ElliConf = build_elli_conf(RawConf),
+            SupFlags = #{
+                strategy => one_for_one,
+                intensity => 1,
+                period => 5
+            },
+            ChildSpec = {
+                Name,
+                {elli, start_link, [ElliConf]},
+                permanent,
+                5000,
+                worker,
+                [elli]
+            },
+            {ok, {SupFlags, [ChildSpec]}};
+        {error, Reason} ->
+            {stop, Reason}
+    end.
 
 %%%-----------------------------------------------------------------------------
 %%% INTERNAL FUNCTIONS
@@ -160,18 +268,11 @@ build_dtos([{Ref, Schema} | Schemas]) ->
             {error, {dto_loading_failed, Errors}}
     end.
 
--spec build_elli_conf(RouterMod, Conf) -> ElliConf when
-    RouterMod :: module(),
+-spec build_elli_conf(Conf) -> ElliConf when
     Conf :: conf(),
     ElliConf :: [{atom(), term()}].
-build_elli_conf(RouterMod, RawConf) ->
-    Name =
-        case maps:get(name, RawConf, undefined) of
-            undefined ->
-                undefined;
-            RawName ->
-                {local, ?ELLI_SERVER_NAME(RawName)}
-        end,
+build_elli_conf(Conf) ->
+    Name = maps:get(name, Conf, erf),
     lists:filter(
         fun
             ({_K, undefined}) -> false;
@@ -179,67 +280,76 @@ build_elli_conf(RouterMod, RawConf) ->
         end,
         [
             {callback, erf_router},
-            {callback_args, [
-                {preprocess_middlewares, maps:get(preprocess_middlewares, RawConf, [])},
-                {router, RouterMod},
-                {postprocess_middlewares, maps:get(postprocess_middlewares, RawConf, [])},
-                {log_level, maps:get(log_level, RawConf, error)}
-            ]},
-            {port, maps:get(port, RawConf, 8080)},
-            {ssl, maps:get(ssl, RawConf, false)},
-            {certfile, maps:get(certfile, RawConf, undefined)},
-            {keyfile, maps:get(keyfile, RawConf, undefined)},
-            {name, Name},
-            {min_acceptors, maps:get(min_acceptors, RawConf, undefined)},
-            {accept_timeout, maps:get(accept_timeout, RawConf, undefined)},
-            {request_timeout, maps:get(request_timeout, RawConf, undefined)},
-            {header_timeout, maps:get(header_timeout, RawConf, undefined)},
-            {body_timeout, maps:get(body_timeout, RawConf, undefined)},
-            {max_body_size, maps:get(max_body_size, RawConf, undefined)}
+            {callback_args, [Name]},
+            {port, maps:get(port, Conf, 8080)},
+            {ssl, maps:get(ssl, Conf, false)},
+            {certfile, maps:get(certfile, Conf, undefined)},
+            {keyfile, maps:get(keyfile, Conf, undefined)},
+            {name, {local, ?ELLI_SERVER_NAME(Name)}},
+            {min_acceptors, maps:get(min_acceptors, Conf, undefined)},
+            {accept_timeout, maps:get(accept_timeout, Conf, undefined)},
+            {request_timeout, maps:get(request_timeout, Conf, undefined)},
+            {header_timeout, maps:get(header_timeout, Conf, undefined)},
+            {body_timeout, maps:get(body_timeout, Conf, undefined)},
+            {max_body_size, maps:get(max_body_size, Conf, undefined)}
         ]
     ).
 
--spec build_router(API, Conf) -> Result when
-    API :: api(),
-    Conf :: conf(),
-    Result :: {ok, Module} | {error, Reason},
-    Module :: module(),
+-spec build_router(SpecPath, SpecParser, Callback, StaticRoutes, SwaggerUI) -> Result when
+    SpecPath :: binary(),
+    SpecParser :: module(),
+    Callback :: module(),
+    StaticRoutes :: [static_route()],
+    SwaggerUI :: boolean(),
+    Result :: {ok, RouterMod, Router} | {error, Reason},
+    RouterMod :: module(),
+    Router :: erl_syntax:syntaxTree(),
     Reason :: term().
-build_router(API, Conf) ->
-    RawStaticRoutes = maps:get(static_routes, Conf, []),
-    StaticRoutes =
-        case maps:get(swagger_ui, Conf, false) of
-            true ->
-                IndexHTML =
-                    case code:priv_dir(erf) of
-                        {error, bad_name} ->
-                            {error, <<"Cannot build `swagger-ui`">>};
-                        Priv ->
-                            filename:join([Priv, <<"swagger-ui">>, <<"index.html">>])
-                    end,
-                [
-                    {<<"/swagger">>, {file, IndexHTML}},
-                    {<<"/swagger/spec.json">>, {file, maps:get(spec_path, Conf)}}
-                    | RawStaticRoutes
-                ];
-            false ->
-                RawStaticRoutes
-        end,
-    {RouterMod, Router} = erf_router:generate(API, #{
-        callback => maps:get(callback, Conf),
-        static_routes => StaticRoutes
-    }),
-    case erf_router:load(Router) of
-        ok ->
-            {ok, RouterMod};
-        {ok, Warnings} ->
-            log_warnings(Warnings, <<"router generation">>),
-            {ok, RouterMod};
-        error ->
-            {error, {router_loading_failed, [unknown_error]}};
-        {error, {Errors, Warnings}} ->
-            log_warnings(Warnings, <<"router generation">>),
-            {error, {router_loading_failed, Errors}}
+build_router(SpecPath, SpecParser, Callback, RawStaticRoutes, SwaggerUI) ->
+    case erf_parser:parse(SpecPath, SpecParser) of
+        {ok, API} ->
+            Schemas = maps:to_list(maps:get(schemas, API)),
+            case build_dtos(Schemas) of
+                ok ->
+                    StaticRoutes =
+                        case SwaggerUI of
+                            true ->
+                                IndexHTML =
+                                    case code:priv_dir(erf) of
+                                        {error, bad_name} ->
+                                            {error, <<"Cannot build `swagger-ui`">>};
+                                        Priv ->
+                                            filename:join([Priv, <<"swagger-ui">>, <<"index.html">>])
+                                    end,
+                                [
+                                    {<<"/swagger">>, {file, IndexHTML}},
+                                    {<<"/swagger/spec.json">>, {file, SpecPath}}
+                                    | RawStaticRoutes
+                                ];
+                            false ->
+                                RawStaticRoutes
+                        end,
+                    {RouterMod, Router} = erf_router:generate(API, #{
+                        callback => Callback,
+                        static_routes => StaticRoutes
+                    }),
+                    case erf_router:load(Router) of
+                        ok ->
+                            {ok, RouterMod, Router};
+                        {ok, Warnings} ->
+                            log_warnings(Warnings, <<"router generation">>),
+                            {ok, RouterMod, Router};
+                        error ->
+                            {error, {router_loading_failed, [unknown_error]}};
+                        {error, {Errors, Warnings}} ->
+                            log_warnings(Warnings, <<"router generation">>),
+                            {error, {router_loading_failed, Errors}}
+                    end;
+                {error, Reason} ->
+                    {error, Reason}
+            end;
+        {error, Reason} ->
+            {error, Reason}
     end.
 
 -spec log_warnings(Warnings, Step) -> ok when

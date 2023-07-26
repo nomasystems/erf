@@ -1,5 +1,6 @@
 # erf - Erlang REST Framework
-![erf ci](https://github.com/nomasystems/erf/actions/workflows/ci.yml/badge.svg)
+[![erf ci](https://github.com/nomasystems/erf/actions/workflows/ci.yml/badge.svg)](https://github.com/nomasystems/erf/actions/workflows/ci.yml)
+[![erf docs](https://github.com/nomasystems/erf/actions/workflows/docs.yml/badge.svg)](https://nomasystems.github.io/erf)
 
 A design-first Erlang REST framework.
 

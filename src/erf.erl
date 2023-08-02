@@ -326,7 +326,7 @@ build_router(SpecPath, SpecParser, Callback, RawStaticRoutes, SwaggerUI) ->
                                     {<<"/swagger/spec.json">>, {file, SpecPath}}
                                     | RawStaticRoutes
                                 ];
-                            _false ->
+                            _False ->
                                 RawStaticRoutes
                         end,
                     {RouterMod, Router} = erf_router:generate(API, #{

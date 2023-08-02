@@ -119,7 +119,7 @@ load(Router) ->
 -spec handle(InitialRequest, CallbackArgs) -> Result when
     InitialRequest :: elli:req(),
     CallbackArgs :: [Name :: atom()],
-    Result :: elli:response().
+    Result :: elli_handler:result().
 %% @doc Handles an HTTP request.
 %% @private
 handle(ElliRequest, [Name]) ->
@@ -170,7 +170,7 @@ handle_event(_Event, _Data, _CallbackArgs) ->
 %%%-----------------------------------------------------------------------------
 -spec apply_preprocess_middlewares(Request, Middlewares) -> Result when
     Request :: erf:request(),
-    Middlewares :: [erf_preprocess_middleware:callback()],
+    Middlewares :: [erf_preprocess_middleware:t()],
     Result :: erf:request() | {stop, erf:response()}.
 apply_preprocess_middlewares(Request, []) ->
     Request;
@@ -185,7 +185,7 @@ apply_preprocess_middlewares(RawRequest, [Middleware | Rest]) ->
 -spec apply_postprocess_middlewares(Request, Response, Middlewares) -> Result when
     Request :: erf:request(),
     Response :: erf:response(),
-    Middlewares :: [erf_postprocess_middleware:callback()],
+    Middlewares :: [erf_postprocess_middleware:t()],
     Result :: erf:response().
 apply_postprocess_middlewares(_Request, Response, []) ->
     Response;
@@ -651,7 +651,7 @@ preprocess(Req) ->
     {Path, Method, QueryParameters, Headers, Body}.
 
 -spec preprocess_method(ElliMethod) -> Result when
-    ElliMethod :: elli_request:method(),
+    ElliMethod :: elli:http_method(),
     Result :: erf:method().
 preprocess_method('GET') ->
     get;
@@ -661,15 +661,13 @@ preprocess_method('PUT') ->
     put;
 preprocess_method('DELETE') ->
     delete;
-preprocess_method('OPTIONS') ->
-    options;
+preprocess_method(<<"PATCH">>) ->
+    patch;
 preprocess_method('HEAD') ->
     head;
+preprocess_method('OPTIONS') ->
+    options;
 preprocess_method('TRACE') ->
     trace;
-preprocess_method(Other) when is_binary(Other) ->
-    erlang:list_to_atom(
-        string:to_lower(
-            erlang:binary_to_list(Other)
-        )
-    ).
+preprocess_method(<<"CONNECT">>) ->
+    connect.

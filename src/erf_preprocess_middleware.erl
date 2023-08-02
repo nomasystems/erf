@@ -15,6 +15,15 @@
 %% @doc Behaviour for <code>erf</code>'s preprocessing middlewares.
 -module(erf_preprocess_middleware).
 
+%%% TYPES
+-type t() :: module().
+% A module that implements this behaviour.
+
+%%% TYPE EXPORTS
+-export_type([
+    t/0
+]).
+
 %%%-----------------------------------------------------------------------------
 %%% CALLBACKS
 %%%-----------------------------------------------------------------------------

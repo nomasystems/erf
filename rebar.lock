@@ -8,7 +8,7 @@
   1},
  {<<"ndto">>,
   {git,"git@github.com:nomasystems/ndto.git",
-       {ref,"48941b5b29498d45bfbb9c6d05c18ec17c66e051"}},
+       {ref,"1b8f5cc67f4da2850008fb16b56e7954a47727ca"}},
   0},
  {<<"njson">>,
   {git,"git@github.com:nomasystems/njson.git",

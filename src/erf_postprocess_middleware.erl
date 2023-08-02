@@ -15,6 +15,15 @@
 %% @doc Behaviour for <code>erf</code>'s postprocessing middlewares.
 -module(erf_postprocess_middleware).
 
+%%% TYPES
+-type t() :: module().
+% A module that implements this behaviour.
+
+%%% TYPE EXPORTS
+-export_type([
+    t/0
+]).
+
 %%%-----------------------------------------------------------------------------
 %%% CALLBACKS
 %%%-----------------------------------------------------------------------------

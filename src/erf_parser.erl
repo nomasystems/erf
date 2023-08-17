@@ -12,7 +12,7 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License
 
-%% @doc Module that parses an specification file into an API AST.
+%% @doc Module that parses a specification file into an API AST.
 -module(erf_parser).
 
 %%% EXTERNAL EXPORTS

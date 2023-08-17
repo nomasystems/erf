@@ -188,7 +188,7 @@ A detailed description of each parameter can be found in the following list:
 
 `erf` dynamically generates a router that type check the received requests against the API specification. If the request passes the validation, it is deconstructed and passed to the callback module. But, how does the callback module must look like?
 
-`erf` expects your callback module to export one function per operation defined in your API specification. It also expects each operation to include an `operationId` that, after being transformed to _snake_case_, will identify the function that is going to be called. Regarding the expected arguments in those functions, `erf` will provide 4 arguments that include the variable data of the request (i.e., that data that cannot be inferred just from the `operationId`):
+The router expects your callback module to export one function per operation defined in your API specification. It also expects each operation to include an `operationId` that, after being transformed to _snake_case_, will identify the function that is going to be called. Regarding the expected arguments in those functions, `erf` will provide 4 arguments that include the variable data of the request (i.e., that data that cannot be inferred just from the `operationId`):
 - `PathParameters :: [{Name :: binary(), Value :: binary()}]`
 - `QueryParameters :: [{Name :: binary(), Value :: binary()}]`
 - `Headers :: [{Name :: binary(), Value :: binary()}]`
@@ -203,6 +203,7 @@ The design principles behind `erf` allow its instances to be reconfigured in run
 
 The following type spec corresponds to the runtime configuration of an `erf` instance. At the same time, is the type spec of the second argument for the `erf:reload/2` function.
 ```erl
+%%% erf_conf.erl
 -type t() :: #{
     callback => module(),
     log_level => logger:level(),
@@ -222,6 +223,7 @@ The following type spec corresponds to the runtime configuration of an `erf` ins
 
 As shown in [`erf` configuration](#erf-configuration), the server supports routes that serve static files. The type spec for static routes is the following:
 ```erl
+%%% erf.erl
 -type static_dir() :: {dir, binary()}.
 -type static_file() :: {file, binary()}.
 -type static_route() :: {Path :: binary(), Resource :: static_file() | static_dir()}.

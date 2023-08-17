@@ -8,7 +8,7 @@
 
 When following a code-first approach to develop APIs, the interface is produced as a result of the implementation and, therefore, client-side code, integration tests and other parts of the system that depend on the API behaviour, need to wait until the server-side work is done.
 
-Design-first is an approach to API development that prioritises the design of the API before its implementation. The explicit contract produced in this design, that should be the result of an agreement between the stakeholders of the API, aims to reduce bottlenecks in the development process.
+Design-first is an approach to API development that prioritises the design of the API before its implementation. The explicit contract produced in this design, which should be the result of an agreement between the stakeholders of the API, aims to reduce bottlenecks in the development process.
 
 ## How does `erf` help developing design-first RESTful services?
 

@@ -153,13 +153,13 @@ The configuration is provided as map with the following type spec:
     keyfile => binary(),
     static_routes => [static_route()],
     swagger_ui => boolean(),
-    min_acceptors => pos_integer(), % defaults to 20
-    accept_timeout => pos_integer(), % defaults to 10000
-    request_timeout => pos_integer(), % defaults to 60000
-    header_timeout => pos_integer(), % defaults to 10000
-    body_timeout => pos_integer(), % defaults to 30000
-    max_body_size => pos_integer(), % defaults to 1024000
-    log_level => logger:level() % defaults to error
+    min_acceptors => pos_integer(),
+    accept_timeout => pos_integer(),
+    request_timeout => pos_integer(),
+    header_timeout => pos_integer(),
+    body_timeout => pos_integer(),
+    max_body_size => pos_integer(),
+    log_level => logger:level()
 }.
 ```
 

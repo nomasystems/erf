@@ -44,17 +44,17 @@
 -type body() :: njson:t().
 -type conf() :: #{
     spec_path := binary(),
-    spec_parser => module(),
     callback := module(),
+    port => inet:port_number(),
+    name => atom(),
+    spec_parser => module(),
     preprocess_middlewares => [module()],
     postprocess_middlewares => [module()],
-    port => inet:port_number(),
     ssl => boolean(),
     certfile => binary(),
     keyfile => binary(),
     static_routes => [static_route()],
     swagger_ui => boolean(),
-    name => atom(),
     min_acceptors => pos_integer(),
     accept_timeout => pos_integer(),
     request_timeout => pos_integer(),
@@ -286,12 +286,12 @@ build_elli_conf(Conf) ->
             {certfile, maps:get(certfile, Conf, undefined)},
             {keyfile, maps:get(keyfile, Conf, undefined)},
             {name, {local, ?ELLI_SERVER_NAME(Name)}},
-            {min_acceptors, maps:get(min_acceptors, Conf, undefined)},
-            {accept_timeout, maps:get(accept_timeout, Conf, undefined)},
-            {request_timeout, maps:get(request_timeout, Conf, undefined)},
-            {header_timeout, maps:get(header_timeout, Conf, undefined)},
-            {body_timeout, maps:get(body_timeout, Conf, undefined)},
-            {max_body_size, maps:get(max_body_size, Conf, undefined)}
+            {min_acceptors, maps:get(min_acceptors, Conf, 20)},
+            {accept_timeout, maps:get(accept_timeout, Conf, 10000)},
+            {request_timeout, maps:get(request_timeout, Conf, 60000)},
+            {header_timeout, maps:get(header_timeout, Conf, 10000)},
+            {body_timeout, maps:get(body_timeout, Conf, 30000)},
+            {max_body_size, maps:get(max_body_size, Conf, 1024000)}
         ]
     ).
 

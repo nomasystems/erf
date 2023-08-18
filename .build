@@ -1,9 +1,10 @@
 404.html
 api-reference.html
+contributing.html
 dist/handlebars.runtime-NWIB6V2M.js
-dist/handlebars.templates-XWGFFSCD.js
-dist/html-JDI3AVDD.js
-dist/html-erlang-AUG7C7KY.css
+dist/handlebars.templates-NBND3S2D.js
+dist/html-B3DGGEY7.js
+dist/html-erlang-6R3HDDY5.css
 dist/inconsolata-latin-400-normal-RGKDDNDD.woff2
 dist/inconsolata-latin-700-normal-DTS2D7TO.woff2
 dist/inconsolata-latin-ext-400-normal-K7HVGTP7.woff2
@@ -27,8 +28,8 @@ dist/merriweather-latin-ext-300-normal-K6L27CZ5.woff2
 dist/merriweather-vietnamese-300-italic-EHHNZPUO.woff2
 dist/merriweather-vietnamese-300-normal-U376L4Z4.woff2
 dist/remixicon-NKANDIL5.woff2
-dist/search_items-F667C901.js
-dist/sidebar_items-E847828E.js
+dist/search_data-0006086A.js
+dist/sidebar_items-6C4D6244.js
 erf.html
 erf_conf.html
 erf_oas_3_0.html

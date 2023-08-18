@@ -4,20 +4,20 @@
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="generator" content="ExDoc v0.29.4">
+    <meta name="generator" content="ExDoc v0.30.5">
     <meta name="project" content="erf v0.0.1">
 
     <title>Overview — erf v0.0.1</title>
-    <link rel="stylesheet" href="dist/html-erlang-AUG7C7KY.css" />
+    <link rel="stylesheet" href="dist/html-erlang-6R3HDDY5.css" />
 
 
     <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
-    <script src="dist/handlebars.templates-XWGFFSCD.js"></script>
-    <script src="dist/sidebar_items-E847828E.js"></script>
+    <script src="dist/handlebars.templates-NBND3S2D.js"></script>
+    <script src="dist/sidebar_items-6C4D6244.js"></script>
 
       <script src="docs_config.js"></script>
 
-    <script async src="dist/html-JDI3AVDD.js"></script>
+    <script async src="dist/html-B3DGGEY7.js"></script>
 
 
   </head>
@@ -102,45 +102,219 @@ erf
     </a>
 
 
-  <span>erf - Erlang REST Framework</span>
+  <span>erf - A design-first Erlang REST Framework</span>
 </h1>
 
 <p><a href="https://github.com/nomasystems/erf/actions/workflows/ci.yml"><img src="https://github.com/nomasystems/erf/actions/workflows/ci.yml/badge.svg" alt="erf ci"/></a>
-<a href="https://nomasystems.github.io/erf"><img src="https://github.com/nomasystems/erf/actions/workflows/docs.yml/badge.svg" alt="erf docs"/></a></p><p>A design-first Erlang REST framework.</p><h2 id="specification-requirements" class="section-heading">
-  <a href="#specification-requirements" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
-  <p class="sr-only">specification-requirements</p>
+<a href="https://nomasystems.github.io/erf"><img src="https://github.com/nomasystems/erf/actions/workflows/docs.yml/badge.svg" alt="erf docs"/></a></p><p><a href="erf.html"><code class="inline">erf</code></a> is a design-first Erlang REST framework. It provides an interface to spawn specification-driven HTTP servers with several automated features that aim to ease the development, operation and maintenance of design-first RESTful services. Its HTTP protocol features are provided as a wrapper of the <a href="https://github.com/elli-lib/elli">elli</a> HTTP 1.1 server.</p><h2 id="what-is-design-first" class="section-heading">
+  <a href="#what-is-design-first">
+    <i class="ri-link-m" aria-hidden="true"></i>
+    What is design-first?
   </a>
-  Specification requirements
+</h2>
+<p>When following a code-first approach to develop APIs, the interface is produced as a result of the implementation and, therefore, client-side code, integration tests and other parts of the system that depend on the API behaviour, need to wait until the server-side work is done.</p><p>Design-first is an approach to API development that prioritises the design of the API before its implementation. The explicit contract produced in this design, which should be the result of an agreement between the stakeholders of the API, aims to reduce bottlenecks in the development process.</p><h2 id="how-does-erf-help-developing-design-first-restful-services" class="section-heading">
+  <a href="#how-does-erf-help-developing-design-first-restful-services">
+    <i class="ri-link-m" aria-hidden="true"></i>
+    How does <a href="erf.html"><code class="inline">erf</code></a> help developing design-first RESTful services?
+  </a>
+</h2>
+<p><a href="erf.html"><code class="inline">erf</code></a> is an HTTP server framework that, taking an API design in the form of an specification file and a callback module as input, starts a server and dynamically generates code to efficiently type-check and route requests to callback functions. Its main goal is to provide a tool to REST API development in Erlang that reduces the development time by automating the implementation of boilerplate code that can be inferred from the API specification.</p><h2 id="quickstart" class="section-heading">
+  <a href="#quickstart">
+    <i class="ri-link-m" aria-hidden="true"></i>
+    Quickstart
+  </a>
+</h2>
+<ol><li><p>Design your API using OpenAPI 3.0. For example: <a href="examples/users/users.json">users.json</a>.</p></li><li><p>Add <a href="erf.html"><code class="inline">erf</code></a> as a dependency in your <code class="inline">rebar3</code> project.</p><pre><code class="makeup erl" translate="no"><span class="p" data-group-id="0771590435-1">{</span><span class="ss">deps</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0771590435-2">[</span><span class="w">
+    </span><span class="p" data-group-id="0771590435-3">{</span><span class="ss">erf</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0771590435-4">{</span><span class="ss">git</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;git@github.com:nomasystems/erf.git&quot;</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0771590435-5">{</span><span class="ss">branch</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;main&quot;</span><span class="p" data-group-id="0771590435-5">}</span><span class="p" data-group-id="0771590435-4">}</span><span class="p" data-group-id="0771590435-3">}</span><span class="w">
+</span><span class="p" data-group-id="0771590435-2">]</span><span class="p" data-group-id="0771590435-1">}</span><span class="p">.</span></code></pre></li><li><p>Implement a callback module for your API. A hypothetical example for <a href="examples/users/users.json">users.json</a> would be <a href="examples/users/users_callback.erl">users_callback.erl</a>.</p><pre><code class="makeup erl" translate="no"><span class="c1">%% An &lt;code&gt;erf&lt;/code&gt; callback for the users REST API.</span><span class="w">
+</span><span class="p">-</span><span class="na">module</span><span class="p" data-group-id="1852792196-1">(</span><span class="ss">users_callback</span><span class="p" data-group-id="1852792196-1">)</span><span class="p">.</span><span class="w">
+
+</span><span class="c1">%%% EXTERNAL EXPORTS</span><span class="w">
+</span><span class="p">-</span><span class="na">export</span><span class="p" data-group-id="1852792196-2">(</span><span class="p" data-group-id="1852792196-3">[</span><span class="w">
+    </span><span class="ss">create_user</span><span class="p">/</span><span class="mi">4</span><span class="p">,</span><span class="w">
+    </span><span class="ss">get_user</span><span class="p">/</span><span class="mi">4</span><span class="p">,</span><span class="w">
+    </span><span class="ss">delete_user</span><span class="p">/</span><span class="mi">4</span><span class="w">
+</span><span class="p" data-group-id="1852792196-3">]</span><span class="p" data-group-id="1852792196-2">)</span><span class="p">.</span><span class="w">
+
+</span><span class="c1">%%%-------------------------------------------------------</span><span class="w">
+</span><span class="c1">%%% EXTERNAL EXPORTS</span><span class="w">
+</span><span class="c1">%%%-------------------------------------------------------</span><span class="w">
+</span><span class="nf">create_user</span><span class="p" data-group-id="1852792196-4">(</span><span class="p">_</span><span class="n">PathParameters</span><span class="p">,</span><span class="w"> </span><span class="p">_</span><span class="n">QueryParameters</span><span class="p">,</span><span class="w"> </span><span class="p">_</span><span class="n">Headers</span><span class="p">,</span><span class="w"> </span><span class="n">Body</span><span class="p" data-group-id="1852792196-4">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w">
+    </span><span class="n">Id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nc">base64</span><span class="p">:</span><span class="nf">encode</span><span class="p" data-group-id="1852792196-5">(</span><span class="nc">crypto</span><span class="p">:</span><span class="nf">strong_rand_bytes</span><span class="p" data-group-id="1852792196-6">(</span><span class="mi">16</span><span class="p" data-group-id="1852792196-6">)</span><span class="p" data-group-id="1852792196-5">)</span><span class="p">,</span><span class="w">
+    </span><span class="nc">ets</span><span class="p">:</span><span class="nf">insert</span><span class="p" data-group-id="1852792196-7">(</span><span class="ss">users</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="1852792196-8">{</span><span class="n">Id</span><span class="p">,</span><span class="w"> </span><span class="n">Body</span><span class="p" data-group-id="1852792196-9">#{</span><span class="p">&lt;&lt;</span><span class="s">&quot;id&quot;</span><span class="p">&gt;&gt;</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="n">Id</span><span class="p" data-group-id="1852792196-9">}</span><span class="p" data-group-id="1852792196-8">}</span><span class="p" data-group-id="1852792196-7">)</span><span class="p">,</span><span class="w">
+    </span><span class="p" data-group-id="1852792196-10">{</span><span class="mi">201</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="1852792196-11">[</span><span class="p" data-group-id="1852792196-11">]</span><span class="p">,</span><span class="w"> </span><span class="n">Body</span><span class="p" data-group-id="1852792196-12">#{</span><span class="p">&lt;&lt;</span><span class="s">&quot;id&quot;</span><span class="p">&gt;&gt;</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="n">Id</span><span class="p" data-group-id="1852792196-12">}</span><span class="p" data-group-id="1852792196-10">}</span><span class="p">.</span><span class="w">
+
+</span><span class="nf">get_user</span><span class="p" data-group-id="1852792196-13">(</span><span class="n">PathParameters</span><span class="p">,</span><span class="w"> </span><span class="p">_</span><span class="n">QueryParameters</span><span class="p">,</span><span class="w"> </span><span class="p">_</span><span class="n">Headers</span><span class="p">,</span><span class="w"> </span><span class="p">_</span><span class="n">Body</span><span class="p" data-group-id="1852792196-13">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w">
+    </span><span class="n">Id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nc">proplists</span><span class="p">:</span><span class="nf">get_value</span><span class="p" data-group-id="1852792196-14">(</span><span class="p">&lt;&lt;</span><span class="s">&quot;userId&quot;</span><span class="p">&gt;&gt;</span><span class="p">,</span><span class="w"> </span><span class="n">PathParameters</span><span class="p" data-group-id="1852792196-14">)</span><span class="p">,</span><span class="w">
+    </span><span class="k">case</span><span class="w"> </span><span class="nc">ets</span><span class="p">:</span><span class="nf">lookup</span><span class="p" data-group-id="1852792196-15">(</span><span class="ss">users</span><span class="p">,</span><span class="w"> </span><span class="n">Id</span><span class="p" data-group-id="1852792196-15">)</span><span class="w"> </span><span class="k">of</span><span class="w">
+        </span><span class="p" data-group-id="1852792196-16">[</span><span class="p" data-group-id="1852792196-16">]</span><span class="w"> </span><span class="p">-&gt;</span><span class="w">
+            </span><span class="p" data-group-id="1852792196-17">{</span><span class="mi">404</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="1852792196-18">[</span><span class="p" data-group-id="1852792196-18">]</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="1852792196-19">#{</span><span class="w">
+                </span><span class="p">&lt;&lt;</span><span class="s">&quot;message&quot;</span><span class="p">&gt;&gt;</span><span class="w"> </span><span class="p">=&gt;</span><span class="w">
+                    </span><span class="p">&lt;&lt;</span><span class="s">&quot;User &quot;</span><span class="p">,</span><span class="w"> </span><span class="n">Id</span><span class="o">/</span><span class="ss">binary</span><span class="p">,</span><span class="w"> </span><span class="s">&quot; not found&quot;</span><span class="p">&gt;&gt;</span><span class="w">
+            </span><span class="p" data-group-id="1852792196-19">}</span><span class="p" data-group-id="1852792196-17">}</span><span class="p">;</span><span class="w">
+        </span><span class="p" data-group-id="1852792196-20">[</span><span class="p" data-group-id="1852792196-21">{</span><span class="n">Id</span><span class="p">,</span><span class="w"> </span><span class="n">User</span><span class="p" data-group-id="1852792196-21">}</span><span class="p" data-group-id="1852792196-20">]</span><span class="w"> </span><span class="p">-&gt;</span><span class="w">
+            </span><span class="p" data-group-id="1852792196-22">{</span><span class="mi">200</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="1852792196-23">[</span><span class="p" data-group-id="1852792196-23">]</span><span class="p">,</span><span class="w"> </span><span class="n">User</span><span class="p" data-group-id="1852792196-22">}</span><span class="w">
+    </span><span class="k">end</span><span class="p">.</span><span class="w">
+
+</span><span class="nf">delete_user</span><span class="p" data-group-id="1852792196-24">(</span><span class="n">PathParameters</span><span class="p">,</span><span class="w"> </span><span class="p">_</span><span class="n">QueryParameters</span><span class="p">,</span><span class="w"> </span><span class="p">_</span><span class="n">Headers</span><span class="p">,</span><span class="w"> </span><span class="p">_</span><span class="n">Body</span><span class="p" data-group-id="1852792196-24">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w">
+    </span><span class="n">Id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nc">proplists</span><span class="p">:</span><span class="nf">get_value</span><span class="p" data-group-id="1852792196-25">(</span><span class="p">&lt;&lt;</span><span class="s">&quot;userId&quot;</span><span class="p">&gt;&gt;</span><span class="p">,</span><span class="w"> </span><span class="n">PathParameters</span><span class="p" data-group-id="1852792196-25">)</span><span class="p">,</span><span class="w">
+    </span><span class="k">case</span><span class="w"> </span><span class="nc">ets</span><span class="p">:</span><span class="nf">lookup</span><span class="p" data-group-id="1852792196-26">(</span><span class="ss">users</span><span class="p">,</span><span class="w"> </span><span class="n">Id</span><span class="p" data-group-id="1852792196-26">)</span><span class="w"> </span><span class="k">of</span><span class="w">
+        </span><span class="p" data-group-id="1852792196-27">[</span><span class="p" data-group-id="1852792196-27">]</span><span class="w"> </span><span class="p">-&gt;</span><span class="w">
+            </span><span class="p" data-group-id="1852792196-28">{</span><span class="mi">404</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="1852792196-29">[</span><span class="p" data-group-id="1852792196-29">]</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="1852792196-30">#{</span><span class="w">
+                </span><span class="p">&lt;&lt;</span><span class="s">&quot;message&quot;</span><span class="p">&gt;&gt;</span><span class="w"> </span><span class="p">=&gt;</span><span class="w">
+                    </span><span class="p">&lt;&lt;</span><span class="s">&quot;User &quot;</span><span class="p">,</span><span class="w"> </span><span class="n">Id</span><span class="o">/</span><span class="ss">binary</span><span class="p">,</span><span class="w"> </span><span class="s">&quot; not found&quot;</span><span class="p">&gt;&gt;</span><span class="w">
+            </span><span class="p" data-group-id="1852792196-30">}</span><span class="p" data-group-id="1852792196-28">}</span><span class="p">;</span><span class="w">
+        </span><span class="p" data-group-id="1852792196-31">[</span><span class="p">_</span><span class="n">User</span><span class="p" data-group-id="1852792196-31">]</span><span class="w"> </span><span class="p">-&gt;</span><span class="w">
+            </span><span class="nc">ets</span><span class="p">:</span><span class="nf">delete</span><span class="p" data-group-id="1852792196-32">(</span><span class="ss">users</span><span class="p">,</span><span class="w"> </span><span class="n">Id</span><span class="p" data-group-id="1852792196-32">)</span><span class="p">,</span><span class="w">
+            </span><span class="p" data-group-id="1852792196-33">{</span><span class="mi">204</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="1852792196-34">[</span><span class="p" data-group-id="1852792196-34">]</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="1852792196-35">#{</span><span class="p">&lt;&lt;</span><span class="s">&quot;id&quot;</span><span class="p">&gt;&gt;</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="n">Id</span><span class="p" data-group-id="1852792196-35">}</span><span class="p" data-group-id="1852792196-33">}</span><span class="w">
+    </span><span class="k">end</span><span class="p">.</span></code></pre></li><li><p>Start an <a href="erf.html"><code class="inline">erf</code></a> instance using the <a href="https://nomasystems.github.io/erf/erf.html#start_link/1"><code class="inline">erf:start_link/1</code></a> function under the supervisor of your application. For example:</p><pre><code class="makeup erl" translate="no"><span class="p">-</span><span class="na">module</span><span class="p" data-group-id="5410066280-1">(</span><span class="ss">users_sup</span><span class="p" data-group-id="5410066280-1">)</span><span class="p">.</span><span class="w">
+
+</span><span class="c1">%%% BEHAVIOURS</span><span class="w">
+</span><span class="p">-</span><span class="na">behaviour</span><span class="p" data-group-id="5410066280-2">(</span><span class="ss">supervisor</span><span class="p" data-group-id="5410066280-2">)</span><span class="p">.</span><span class="w">
+
+</span><span class="c1">%%% START/STOP EXPORTS</span><span class="w">
+</span><span class="p">-</span><span class="na">export</span><span class="p" data-group-id="5410066280-3">(</span><span class="p" data-group-id="5410066280-4">[</span><span class="ss">start_link</span><span class="p">/</span><span class="mi">0</span><span class="p" data-group-id="5410066280-4">]</span><span class="p" data-group-id="5410066280-3">)</span><span class="p">.</span><span class="w">
+
+</span><span class="c1">%%% INTERNAL EXPORTS</span><span class="w">
+</span><span class="p">-</span><span class="na">export</span><span class="p" data-group-id="5410066280-5">(</span><span class="p" data-group-id="5410066280-6">[</span><span class="ss">init</span><span class="p">/</span><span class="mi">1</span><span class="p" data-group-id="5410066280-6">]</span><span class="p" data-group-id="5410066280-5">)</span><span class="p">.</span><span class="w">
+
+</span><span class="c1">%%%-------------------------------------------------------</span><span class="w">
+</span><span class="c1">%%% START/STOP EXPORTS</span><span class="w">
+</span><span class="c1">%%%-------------------------------------------------------</span><span class="w">
+</span><span class="nf">start_link</span><span class="p" data-group-id="5410066280-7">(</span><span class="p" data-group-id="5410066280-7">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w">
+    </span><span class="nc">supervisor</span><span class="p">:</span><span class="nf">start_link</span><span class="p" data-group-id="5410066280-8">(</span><span class="p" data-group-id="5410066280-9">{</span><span class="ss">local</span><span class="p">,</span><span class="w"> </span><span class="o">?</span><span class="n">MODULE</span><span class="p" data-group-id="5410066280-9">}</span><span class="p">,</span><span class="w"> </span><span class="o">?</span><span class="n">MODULE</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="5410066280-10">[</span><span class="p" data-group-id="5410066280-10">]</span><span class="p" data-group-id="5410066280-8">)</span><span class="p">.</span><span class="w">
+
+</span><span class="c1">%%%-------------------------------------------------------</span><span class="w">
+</span><span class="c1">%%% INTERNAL EXPORTS</span><span class="w">
+</span><span class="c1">%%%-------------------------------------------------------</span><span class="w">
+</span><span class="nf">init</span><span class="p" data-group-id="5410066280-11">(</span><span class="p" data-group-id="5410066280-12">[</span><span class="p" data-group-id="5410066280-12">]</span><span class="p" data-group-id="5410066280-11">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w">
+    </span><span class="c1">% Users storage</span><span class="w">
+    </span><span class="nc">ets</span><span class="p">:</span><span class="nf">new</span><span class="p" data-group-id="5410066280-13">(</span><span class="ss">users</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="5410066280-14">[</span><span class="ss">public</span><span class="p">,</span><span class="w"> </span><span class="ss">named_table</span><span class="p" data-group-id="5410066280-14">]</span><span class="p" data-group-id="5410066280-13">)</span><span class="p">,</span><span class="w">
+    </span><span class="n">UsersAPIConf</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p" data-group-id="5410066280-15">#{</span><span class="w">
+        </span><span class="ss">spec_path</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">&lt;&lt;</span><span class="s">&quot;doc/openapi/users.openapi.json&quot;</span><span class="p">&gt;&gt;</span><span class="p">,</span><span class="w">
+        </span><span class="ss">callback</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="ss">users_callback</span><span class="p">,</span><span class="w">
+        </span><span class="ss">port</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="mi">8080</span><span class="w">
+    </span><span class="p" data-group-id="5410066280-15">}</span><span class="p">,</span><span class="w">
+    </span><span class="n">UsersChildSpec</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p" data-group-id="5410066280-16">{</span><span class="w">
+        </span><span class="ss">public_api_server</span><span class="p">,</span><span class="w">
+        </span><span class="p" data-group-id="5410066280-17">{</span><span class="ss">erf</span><span class="p">,</span><span class="w"> </span><span class="ss">start_link</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="5410066280-18">[</span><span class="n">UsersAPIConf</span><span class="p" data-group-id="5410066280-18">]</span><span class="p" data-group-id="5410066280-17">}</span><span class="p">,</span><span class="w">
+        </span><span class="ss">permanent</span><span class="p">,</span><span class="w">
+        </span><span class="mi">5000</span><span class="p">,</span><span class="w">
+        </span><span class="ss">worker</span><span class="p">,</span><span class="w">
+        </span><span class="p" data-group-id="5410066280-19">[</span><span class="ss">erf</span><span class="p" data-group-id="5410066280-19">]</span><span class="w">
+    </span><span class="p" data-group-id="5410066280-16">}</span><span class="p">,</span><span class="w">
+    </span><span class="p" data-group-id="5410066280-20">{</span><span class="ss">ok</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="5410066280-21">{</span><span class="p" data-group-id="5410066280-22">{</span><span class="ss">one_for_one</span><span class="p">,</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span><span class="w"> </span><span class="mi">10</span><span class="p" data-group-id="5410066280-22">}</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="5410066280-23">[</span><span class="n">UsersChildSpec</span><span class="p" data-group-id="5410066280-23">]</span><span class="p" data-group-id="5410066280-21">}</span><span class="p" data-group-id="5410066280-20">}</span><span class="p">.</span></code></pre></li><li><p>Start requesting your service.</p><pre><code class="makeup sh" translate="no"><span class="gp unselectable">$ </span><span class="">curl -vvv &#39;localhost:8080/users&#39; -H &#39;Content-Type: application/json&#39; -d &#39;{&quot;username&quot;: &quot;foo&quot;, &quot;password&quot;: &quot;fooBAR123&quot;}&#39;
+</span><span class="">*   Trying 127.0.0.1:8080...
+</span><span class="">* Connected to localhost (127.0.0.1) port 8080 (#0)
+</span><span class="">&gt; POST /users HTTP/1.1
+</span><span class="">&gt; Host: localhost:8080
+</span><span class="">&gt; User-Agent: curl/8.0.1
+</span><span class="">&gt; Accept: */*
+</span><span class="">&gt; Content-Type: application/json
+</span><span class="">&gt; Content-Length: 44
+</span><span class="">&gt;
+</span><span class="">&lt; HTTP/1.1 201 Created
+</span><span class="">&lt; connection: Keep-Alive
+</span><span class="">&lt; content-length: 73
+</span><span class="">&lt; content-type: application/json
+</span><span class="">&lt;
+</span><span class="">* Connection #0 to host localhost left intact
+</span><span class="">{&quot;id&quot;:&quot;b7R7bJSbaTmoiWwecy2IwA==&quot;,&quot;password&quot;:&quot;fooBAR123&quot;,&quot;username&quot;:&quot;foo&quot;}
+</span></code></pre></li></ol><h2 id="erf-configuration" class="section-heading">
+  <a href="#erf-configuration">
+    <i class="ri-link-m" aria-hidden="true"></i>
+    <a href="erf.html"><code class="inline">erf</code></a> configuration
+  </a>
+</h2>
+<p><a href="erf.html"><code class="inline">erf</code></a>'s main entry point (i.e., the <code class="inline">start_link/1</code> function) receives an API specification, a callback module and a set of optional values that enable its configuration.</p><p>The configuration is provided as map with the following type spec:</p><pre><code class="makeup erl" translate="no"><span class="c1">%%% erf.erl</span><span class="w">
+</span><span class="p">-</span><span class="na">type</span><span class="w"> </span><span class="nf">conf</span><span class="p" data-group-id="6920407382-1">(</span><span class="p" data-group-id="6920407382-1">)</span><span class="w"> </span><span class="p">:</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="6920407382-2">#{</span><span class="w">
+    </span><span class="ss">spec_path</span><span class="w"> </span><span class="p">:=</span><span class="w"> </span><span class="nf">binary</span><span class="p" data-group-id="6920407382-3">(</span><span class="p" data-group-id="6920407382-3">)</span><span class="p">,</span><span class="w">
+    </span><span class="ss">callback</span><span class="w"> </span><span class="p">:=</span><span class="w"> </span><span class="nf">module</span><span class="p" data-group-id="6920407382-4">(</span><span class="p" data-group-id="6920407382-4">)</span><span class="p">,</span><span class="w">
+    </span><span class="ss">port</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nc">inet</span><span class="p">:</span><span class="nf">port_number</span><span class="p" data-group-id="6920407382-5">(</span><span class="p" data-group-id="6920407382-5">)</span><span class="p">,</span><span class="w">
+    </span><span class="ss">name</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nf">atom</span><span class="p" data-group-id="6920407382-6">(</span><span class="p" data-group-id="6920407382-6">)</span><span class="p">,</span><span class="w">
+    </span><span class="ss">spec_parser</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nf">module</span><span class="p" data-group-id="6920407382-7">(</span><span class="p" data-group-id="6920407382-7">)</span><span class="p">,</span><span class="w">
+    </span><span class="ss">preprocess_middlewares</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p" data-group-id="6920407382-8">[</span><span class="nf">module</span><span class="p" data-group-id="6920407382-9">(</span><span class="p" data-group-id="6920407382-9">)</span><span class="p" data-group-id="6920407382-8">]</span><span class="p">,</span><span class="w">
+    </span><span class="ss">postprocess_middlewares</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p" data-group-id="6920407382-10">[</span><span class="nf">module</span><span class="p" data-group-id="6920407382-11">(</span><span class="p" data-group-id="6920407382-11">)</span><span class="p" data-group-id="6920407382-10">]</span><span class="p">,</span><span class="w">
+    </span><span class="ss">ssl</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nf">boolean</span><span class="p" data-group-id="6920407382-12">(</span><span class="p" data-group-id="6920407382-12">)</span><span class="p">,</span><span class="w">
+    </span><span class="ss">certfile</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nf">binary</span><span class="p" data-group-id="6920407382-13">(</span><span class="p" data-group-id="6920407382-13">)</span><span class="p">,</span><span class="w">
+    </span><span class="ss">keyfile</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nf">binary</span><span class="p" data-group-id="6920407382-14">(</span><span class="p" data-group-id="6920407382-14">)</span><span class="p">,</span><span class="w">
+    </span><span class="ss">static_routes</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p" data-group-id="6920407382-15">[</span><span class="nf">static_route</span><span class="p" data-group-id="6920407382-16">(</span><span class="p" data-group-id="6920407382-16">)</span><span class="p" data-group-id="6920407382-15">]</span><span class="p">,</span><span class="w">
+    </span><span class="ss">swagger_ui</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nf">boolean</span><span class="p" data-group-id="6920407382-17">(</span><span class="p" data-group-id="6920407382-17">)</span><span class="p">,</span><span class="w">
+    </span><span class="ss">min_acceptors</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nf">pos_integer</span><span class="p" data-group-id="6920407382-18">(</span><span class="p" data-group-id="6920407382-18">)</span><span class="p">,</span><span class="w">
+    </span><span class="ss">accept_timeout</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nf">pos_integer</span><span class="p" data-group-id="6920407382-19">(</span><span class="p" data-group-id="6920407382-19">)</span><span class="p">,</span><span class="w">
+    </span><span class="ss">request_timeout</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nf">pos_integer</span><span class="p" data-group-id="6920407382-20">(</span><span class="p" data-group-id="6920407382-20">)</span><span class="p">,</span><span class="w">
+    </span><span class="ss">header_timeout</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nf">pos_integer</span><span class="p" data-group-id="6920407382-21">(</span><span class="p" data-group-id="6920407382-21">)</span><span class="p">,</span><span class="w">
+    </span><span class="ss">body_timeout</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nf">pos_integer</span><span class="p" data-group-id="6920407382-22">(</span><span class="p" data-group-id="6920407382-22">)</span><span class="p">,</span><span class="w">
+    </span><span class="ss">max_body_size</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nf">pos_integer</span><span class="p" data-group-id="6920407382-23">(</span><span class="p" data-group-id="6920407382-23">)</span><span class="p">,</span><span class="w">
+    </span><span class="ss">log_level</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nc">logger</span><span class="p">:</span><span class="nf">level</span><span class="p" data-group-id="6920407382-24">(</span><span class="p" data-group-id="6920407382-24">)</span><span class="w">
+</span><span class="p" data-group-id="6920407382-2">}</span><span class="p">.</span></code></pre><p>A detailed description of each parameter can be found in the following list:</p><ul><li><code class="inline">spec_path</code> : Path to API specification file.</li><li><code class="inline">callback</code>: Name of the callback module.</li><li><code class="inline">port</code>: Port the server will listen to. Defaults to <code class="inline">8080</code>.</li><li><code class="inline">name</code>: Name under which the server is registered. Defaults to <a href="erf.html"><code class="inline">erf</code></a>.</li><li><code class="inline">spec_parser</code>: Name of the specification parser module. Defaults to <a href="erf_oas_3_0.html"><code class="inline">erf_oas_3_0</code></a>.</li><li><code class="inline">preprocess_middlewares</code>: List of names of middlewares to be invoked before the request is forwarded to the callback. Defaults to <code class="inline">[]</code>.</li><li><code class="inline">postprocess_middlewares</code>: List of names of middlewares to be invoked after the response is returned by the callback. Defaults to <code class="inline">[]</code>.</li><li><a href="https://www.erlang.org/doc/man/ssl.html"><code class="inline">ssl</code></a>: Boolean flag that enables/disables SSL. Defaults to <code class="inline">false</code>.</li><li><code class="inline">certfile</code>: Path to the SSL certificate file. Defaults to <code class="inline">undefined</code>.</li><li><code class="inline">keyfile</code>: Path to the SSL key file. Defaults to <code class="inline">undefined</code>.</li><li><code class="inline">static_routes</code>: List of routes that serve static files. Defaults to <code class="inline">[]</code>.</li><li><code class="inline">swagger_ui</code>: Boolean flag that enables/disables the Swagger UI. Defaults to <code class="inline">false</code>.</li><li><code class="inline">min_acceptors</code>: Minimum number of acceptor processes. Defaults to <code class="inline">20</code>.</li><li><code class="inline">accept_timeout</code>: Timeout in ms for accepting an incoming request. Defaults to <code class="inline">10000</code>.</li><li><code class="inline">request_timeout</code>: Timeout in ms for receiving more packets when waiting for the request line. Defaults to <code class="inline">60000</code>.</li><li><code class="inline">header_timeout</code>: Timeout in ms for receiving more packets when waiting for the headers. Defaults to <code class="inline">10000</code>.</li><li><code class="inline">body_timeout</code>: Timeout in ms for receiving more packets when waiting for the body. Defaults to <code class="inline">30000</code>.</li><li><code class="inline">max_body_size</code>: Maximum size in bytes for the body of allowed received messages. Defaults to <code class="inline">1024000</code>.</li><li><code class="inline">log_level</code>: Severity asociated to logged messages. Defaults to <code class="inline">error</code>.</li></ul><h2 id="callback-modules" class="section-heading">
+  <a href="#callback-modules">
+    <i class="ri-link-m" aria-hidden="true"></i>
+    Callback modules
+  </a>
+</h2>
+<p><a href="erf.html"><code class="inline">erf</code></a> dynamically generates a router that type check the received requests against the API specification. If the request passes the validation, it is deconstructed and passed to the callback module. But, how does the callback module must look like?</p><p>The router expects your callback module to export one function per operation defined in your API specification. It also expects each operation to include an <code class="inline">operationId</code> that, after being transformed to <em>snake_case</em>, will identify the function that is going to be called. Regarding the expected arguments in those functions, <a href="erf.html"><code class="inline">erf</code></a> will provide 4 arguments that include the variable data of the request (i.e., that data that cannot be inferred just from the <code class="inline">operationId</code>):</p><ul><li><code class="inline">PathParameters :: [{Name :: binary(), Value :: binary()}]</code></li><li><code class="inline">QueryParameters :: [{Name :: binary(), Value :: binary()}]</code></li><li><code class="inline">Headers :: [{Name :: binary(), Value :: binary()}]</code></li><li><code class="inline">Body :: njson:t()</code><blockquote><p><a href="https://github.com/nomasystems/njson"><code class="inline">njson</code></a> is the library used in <a href="erf.html"><code class="inline">erf</code></a> to deserialize JSON values to Erlang terms.</p></blockquote></li></ul><p>An example of an API specification and a supported callback can be seen in <a href="#quickstart">Quickstart</a>.</p><h2 id="hot-configuration-reloading" class="section-heading">
+  <a href="#hot-configuration-reloading">
+    <i class="ri-link-m" aria-hidden="true"></i>
+    Hot-configuration reloading
+  </a>
+</h2>
+<p>The design principles behind <a href="erf.html"><code class="inline">erf</code></a> allow its instances to be reconfigured in runtime with no needed downtime. While not every configuration key is updatable once the server is started (e.g., the port), some interesting features of the framework can be updated on-the-fly.</p><p>The following type spec corresponds to the runtime configuration of an <a href="erf.html"><code class="inline">erf</code></a> instance. At the same time, is the type spec of the second argument for the <code class="inline">erf:reload/2</code> function.</p><pre><code class="makeup erl" translate="no"><span class="c1">%%% erf_conf.erl</span><span class="w">
+</span><span class="p">-</span><span class="na">type</span><span class="w"> </span><span class="nf">t</span><span class="p" data-group-id="3310506631-1">(</span><span class="p" data-group-id="3310506631-1">)</span><span class="w"> </span><span class="p">:</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="3310506631-2">#{</span><span class="w">
+    </span><span class="ss">callback</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nf">module</span><span class="p" data-group-id="3310506631-3">(</span><span class="p" data-group-id="3310506631-3">)</span><span class="p">,</span><span class="w">
+    </span><span class="ss">log_level</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nc">logger</span><span class="p">:</span><span class="nf">level</span><span class="p" data-group-id="3310506631-4">(</span><span class="p" data-group-id="3310506631-4">)</span><span class="p">,</span><span class="w">
+    </span><span class="ss">preprocess_middlewares</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p" data-group-id="3310506631-5">[</span><span class="nf">module</span><span class="p" data-group-id="3310506631-6">(</span><span class="p" data-group-id="3310506631-6">)</span><span class="p" data-group-id="3310506631-5">]</span><span class="p">,</span><span class="w">
+    </span><span class="ss">postprocess_middlewares</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p" data-group-id="3310506631-7">[</span><span class="nf">module</span><span class="p" data-group-id="3310506631-8">(</span><span class="p" data-group-id="3310506631-8">)</span><span class="p" data-group-id="3310506631-7">]</span><span class="p">,</span><span class="w">
+    </span><span class="ss">router</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nc">erl_syntax</span><span class="p">:</span><span class="nf">syntaxTree</span><span class="p" data-group-id="3310506631-9">(</span><span class="p" data-group-id="3310506631-9">)</span><span class="p">,</span><span class="w"> </span><span class="c1">% not manually updatable</span><span class="w">
+    </span><span class="ss">router_mod</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nf">module</span><span class="p" data-group-id="3310506631-10">(</span><span class="p" data-group-id="3310506631-10">)</span><span class="p">,</span><span class="w"> </span><span class="c1">% not manually updatable</span><span class="w">
+    </span><span class="ss">spec_path</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nf">binary</span><span class="p" data-group-id="3310506631-11">(</span><span class="p" data-group-id="3310506631-11">)</span><span class="p">,</span><span class="w">
+    </span><span class="ss">spec_parser</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nf">module</span><span class="p" data-group-id="3310506631-12">(</span><span class="p" data-group-id="3310506631-12">)</span><span class="p">,</span><span class="w">
+    </span><span class="ss">static_routes</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p" data-group-id="3310506631-13">[</span><span class="nc">erf</span><span class="p">:</span><span class="nf">static_route</span><span class="p" data-group-id="3310506631-14">(</span><span class="p" data-group-id="3310506631-14">)</span><span class="p" data-group-id="3310506631-13">]</span><span class="p">,</span><span class="w">
+    </span><span class="ss">swagger_ui</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nf">boolean</span><span class="p" data-group-id="3310506631-15">(</span><span class="p" data-group-id="3310506631-15">)</span><span class="w">
+</span><span class="p" data-group-id="3310506631-2">}</span><span class="p">.</span></code></pre><blockquote><p><strong>NOTE:</strong> the <code class="inline">router</code> and <code class="inline">router_mod</code> keys are not updatable as they are automatically computed when new configuration is provided.</p></blockquote><h2 id="static-routes" class="section-heading">
+  <a href="#static-routes">
+    <i class="ri-link-m" aria-hidden="true"></i>
+    Static routes
+  </a>
+</h2>
+<p>As shown in <a href="#erf-configuration"><code class="inline">erf</code> configuration</a>, the server supports routes that serve static files. The type spec for static routes is the following:</p><pre><code class="makeup erl" translate="no"><span class="c1">%%% erf.erl</span><span class="w">
+</span><span class="p">-</span><span class="na">type</span><span class="w"> </span><span class="nf">static_dir</span><span class="p" data-group-id="5962567267-1">(</span><span class="p" data-group-id="5962567267-1">)</span><span class="w"> </span><span class="p">:</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="5962567267-2">{</span><span class="ss">dir</span><span class="p">,</span><span class="w"> </span><span class="nf">binary</span><span class="p" data-group-id="5962567267-3">(</span><span class="p" data-group-id="5962567267-3">)</span><span class="p" data-group-id="5962567267-2">}</span><span class="p">.</span><span class="w">
+</span><span class="p">-</span><span class="na">type</span><span class="w"> </span><span class="nf">static_file</span><span class="p" data-group-id="5962567267-4">(</span><span class="p" data-group-id="5962567267-4">)</span><span class="w"> </span><span class="p">:</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="5962567267-5">{</span><span class="ss">file</span><span class="p">,</span><span class="w"> </span><span class="nf">binary</span><span class="p" data-group-id="5962567267-6">(</span><span class="p" data-group-id="5962567267-6">)</span><span class="p" data-group-id="5962567267-5">}</span><span class="p">.</span><span class="w">
+</span><span class="p">-</span><span class="na">type</span><span class="w"> </span><span class="nf">static_route</span><span class="p" data-group-id="5962567267-7">(</span><span class="p" data-group-id="5962567267-7">)</span><span class="w"> </span><span class="p">:</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="5962567267-8">{</span><span class="n">Path</span><span class="w"> </span><span class="p">:</span><span class="p">:</span><span class="w"> </span><span class="nf">binary</span><span class="p" data-group-id="5962567267-9">(</span><span class="p" data-group-id="5962567267-9">)</span><span class="p">,</span><span class="w"> </span><span class="n">Resource</span><span class="w"> </span><span class="p">:</span><span class="p">:</span><span class="w"> </span><span class="nf">static_file</span><span class="p" data-group-id="5962567267-10">(</span><span class="p" data-group-id="5962567267-10">)</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="nf">static_dir</span><span class="p" data-group-id="5962567267-11">(</span><span class="p" data-group-id="5962567267-11">)</span><span class="p" data-group-id="5962567267-8">}</span><span class="p">.</span></code></pre><p>This feature enables <a href="erf.html"><code class="inline">erf</code></a> to serve a <a href="https://github.com/swagger-api/swagger-ui">Swagger UI</a> version with your API specification. Just set the <code class="inline">swagger_ui</code> flag to <code class="inline">true</code> and open your web browser in the server host under the <code class="inline">/swagger</code> path.</p><h2 id="specification-constraints" class="section-heading">
+  <a href="#specification-constraints">
+    <i class="ri-link-m" aria-hidden="true"></i>
+    Specification constraints
+  </a>
 </h2>
 <h3 id="oas-3-0" class="section-heading">
-  <a href="#oas-3-0" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
-  <p class="sr-only">oas-3-0</p>
+  <a href="#oas-3-0">
+    <i class="ri-link-m" aria-hidden="true"></i>
+    OAS 3.0
   </a>
-  OAS 3.0
 </h3>
-<ul><li>Path parameters MUST be of type string. You can use the <code class="inline">pattern</code> keyword to refine your type spec.</li></ul><h2 id="contributing" class="section-heading">
-  <a href="#contributing" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
-  <p class="sr-only">contributing</p>
+<ul><li>Path parameters MUST be of type <a href="https://www.erlang.org/doc/man/string.html"><code class="inline">string</code></a>. You can use the <code class="inline">pattern</code> keyword to refine your type spec.</li></ul><h2 id="contributing" class="section-heading">
+  <a href="#contributing">
+    <i class="ri-link-m" aria-hidden="true"></i>
+    Contributing
   </a>
-  Contributing
 </h2>
 <p>We :heart: contributions! Please feel free to submit issues, create pull requests or just spread the word about <a href="erf.html"><code class="inline">erf</code></a> in the open-source community. Don't forget to check out our <a href="CONTRIBUTING.md">contribution guidelines</a> to ensure smooth collaboration! :rocket:</p><h2 id="support" class="section-heading">
-  <a href="#support" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
-  <p class="sr-only">support</p>
+  <a href="#support">
+    <i class="ri-link-m" aria-hidden="true"></i>
+    Support
   </a>
-  Support
 </h2>
 <p>If you need help or have any questions, please don't hesitate to open an issue or contact the maintainers directly.</p><h2 id="license" class="section-heading">
-  <a href="#license" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
-  <p class="sr-only">license</p>
+  <a href="#license">
+    <i class="ri-link-m" aria-hidden="true"></i>
+    License
   </a>
-  License
 </h2>
 <p><a href="erf.html"><code class="inline">erf</code></a> is released under the Apache 2.0 License. For more information, please see the <a href="LICENSE">LICENSE</a> file.</p><h3 id="additional-licenses" class="section-heading">
-  <a href="#additional-licenses" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i>
-  <p class="sr-only">additional-licenses</p>
+  <a href="#additional-licenses">
+    <i class="ri-link-m" aria-hidden="true"></i>
+    Additional Licenses
   </a>
-  Additional Licenses
 </h3>
 <p>This project uses OpenAPI specification (OAS) schemas and examples, which are licensed under the Apache 2.0 license. See the associated <a href="priv/oas/LICENSE">LICENSE</a> file for more information.</p><p>Additionally, it allows for <code class="inline">swagger-ui</code> hosting, which is licensed under the Apache 2.0 license. For more details, please refer to the associated <a href="priv/swagger-ui/LICENSE">LICENSE</a> file.</p>
 <div class="bottom-actions">
@@ -158,12 +332,12 @@ API Reference
   </div>
   <div class="bottom-actions-item">
 
-      <a href="license.html" class="bottom-actions-button" rel="next">
+      <a href="contributing.html" class="bottom-actions-button" rel="next">
         <span class="subheader">
           Next Page →
         </span>
         <span class="title">
-License
+Contributing
         </span>
       </a>
 
@@ -191,7 +365,7 @@ License
 
         <p class="built-using">
           Built using
-          <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.29.4) for the
+          <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.30.5) for the
 
             <a href="https://erlang.org" title="Erlang" target="_blank" translate="no">Erlang programming language</a>
 

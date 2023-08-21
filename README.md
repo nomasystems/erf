@@ -114,7 +114,7 @@ init([]) ->
 
 5. Start requesting your service.
 ```sh
-$ curl -vvv 'localhost:8080/users' -H 'Content-Type: application/json' -d '{"username": "foo", "password": "fooBAR123"}'
+$ curl -vvv 'localhost:8080/users' -H 'Content-Type: application/json' -d '{"username": "foo", "password": "foobar"}'
 *   Trying 127.0.0.1:8080...
 * Connected to localhost (127.0.0.1) port 8080 (#0)
 > POST /users HTTP/1.1
@@ -130,7 +130,7 @@ $ curl -vvv 'localhost:8080/users' -H 'Content-Type: application/json' -d '{"use
 < content-type: application/json
 <
 * Connection #0 to host localhost left intact
-{"id":"b7R7bJSbaTmoiWwecy2IwA==","password":"fooBAR123","username":"foo"}
+{"id":"b7R7bJSbaTmoiWwecy2IwA==","password":"foobar","username":"foo"}
 ```
 
 ## `erf` configuration

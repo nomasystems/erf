@@ -24,8 +24,7 @@
                   "password": {
                     "type": "string",
                     "minLength": 6,
-                    "maxLength": 12,
-                    "pattern": "(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).*"
+                    "maxLength": 12
                   }
                 }
               }
@@ -134,8 +133,7 @@
           "password": {
             "type": "string",
             "minLength": 6,
-            "maxLength": 12,
-            "pattern": "(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).*"
+            "maxLength": 12
           }
         }
       },

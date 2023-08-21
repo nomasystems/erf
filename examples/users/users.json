@@ -116,8 +116,7 @@
         "in": "path",
         "required": true,
         "schema": {
-          "type": "string",
-          "format": "uuid"
+          "type": "string"
         }
       }
     },
@@ -126,8 +125,7 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "string",
-            "format": "uuid"
+            "type": "string"
           },
           "username": {
             "type": "string",

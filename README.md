@@ -231,6 +231,10 @@ As shown in [`erf` configuration](#erf-configuration), the server supports route
 
 This feature enables `erf` to serve a [Swagger UI](https://github.com/swagger-api/swagger-ui) version with your API specification. Just set the `swagger_ui` flag to `true` and open your web browser in the server host under the `/swagger` path.
 
+## Troubleshooting
+
+Diagnosing the cause of a `400 Bad Request error` for a specific request can become challenging due to the automated generation of the router's source code. To simplify the process of analyzing this generated code, `erf` provides the `get_router/1` function. This function offers the router's source code in binary form, allowing you to conveniently manipulate it using the most suitable handler for your particular use case, whether it's printing the code to a file or using `io` operations.
+
 ## Specification constraints
 
 ### OAS 3.0

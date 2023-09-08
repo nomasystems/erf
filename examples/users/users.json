@@ -19,14 +19,20 @@
                 "type": "object",
                 "properties": {
                   "username": {
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 9
                   },
                   "password": {
                     "type": "string",
                     "minLength": 6,
                     "maxLength": 12
                   }
-                }
+                },
+                "required": [
+                  "username",
+                  "password"
+                ]
               }
             }
           }
@@ -128,7 +134,8 @@
           },
           "username": {
             "type": "string",
-            "minLength": 6
+            "minLength": 3,
+            "maxLength": 9
           },
           "password": {
             "type": "string",

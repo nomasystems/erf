@@ -351,12 +351,12 @@ handle_ast(API, #{callback := Callback} = Opts) ->
                 end,
                 maps:get(operations, Endpoint, [])
             ),
-            NotAllowedMethods = [
+            NotAllowedMethod =
                 erl_syntax:clause(
                     [
                         erl_syntax:tuple([
                             Path,
-                            erl_syntax:variable('_UnsupportedMethod'),
+                            erl_syntax:variable('_Method'),
                             erl_syntax:variable('_QueryParameters'),
                             erl_syntax:variable('_Headers'),
                             erl_syntax:variable('_Body')
@@ -372,10 +372,9 @@ handle_ast(API, #{callback := Callback} = Opts) ->
                             ]
                         )
                     ]
-                )
-            ],
+                ),
 
-            AllowedMethods ++ NotAllowedMethods
+            AllowedMethods ++ [NotAllowedMethod]
         end,
         maps:get(endpoints, API, [])
     ),

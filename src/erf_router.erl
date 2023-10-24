@@ -245,7 +245,7 @@ handle_ast(API, #{callback := Callback} = Opts) ->
                 )
             ),
             EndpointParameters = maps:get(parameters, Endpoint),
-            lists:map(
+            AllowedMethods = lists:map(
                 fun(Operation) ->
                     Method = erl_syntax:atom(
                         maps:get(method, Operation)
@@ -350,7 +350,31 @@ handle_ast(API, #{callback := Callback} = Opts) ->
                     )
                 end,
                 maps:get(operations, Endpoint, [])
-            )
+            ),
+            NotAllowedMethod =
+                erl_syntax:clause(
+                    [
+                        erl_syntax:tuple([
+                            Path,
+                            erl_syntax:variable('_Method'),
+                            erl_syntax:variable('_QueryParameters'),
+                            erl_syntax:variable('_Headers'),
+                            erl_syntax:variable('_Body')
+                        ])
+                    ],
+                    none,
+                    [
+                        erl_syntax:tuple(
+                            [
+                                erl_syntax:integer(405),
+                                erl_syntax:list([]),
+                                erl_syntax:atom(undefined)
+                            ]
+                        )
+                    ]
+                ),
+
+            AllowedMethods ++ [NotAllowedMethod]
         end,
         maps:get(endpoints, API, [])
     ),

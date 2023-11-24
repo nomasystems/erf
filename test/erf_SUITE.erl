@@ -142,15 +142,15 @@ middlewares(_Conf) ->
     meck:expect(
         erf_preprocess_middleware,
         preprocess,
-        fun({[_Version | Path], Method, QueryParameters, Headers, Body}) ->
-            {[<<"1">> | Path], Method, QueryParameters, Headers, Body}
+        fun(#{path := [_Version | Path]} = Request) ->
+            Request#{path => [<<"1">> | Path]}
         end
     ),
     meck:expect(
         erf_preprocess_stop_middleware,
         preprocess,
         fun
-            ({_Path, trace, _QueryParameters, _Headers, _Body}) ->
+            (#{method := trace}) ->
                 {stop, {403, [], undefined}};
             (Req) ->
                 Req

@@ -147,12 +147,13 @@ foo(_Conf) ->
     meck:expect(version_foo_version, is_valid, fun(_Value) -> true end),
     meck:expect(get_foo_request_body, is_valid, fun(_Value) -> true end),
 
-    Req = {
-        _Path = [<<"1">>, <<"foo">>],
-        _Method = get,
-        _QueryParameters = [],
-        _Headers = [],
-        _Body = <<>>
+    Req = #{
+        path => [<<"1">>, <<"foo">>],
+        method => get,
+        query_parameters => [],
+        headers => [],
+        body => <<>>,
+        peer => <<"localhost">>
     },
 
     ?assertEqual({200, [], <<"bar">>}, Mod:handle(Req)),

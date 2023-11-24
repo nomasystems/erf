@@ -287,13 +287,35 @@ handle_ast(API, #{callback := Callback} = Opts) ->
 
                     erl_syntax:clause(
                         [
-                            erl_syntax:tuple([
-                                Path,
-                                Method,
-                                erl_syntax:variable('QueryParameters'),
-                                erl_syntax:variable('Headers'),
-                                erl_syntax:variable('Body')
-                            ])
+                            erl_syntax:map_expr(
+                                none,
+                                [
+                                    erl_syntax:map_field_exact(
+                                        erl_syntax:atom(path),
+                                        Path
+                                    ),
+                                    erl_syntax:map_field_exact(
+                                        erl_syntax:atom(method),
+                                        Method
+                                    ),
+                                    erl_syntax:map_field_exact(
+                                        erl_syntax:atom(query_parameters),
+                                        erl_syntax:variable('QueryParameters')
+                                    ),
+                                    erl_syntax:map_field_exact(
+                                        erl_syntax:atom(headers),
+                                        erl_syntax:variable('Headers')
+                                    ),
+                                    erl_syntax:map_field_exact(
+                                        erl_syntax:atom(body),
+                                        erl_syntax:variable('Body')
+                                    ),
+                                    erl_syntax:map_field_exact(
+                                        erl_syntax:atom(peer),
+                                        erl_syntax:variable('Peer')
+                                    )
+                                ]
+                            )
                         ],
                         none,
                         [
@@ -432,13 +454,35 @@ handle_ast(API, #{callback := Callback} = Opts) ->
                     end,
                 erl_syntax:clause(
                     [
-                        erl_syntax:tuple([
-                            PatternPathAST,
-                            erl_syntax:atom(get),
-                            erl_syntax:variable('_QueryParameters'),
-                            erl_syntax:variable('_Headers'),
-                            erl_syntax:variable('_Body')
-                        ])
+                        erl_syntax:map_expr(
+                            none,
+                            [
+                                erl_syntax:map_field_exact(
+                                    erl_syntax:atom(path),
+                                    PatternPathAST
+                                ),
+                                erl_syntax:map_field_exact(
+                                    erl_syntax:atom(method),
+                                    erl_syntax:atom(get)
+                                ),
+                                erl_syntax:map_field_exact(
+                                    erl_syntax:atom(query_parameters),
+                                    erl_syntax:variable('_QueryParameters')
+                                ),
+                                erl_syntax:map_field_exact(
+                                    erl_syntax:atom(headers),
+                                    erl_syntax:variable('_Headers')
+                                ),
+                                erl_syntax:map_field_exact(
+                                    erl_syntax:atom(body),
+                                    erl_syntax:variable('_Body')
+                                ),
+                                erl_syntax:map_field_exact(
+                                    erl_syntax:atom(peer),
+                                    erl_syntax:variable('_Peer')
+                                )
+                            ]
+                        )
                     ],
                     none,
                     [
@@ -611,7 +655,9 @@ load_binary(ModuleName, Bin) ->
     Response :: erf:response(),
     Resp :: elli_handler:result().
 postprocess(
-    {_ReqPath, _ReqMethod, _ReqQueryParameters, ReqHeaders, _ReqBody},
+    #{
+        headers := ReqHeaders
+    } = _Request,
     {Status, Headers, {file, File}}
 ) ->
     % File responses are handled by elli_sendfile
@@ -648,7 +694,15 @@ preprocess(Req) ->
     QueryParameters = elli_request:get_args_decoded(Req),
     Headers = elli_request:headers(Req),
     Body = njson:decode(elli_request:body(Req)),
-    {Path, Method, QueryParameters, Headers, Body}.
+    Peer = elli_request:peer(Req),
+    #{
+        path => Path,
+        method => Method,
+        query_parameters => QueryParameters,
+        headers => Headers,
+        body => Body,
+        peer => Peer
+    }.
 
 -spec preprocess_method(ElliMethod) -> Result when
     ElliMethod :: elli:http_method(),

@@ -162,6 +162,17 @@ foo(_Conf) ->
 
     ?assertEqual({400, [], undefined}, Mod:handle(Req)),
 
+    NotAllowedReq = #{
+        path => [<<"1">>, <<"foo">>],
+        method => post,
+        query_parameters => [],
+        headers => [],
+        body => <<>>,
+        peer => <<"localhost">>
+    },
+
+    ?assertEqual({405, [], undefined}, Mod:handle(NotAllowedReq)),
+
     meck:unload([
         foo_callback,
         version_foo_version,

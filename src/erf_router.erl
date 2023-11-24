@@ -245,7 +245,7 @@ handle_ast(API, #{callback := Callback} = Opts) ->
                 )
             ),
             EndpointParameters = maps:get(parameters, Endpoint),
-            lists:map(
+            AllowedMethods = lists:map(
                 fun(Operation) ->
                     Method = erl_syntax:atom(
                         maps:get(method, Operation)
@@ -372,7 +372,53 @@ handle_ast(API, #{callback := Callback} = Opts) ->
                     )
                 end,
                 maps:get(operations, Endpoint, [])
-            )
+            ),
+            NotAllowedMethod =
+                erl_syntax:clause(
+                    [
+                        erl_syntax:map_expr(
+                            none,
+                            [
+                                erl_syntax:map_field_exact(
+                                    erl_syntax:atom(path),
+                                    Path
+                                ),
+                                erl_syntax:map_field_exact(
+                                    erl_syntax:atom(method),
+                                    erl_syntax:variable('_Method')
+                                ),
+                                erl_syntax:map_field_exact(
+                                    erl_syntax:atom(query_parameters),
+                                    erl_syntax:variable('_QueryParameters')
+                                ),
+                                erl_syntax:map_field_exact(
+                                    erl_syntax:atom(headers),
+                                    erl_syntax:variable('_Headers')
+                                ),
+                                erl_syntax:map_field_exact(
+                                    erl_syntax:atom(body),
+                                    erl_syntax:variable('_Body')
+                                ),
+                                erl_syntax:map_field_exact(
+                                    erl_syntax:atom(peer),
+                                    erl_syntax:variable('_Peer')
+                                )
+                            ]
+                        )
+                    ],
+                    none,
+                    [
+                        erl_syntax:tuple(
+                            [
+                                erl_syntax:integer(405),
+                                erl_syntax:list([]),
+                                erl_syntax:atom(undefined)
+                            ]
+                        )
+                    ]
+                ),
+
+            AllowedMethods ++ [NotAllowedMethod]
         end,
         maps:get(endpoints, API, [])
     ),

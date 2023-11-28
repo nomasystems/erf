@@ -30,4 +30,6 @@
 -callback postprocess(Request, Response) -> Result when
     Request :: erf:request(),
     Response :: erf:response(),
-    Result :: erf:response().
+    Result ::
+        erf:response()
+        | {erf:request(), erf:response()}.

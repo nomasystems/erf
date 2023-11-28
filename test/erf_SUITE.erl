@@ -69,14 +69,14 @@ foo(_Conf) ->
     meck:expect(
         erf_callback,
         get_foo,
-        fun(_PathParameters, _QueryParameters, _Headers, _Body) ->
+        fun(_Request) ->
             {200, [], <<"bar">>}
         end
     ),
     meck:expect(
         erf_callback,
         create_foo,
-        fun(_PathParameters, _QueryParameters, _Headers, _Body) ->
+        fun(_Request) ->
             {201, [], <<"bar">>}
         end
     ),
@@ -150,7 +150,7 @@ middlewares(_Conf) ->
         erf_preprocess_stop_middleware,
         preprocess,
         fun
-            (#{method := trace}) ->
+            (#{method := trace} = _Request) ->
                 {stop, {403, [], undefined}};
             (Req) ->
                 Req
@@ -159,7 +159,7 @@ middlewares(_Conf) ->
     meck:expect(
         erf_callback,
         get_foo,
-        fun([{<<"version">>, <<"1">>}], _QueryParameters, _Headers, _Body) ->
+        fun(#{path_parameters := [{<<"version">>, <<"1">>}]} = _Request) ->
             {200, [], <<"bar">>}
         end
     ),
@@ -337,7 +337,7 @@ reload_conf(_Conf) ->
     meck:expect(
         erf_callback,
         get_foo,
-        fun(_PathParameters, _QueryParameters, _Headers, _Body) ->
+        fun(_Request) ->
             {200, [], <<"bar">>}
         end
     ),
@@ -345,7 +345,7 @@ reload_conf(_Conf) ->
     meck:expect(
         erf_callback_2,
         get_foo,
-        fun(_PathParameters, _QueryParameters, _Headers, _Body) ->
+        fun(_Request) ->
             {200, [], <<"baz">>}
         end
     ),

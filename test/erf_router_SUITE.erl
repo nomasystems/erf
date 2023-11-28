@@ -141,7 +141,7 @@ foo(_Conf) ->
         ]
     ),
 
-    meck:expect(foo_callback, get_foo, fun(_PathParameters, _QueryParameters, _Headers, _Body) ->
+    meck:expect(foo_callback, get_foo, fun(_Request) ->
         {200, [], <<"bar">>}
     end),
     meck:expect(version_foo_version, is_valid, fun(_Value) -> true end),

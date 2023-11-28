@@ -127,17 +127,17 @@ handle(ElliRequest, [Name]) ->
     {ok, RouterMod} = erf_conf:router_mod(Name),
     {ok, PostProcessMiddlewares} = erf_conf:postprocess_middlewares(Name),
     InitialRequest = preprocess(ElliRequest),
-    InitialResponse =
+    {AfterHandleResponse, AfterHandleRequest} =
         case apply_preprocess_middlewares(InitialRequest, PreProcessMiddlewares) of
-            {stop, Resp} ->
-                Resp;
+            {stop, Response, Request} ->
+                {Response, Request};
             Request ->
-                RouterMod:handle(Request)
+                {RouterMod:handle(Request), Request}
         end,
-    Response = apply_postprocess_middlewares(
-        InitialRequest, InitialResponse, PostProcessMiddlewares
+    PostProcessResponse = apply_postprocess_middlewares(
+        AfterHandleRequest, AfterHandleResponse, PostProcessMiddlewares
     ),
-    postprocess(InitialRequest, Response).
+    postprocess(InitialRequest, PostProcessResponse).
 
 -spec handle_event(Event, Data, CallbackArgs) -> ok when
     Event :: atom(),
@@ -171,13 +171,15 @@ handle_event(_Event, _Data, _CallbackArgs) ->
 -spec apply_preprocess_middlewares(Request, Middlewares) -> Result when
     Request :: erf:request(),
     Middlewares :: [erf_preprocess_middleware:t()],
-    Result :: erf:request() | {stop, erf:response()}.
+    Result :: erf:request() | {stop, erf:response(), erf:request()} | {stop, erf:response()}.
 apply_preprocess_middlewares(Request, []) ->
     Request;
 apply_preprocess_middlewares(RawRequest, [Middleware | Rest]) ->
     case Middleware:preprocess(RawRequest) of
         {stop, Response} ->
-            {stop, Response};
+            {stop, Response, RawRequest};
+        {stop, Response, Request} ->
+            {stop, Response, Request};
         Request ->
             apply_preprocess_middlewares(Request, Rest)
     end.
@@ -190,8 +192,12 @@ apply_preprocess_middlewares(RawRequest, [Middleware | Rest]) ->
 apply_postprocess_middlewares(_Request, Response, []) ->
     Response;
 apply_postprocess_middlewares(Request, RawResponse, [Middleware | Rest]) ->
-    Response = Middleware:postprocess(Request, RawResponse),
-    apply_postprocess_middlewares(Request, Response, Rest).
+    case Middleware:postprocess(Request, RawResponse) of
+        {Response, NewRequest} ->
+            apply_postprocess_middlewares(NewRequest, Response, Rest);
+        Response ->
+            apply_postprocess_middlewares(Request, Response, Rest)
+    end.
 
 -spec chain_conditions(FunCalls, Operator) -> Result when
     FunCalls :: [erl_syntax:syntaxTree()],
@@ -287,34 +293,29 @@ handle_ast(API, #{callback := Callback} = Opts) ->
 
                     erl_syntax:clause(
                         [
-                            erl_syntax:map_expr(
-                                none,
-                                [
-                                    erl_syntax:map_field_exact(
-                                        erl_syntax:atom(path),
-                                        Path
-                                    ),
-                                    erl_syntax:map_field_exact(
-                                        erl_syntax:atom(method),
-                                        Method
-                                    ),
-                                    erl_syntax:map_field_exact(
-                                        erl_syntax:atom(query_parameters),
-                                        erl_syntax:variable('QueryParameters')
-                                    ),
-                                    erl_syntax:map_field_exact(
-                                        erl_syntax:atom(headers),
-                                        erl_syntax:variable('Headers')
-                                    ),
-                                    erl_syntax:map_field_exact(
-                                        erl_syntax:atom(body),
-                                        erl_syntax:variable('Body')
-                                    ),
-                                    erl_syntax:map_field_exact(
-                                        erl_syntax:atom(peer),
-                                        erl_syntax:variable('Peer')
-                                    )
-                                ]
+                            erl_syntax:match_expr(
+                                erl_syntax:variable('Request'),
+                                erl_syntax:map_expr(
+                                    none,
+                                    [
+                                        erl_syntax:map_field_exact(
+                                            erl_syntax:atom(path),
+                                            Path
+                                        ),
+                                        erl_syntax:map_field_exact(
+                                            erl_syntax:atom(method),
+                                            Method
+                                        ),
+                                        erl_syntax:map_field_exact(
+                                            erl_syntax:atom(query_parameters),
+                                            erl_syntax:variable('QueryParameters')
+                                        ),
+                                        erl_syntax:map_field_exact(
+                                            erl_syntax:atom(body),
+                                            erl_syntax:variable('Body')
+                                        )
+                                    ]
+                                )
                             )
                         ],
                         none,
@@ -345,10 +346,17 @@ handle_ast(API, #{callback := Callback} = Opts) ->
                                                     )
                                                 ),
                                                 [
-                                                    erl_syntax:variable('PathParameters'),
-                                                    erl_syntax:variable('QueryParameters'),
-                                                    erl_syntax:variable('Headers'),
-                                                    erl_syntax:variable('Body')
+                                                    erl_syntax:map_expr(
+                                                        erl_syntax:variable('Request'),
+                                                        [
+                                                            erl_syntax:map_field_assoc(
+                                                                erl_syntax:atom('path_parameters'),
+                                                                erl_syntax:variable(
+                                                                    'PathParameters'
+                                                                )
+                                                            )
+                                                        ]
+                                                    )
                                                 ]
                                             )
                                         ]
@@ -376,34 +384,21 @@ handle_ast(API, #{callback := Callback} = Opts) ->
             NotAllowedMethod =
                 erl_syntax:clause(
                     [
-                        erl_syntax:map_expr(
-                            none,
-                            [
-                                erl_syntax:map_field_exact(
-                                    erl_syntax:atom(path),
-                                    Path
-                                ),
-                                erl_syntax:map_field_exact(
-                                    erl_syntax:atom(method),
-                                    erl_syntax:variable('_Method')
-                                ),
-                                erl_syntax:map_field_exact(
-                                    erl_syntax:atom(query_parameters),
-                                    erl_syntax:variable('_QueryParameters')
-                                ),
-                                erl_syntax:map_field_exact(
-                                    erl_syntax:atom(headers),
-                                    erl_syntax:variable('_Headers')
-                                ),
-                                erl_syntax:map_field_exact(
-                                    erl_syntax:atom(body),
-                                    erl_syntax:variable('_Body')
-                                ),
-                                erl_syntax:map_field_exact(
-                                    erl_syntax:atom(peer),
-                                    erl_syntax:variable('_Peer')
-                                )
-                            ]
+                        erl_syntax:match_expr(
+                            erl_syntax:variable('Request'),
+                            erl_syntax:map_expr(
+                                none,
+                                [
+                                    erl_syntax:map_field_exact(
+                                        erl_syntax:atom(path),
+                                        Path
+                                    ),
+                                    erl_syntax:map_field_exact(
+                                        erl_syntax:atom(method),
+                                        erl_syntax:variable('_Method')
+                                    )
+                                ]
+                            )
                         )
                     ],
                     none,
@@ -567,7 +562,9 @@ handle_ast(API, #{callback := Callback} = Opts) ->
         ),
     NotFoundClause =
         erl_syntax:clause(
-            [erl_syntax:variable('_Req')],
+            [
+                erl_syntax:variable('_Req')
+            ],
             none,
             [
                 erl_syntax:tuple(

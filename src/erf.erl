@@ -78,11 +78,13 @@
 -type query_parameter() :: {binary(), binary()}.
 -type request() :: #{
     path := [binary()],
+    path_parameters => [path_parameter()],
     method := method(),
     query_parameters := [query_parameter()],
     headers := [header()],
     body := body(),
-    peer := undefined | binary()
+    peer := undefined | binary(),
+    context => any()
 }.
 -type response() :: {
     StatusCode :: pos_integer(),

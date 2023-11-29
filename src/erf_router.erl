@@ -126,18 +126,18 @@ handle(ElliRequest, [Name]) ->
     {ok, PreProcessMiddlewares} = erf_conf:preprocess_middlewares(Name),
     {ok, RouterMod} = erf_conf:router_mod(Name),
     {ok, PostProcessMiddlewares} = erf_conf:postprocess_middlewares(Name),
-    InitialRequest = preprocess(ElliRequest),
-    {AfterHandleResponse, AfterHandleRequest} =
-        case apply_preprocess_middlewares(InitialRequest, PreProcessMiddlewares) of
-            {stop, Response, Request} ->
-                {Response, Request};
-            Request ->
-                {RouterMod:handle(Request), Request}
+    Request = preprocess(ElliRequest),
+    {InitialResponse, InitialRequest} =
+        case apply_preprocess_middlewares(Request, PreProcessMiddlewares) of
+            {stop, PreprocessResponse, PreprocessRequest} ->
+                {PreprocessResponse, PreprocessRequest};
+            PreprocessRequest ->
+                {RouterMod:handle(PreprocessRequest), PreprocessRequest}
         end,
-    PostProcessResponse = apply_postprocess_middlewares(
-        AfterHandleRequest, AfterHandleResponse, PostProcessMiddlewares
+    Response = apply_postprocess_middlewares(
+        InitialRequest, InitialResponse, PostProcessMiddlewares
     ),
-    postprocess(InitialRequest, PostProcessResponse).
+    postprocess(InitialRequest, Response).
 
 -spec handle_event(Event, Data, CallbackArgs) -> ok when
     Event :: atom(),

@@ -17,7 +17,7 @@ preprocess(#{headers := Headers} = Request) ->
         false ->
             % For delete operations, if delete is disabled,
             % we skip to the post-process middlewares.
-            {stop, {403, [], <<"Request misses required cors headers">>}};
+            {stop, {403, [], <<"Missing valid basic authorization header">>}};
         true ->
             PostInitT = erlang:timestamp(),
             Context = maps:get(context, Request, #{}),

@@ -208,7 +208,7 @@ The router expects your callback module to export one function per operation def
 
 - **Postprocess middlewares** can also update the request, like the preprocess middlewares, by returning a `{erf:response(), erf:request()}` tuple or just return a `erf:response()` and leave the received request intact. This middlewares cannot short-circuit the processing flow.
 
-An example of an API specification and a supported callback can be seen in [Quickstart](#quickstart). Files `users_preprocess.erl` and `users_postprocess.erl` under `examples/users`exemplify how to use `erf` middlewares.
+An example of an API specification and a supported callback can be seen in [Quickstart](#quickstart). Files `users_preprocess.erl` and `users_postprocess.erl` under `examples/users` exemplify how to use `erf` middlewares.
 
 ## Hot-configuration reloading
 

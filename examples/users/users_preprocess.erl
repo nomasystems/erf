@@ -11,22 +11,25 @@
 %%%-------------------------------------------------------
 %%% EXTERNAL EXPORTS
 %%%-------------------------------------------------------
-preprocess(#{method := delete} = Request) ->
-    case are_deletes_disabled() of
-        true ->
+preprocess(#{headers := Headers} = Request) ->
+    Authorization = proplists:get_value(<<"authorization">>, Headers, undefined),
+    case is_authorized(Authorization) of
+        false ->
             % For delete operations, if delete is disabled,
             % we skip to the post-process middlewares.
-            {stop, {403, [], <<"Delete operations are forbidden right now">>}};
-        false ->
-            % If not, let the following middlewares and callback module
-            % process the request as is.
-            Request
-    end;
-preprocess(#{method := post} = Request) ->
-    PostInitT = erlang:timestamp(),
-    Context = maps:get_value(context, Request, #{}),
-    % We store the current timestamp on the the request context
-    % for latter use.
-    Request#{context => Context#{post_init => PostInitT}};
-preprocess(Request) ->
-    Request.
+            {stop, {403, [], <<"Request misses required cors headers">>}};
+        true ->
+            PostInitT = erlang:timestamp(),
+            Context = maps:get(context, Request, #{}),
+            % We store the current timestamp on the the request context
+            % for latter use.
+            Request#{context => Context#{post_init => PostInitT}}
+    end.
+
+%%%-------------------------------------------------------
+%%% INTERNAL FUNCTIONS
+%%%-------------------------------------------------------
+is_authorized(undefined) ->
+    false;
+is_authorized(<<"Basic dXNlcjpwYXNzd29yZAo=">>) ->
+    true.

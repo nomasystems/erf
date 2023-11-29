@@ -3,8 +3,6 @@
 
 -behaviour(erf_postprocess_middleware).
 
--include_lib("kernel/include/logger.erl").
-
 %%% EXTERNAL EXPORTS
 -export([
     postprocess/2
@@ -17,8 +15,8 @@
 % can be used to condition the request processing flow.
 postprocess(#{method := post, context := #{post_init := PostInitT}} = _Request, Response) ->
     PostEndT = erlang:timestamp(),
-    Diff = timer:now_diff(PostInitT, PostEndT),
-    logger:info("Post time diff : ~p", [Diff]),
+    Diff = timer:now_diff(PostEndT, PostInitT),
+    io:format("Post time diff : ~p~n", [Diff]),
     Response;
 postprocess(_Request, Response) ->
     Response.

@@ -99,6 +99,8 @@ init([]) ->
     UsersAPIConf = #{
         spec_path => <<"doc/openapi/users.openapi.json">>,
         callback => users_callback,
+        preprocess_middlewares => [users_preprocess],
+        postprocess_middlewares => [users_postprocess],
         port => 8080
     },
     UsersChildSpec = {

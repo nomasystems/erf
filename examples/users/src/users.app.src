@@ -1,0 +1,8 @@
+{application, users, [
+    {description, "A tiny app exemplifying erf usage"},
+    {vsn, "0.1.0"},
+    {registered, []},
+    {applications, [kernel, stdlib, erf]},
+    {mod, {users, []}},
+    {env, []}
+]}.

@@ -113,10 +113,11 @@ init([]) ->
     },
     {ok, {{one_for_one, 5, 10}, [UsersChildSpec]}}.
 ```
+Notice the configured preprocess and postprocess middlewares. They implement a basic authorization mechanism, requiring request to include the `X-API-KEY: api-key` header, and they print in console the time in microseconds that authorized requests take to complete.
 
 5. Start requesting your service.
 ```sh
-$ curl -vvv 'localhost:8080/users' -H 'Content-Type: application/json' -d '{"username": "foo", "password": "foobar"}'
+$ curl -vvv 'localhost:8080/users' -H 'Content-Type: application/json' -H 'X-API-KEY: api-key' -d '{"username": "foo", "password": "foobar"}'
 *   Trying 127.0.0.1:8080...
 * Connected to localhost (127.0.0.1) port 8080 (#0)
 > POST /users HTTP/1.1
@@ -193,18 +194,7 @@ A detailed description of each parameter can be found in the following list:
 - **Preprocess middlewares** receive a request, do something with it (such as adding an entry to an access log) and return it for the next middleware or callback module to process it. This allows each preprocess middleware to modify the content of the request, updating any of its fields such as the `context` field, specifically dedicated to store contextual information middlewares might want to provide. Preprocess middlewares can short-circuit the processing flow, returning `{stop, Response}` or `{stop, Response, Request}` instead of just `Request`. The first of those alternatives prevents the following preprocess middlewares to execute, as well as the callback module, skipping directly to the postprocess middlewares. The second alternative response format does the same but allows to modify the request information.
 
 - **Callback module**.
-The router expects your callback module to export one function per operation defined in your API specification. It also expects each operation to include an `operationId` that, after being transformed to _snake_case_, will identify the function that is going to be called. Regarding the expected arguments in those functions, `erf` will provide the `erf:request()` to the `handle/1` function of the user-provided callback module. Such must return an `erf:response()`.
-```erl
-% e.g.: erf.erl
--type request() :: #{
-    ...
-    path_parameters => [path_parameter()],
-    query_parameters := [query_parameter()],
-    headers := [header()],
-    body := body()
-    ...
-}.
-```
+The router expects your callback module to export one function per operation defined in your API specification. It also expects each operation to include an `operationId` that, after being transformed to _snake_case_, will identify the function that is going to be called. Such funciton receives an `erf:request()` and must return an `erf:response()`.
 
 - **Postprocess middlewares** can also update the request, like the preprocess middlewares, by returning a `{erf:response(), erf:request()}` tuple or just return a `erf:response()` and leave the received request intact. This middlewares cannot short-circuit the processing flow.
 

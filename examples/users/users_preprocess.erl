@@ -12,7 +12,7 @@
 %%% EXTERNAL EXPORTS
 %%%-------------------------------------------------------
 preprocess(#{headers := Headers} = Request) ->
-    Authorization = proplists:get_value(<<"authorization">>, Headers, undefined),
+    Authorization = proplists:get_value(<<"x-api-key">>, Headers, undefined),
     case is_authorized(Authorization) of
         false ->
             % For delete operations, if delete is disabled,
@@ -31,5 +31,7 @@ preprocess(#{headers := Headers} = Request) ->
 %%%-------------------------------------------------------
 is_authorized(undefined) ->
     false;
-is_authorized(<<"Basic dXNlcjpwYXNzd29yZAo=">>) ->
-    true.
+is_authorized(<<"api-key">>) ->
+    true;
+is_authorized(_) ->
+    false.

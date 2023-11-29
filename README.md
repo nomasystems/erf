@@ -208,8 +208,6 @@ The router expects your callback module to export one function per operation def
 
 An example of an API specification and a supported callback can be seen in [Quickstart](#quickstart). Files `users_preprocess.erl` and `users_postprocess.erl` under `examples/users`exemplify how to use `erf` middlewares.
 
-> [`njson`](https://github.com/nomasystems/njson) is the library used in `erf` to deserialize JSON values to Erlang terms.
-
 ## Hot-configuration reloading
 
 The design principles behind `erf` allow its instances to be reconfigured in runtime with no needed downtime. While not every configuration key is updatable once the server is started (e.g., the port), some interesting features of the framework can be updated on-the-fly.

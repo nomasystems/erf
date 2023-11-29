@@ -3,10 +3,14 @@
 
 -behaviour(erf_preprocess_middleware).
 
+%%% EXTERNAL EXPORTS
 -export([
     preprocess/1
 ]).
 
+%%%-------------------------------------------------------
+%%% EXTERNAL EXPORTS
+%%%-------------------------------------------------------
 preprocess(#{method := delete} = Request) ->
     case are_deletes_disabled() of
         true ->

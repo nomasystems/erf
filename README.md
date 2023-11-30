@@ -8,7 +8,7 @@
 
 When following a code-first approach to develop APIs, the interface is produced as a result of the implementation and, therefore, client-side code, integration tests and other parts of the system that depend on the API behaviour, need to wait until the server-side work is done.
 
-Design-first is an approach to API development that prioritises the design of the API before its implementation. The explicit contract produced in this design, which should be the result of an agreement between the stakeholders of the API, aims to reduce bottlenecks in the development process.
+Design-first is an approach to API development that priorities the design of the API before its implementation. The explicit contract produced in this design, which should be the result of an agreement between the stakeholders of the API, aims to reduce bottlenecks in the development process.
 
 ## How does `erf` help developing design-first RESTful services?
 
@@ -16,7 +16,7 @@ Design-first is an approach to API development that prioritises the design of th
 
 ## Quickstart
 
-1. Design your API using OpenAPI 3.0. For example: [users.json](examples/users/users.json).
+1. Design your API using OpenAPI 3.0. For example: [users.openapi.json](examples/users/priv/users.openapi.json).
 
 2. Add `erf` as a dependency in your `rebar3` project.
 ```erl
@@ -25,7 +25,7 @@ Design-first is an approach to API development that prioritises the design of th
 ]}.
 ```
 
-3. Implement a callback module for your API. A hypothetical example for [users.json](examples/users/users.json) would be [users_callback.erl](examples/users/users_callback.erl).
+3. Implement a callback module for your API. A hypothetical example for [users.openapi.json](examples/users/priv/users.openapi.json) would be [users_callback.erl](examples/users/src/users_callback.erl).
 ```erl
 %% An <code>erf</code> callback for the users REST API.
 -module(users_callback).
@@ -97,7 +97,7 @@ init([]) ->
     % Users storage
     ets:new(users, [public, named_table]),
     UsersAPIConf = #{
-        spec_path => <<"doc/openapi/users.openapi.json">>,
+        spec_path => <<"priv/users.openapi.json">>,
         callback => users_callback,
         preprocess_middlewares => [users_preprocess],
         postprocess_middlewares => [users_postprocess],
@@ -113,7 +113,7 @@ init([]) ->
     },
     {ok, {{one_for_one, 5, 10}, [UsersChildSpec]}}.
 ```
-Notice the configured preprocess and postprocess middlewares. They implement a basic authorization mechanism, requiring request to include the `X-API-KEY: api-key` header, and they print in console the time in microseconds that authorized requests take to complete.
+Notice the configured preprocess and postprocess middlewares. They implement a basic authorization mechanism, short-circuiting the request and returning a 403 HTTP error code if the `X-API-KEY: api-key` header is missing, and they print in console the time in microseconds that authorized requests take to complete.
 
 5. Start requesting your service.
 ```sh
@@ -185,7 +185,7 @@ A detailed description of each parameter can be found in the following list:
 - `header_timeout`: Timeout in ms for receiving more packets when waiting for the headers. Defaults to `10000`.
 - `body_timeout`: Timeout in ms for receiving more packets when waiting for the body. Defaults to `30000`.
 - `max_body_size`: Maximum size in bytes for the body of allowed received messages. Defaults to `1024000`.
-- `log_level`: Severity asociated to logged messages. Defaults to `error`.
+- `log_level`: Severity associated to logged messages. Defaults to `error`.
 
 ## Callback modules & middlewares
 
@@ -194,11 +194,11 @@ A detailed description of each parameter can be found in the following list:
 - **Preprocess middlewares** receive a request, do something with it (such as adding an entry to an access log) and return it for the next middleware or callback module to process it. This allows each preprocess middleware to modify the content of the request, updating any of its fields such as the `context` field, specifically dedicated to store contextual information middlewares might want to provide. Preprocess middlewares can short-circuit the processing flow, returning `{stop, Response}` or `{stop, Response, Request}` instead of just `Request`. The first of those alternatives prevents the following preprocess middlewares to execute, as well as the callback module, skipping directly to the postprocess middlewares. The second alternative response format does the same but allows to modify the request information.
 
 - **Callback module**.
-The router expects your callback module to export one function per operation defined in your API specification. It also expects each operation to include an `operationId` that, after being transformed to _snake_case_, will identify the function that is going to be called. Such funciton receives an `erf:request()` and must return an `erf:response()`.
+The router expects your callback module to export one function per operation defined in your API specification. It also expects each operation to include an `operationId` that, after being transformed to _snake_case_, will identify the function that is going to be called. Such function receives an `erf:request()` and must return an `erf:response()`.
 
 - **Postprocess middlewares** can also update the request, like the preprocess middlewares, by returning a `{erf:response(), erf:request()}` tuple or just return a `erf:response()` and leave the received request intact. This middlewares cannot short-circuit the processing flow.
 
-An example of an API specification and a supported callback can be seen in [Quickstart](#quickstart). Files `users_preprocess.erl` and `users_postprocess.erl` under `examples/users` exemplify how to use `erf` middlewares.
+An example of an API specification and a supported callback can be seen in [Quickstart](#quickstart). Files `users_preprocess.erl` and `users_postprocess.erl` under `examples/users` exemplify how to use `erf` middlewares. Try out the example by running `rebar3 as examples shell` from the root of this project.
 
 ## Hot-configuration reloading
 

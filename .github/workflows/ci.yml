@@ -2,9 +2,8 @@ name: erf ci
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
   pull_request:
-    branches: [main]
 
 env:
   OTP-VERSION: 25.2.3

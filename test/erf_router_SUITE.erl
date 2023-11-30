@@ -141,18 +141,19 @@ foo(_Conf) ->
         ]
     ),
 
-    meck:expect(foo_callback, get_foo, fun(_PathParameters, _QueryParameters, _Headers, _Body) ->
+    meck:expect(foo_callback, get_foo, fun(_Request) ->
         {200, [], <<"bar">>}
     end),
     meck:expect(version_foo_version, is_valid, fun(_Value) -> true end),
     meck:expect(get_foo_request_body, is_valid, fun(_Value) -> true end),
 
-    Req = {
-        Path = [<<"1">>, <<"foo">>],
-        _Method = get,
-        QueryParameters = [],
-        Headers = [],
-        Body = <<>>
+    Req = #{
+        path => [<<"1">>, <<"foo">>],
+        method => get,
+        query_parameters => [],
+        headers => [],
+        body => <<>>,
+        peer => <<"localhost">>
     },
 
     ?assertEqual({200, [], <<"bar">>}, Mod:handle(Req)),
@@ -161,12 +162,13 @@ foo(_Conf) ->
 
     ?assertEqual({400, [], undefined}, Mod:handle(Req)),
 
-    NotAllowedReq = {
-        Path,
-        _NotAllowedMethod = post,
-        QueryParameters,
-        Headers,
-        Body
+    NotAllowedReq = #{
+        path => [<<"1">>, <<"foo">>],
+        method => post,
+        query_parameters => [],
+        headers => [],
+        body => <<>>,
+        peer => <<"localhost">>
     },
 
     ?assertEqual({405, [], undefined}, Mod:handle(NotAllowedReq)),

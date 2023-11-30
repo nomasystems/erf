@@ -16,7 +16,7 @@ Design-first is an approach to API development that prioritises the design of th
 
 ## Quickstart
 
-1. Design your API using OpenAPI 3.0. For example: [users.json](examples/users/users.json).
+1. Design your API using OpenAPI 3.0. For example: [users.openapi.json](examples/users/priv/users.openapi.json).
 
 2. Add `erf` as a dependency in your `rebar3` project.
 ```erl
@@ -25,27 +25,27 @@ Design-first is an approach to API development that prioritises the design of th
 ]}.
 ```
 
-3. Implement a callback module for your API. A hypothetical example for [users.json](examples/users/users.json) would be [users_callback.erl](examples/users/users_callback.erl).
+3. Implement a callback module for your API. A hypothetical example for [users.openapi.json](examples/users/priv/users.openapi.json) would be [users_callback.erl](examples/users/src/users_callback.erl).
 ```erl
 %% An <code>erf</code> callback for the users REST API.
 -module(users_callback).
 
 %%% EXTERNAL EXPORTS
 -export([
-    create_user/4,
-    get_user/4,
-    delete_user/4
+    create_user/1,
+    get_user/1,
+    delete_user/1
 ]).
 
 %%%-------------------------------------------------------
 %%% EXTERNAL EXPORTS
 %%%-------------------------------------------------------
-create_user(_PathParameters, _QueryParameters, _Headers, Body) ->
+create_user(#{body := Body} = _Request) ->
     Id = base64:encode(crypto:strong_rand_bytes(16)),
     ets:insert(users, {Id, Body#{<<"id">> => Id}}),
     {201, [], Body#{<<"id">> => Id}}.
 
-get_user(PathParameters, _QueryParameters, _Headers, _Body) ->
+get_user(#{path_parameters := PathParameters} = _Request) ->
     Id = proplists:get_value(<<"userId">>, PathParameters),
     case ets:lookup(users, Id) of
         [] ->
@@ -57,7 +57,7 @@ get_user(PathParameters, _QueryParameters, _Headers, _Body) ->
             {200, [], User}
     end.
 
-delete_user(PathParameters, _QueryParameters, _Headers, _Body) ->
+delete_user(#{path_parameters := PathParameters} = _Request) ->
     Id = proplists:get_value(<<"userId">>, PathParameters),
     case ets:lookup(users, Id) of
         [] ->
@@ -97,8 +97,10 @@ init([]) ->
     % Users storage
     ets:new(users, [public, named_table]),
     UsersAPIConf = #{
-        spec_path => <<"doc/openapi/users.openapi.json">>,
+        spec_path => <<"priv/users.openapi.json">>,
         callback => users_callback,
+        preprocess_middlewares => [users_preprocess],
+        postprocess_middlewares => [users_postprocess],
         port => 8080
     },
     UsersChildSpec = {
@@ -111,10 +113,11 @@ init([]) ->
     },
     {ok, {{one_for_one, 5, 10}, [UsersChildSpec]}}.
 ```
+Notice the configured preprocess and postprocess middlewares. They implement a basic authorization mechanism, short-circuiting the request and returning a 403 HTTP error code if the `X-API-KEY: api-key` header is missing, and they print in console the time in microseconds that authorized requests take to complete.
 
 5. Start requesting your service.
 ```sh
-$ curl -vvv 'localhost:8080/users' -H 'Content-Type: application/json' -d '{"username": "foo", "password": "foobar"}'
+$ curl -vvv 'localhost:8080/users' -H 'Content-Type: application/json' -H 'X-API-KEY: api-key' -d '{"username": "foo", "password": "foobar"}'
 *   Trying 127.0.0.1:8080...
 * Connected to localhost (127.0.0.1) port 8080 (#0)
 > POST /users HTTP/1.1
@@ -182,20 +185,20 @@ A detailed description of each parameter can be found in the following list:
 - `header_timeout`: Timeout in ms for receiving more packets when waiting for the headers. Defaults to `10000`.
 - `body_timeout`: Timeout in ms for receiving more packets when waiting for the body. Defaults to `30000`.
 - `max_body_size`: Maximum size in bytes for the body of allowed received messages. Defaults to `1024000`.
-- `log_level`: Severity asociated to logged messages. Defaults to `error`.
+- `log_level`: Severity associated to logged messages. Defaults to `error`.
 
-## Callback modules
+## Callback modules & middlewares
 
-`erf` dynamically generates a router that type check the received requests against the API specification. If the request passes the validation, it is deconstructed and passed to the callback module. But, how does the callback module must look like?
+`erf` dynamically generates a router that type check the received requests against the API specification. If the request passes the validation, it is deconstructed and passed to the middleware and callback modules. But, how do those middleware and callback modules must look like?
 
-The router expects your callback module to export one function per operation defined in your API specification. It also expects each operation to include an `operationId` that, after being transformed to _snake_case_, will identify the function that is going to be called. Regarding the expected arguments in those functions, `erf` will provide 4 arguments that include the variable data of the request (i.e., that data that cannot be inferred just from the `operationId`):
-- `PathParameters :: [{Name :: binary(), Value :: binary()}]`
-- `QueryParameters :: [{Name :: binary(), Value :: binary()}]`
-- `Headers :: [{Name :: binary(), Value :: binary()}]`
-- `Body :: njson:t()`
-> [`njson`](https://github.com/nomasystems/njson) is the library used in `erf` to deserialize JSON values to Erlang terms.
+- **Preprocess middlewares** receive a request, do something with it (such as adding an entry to an access log) and return it for the next middleware or callback module to process it. This allows each preprocess middleware to modify the content of the request, updating any of its fields such as the `context` field, specifically dedicated to store contextual information middlewares might want to provide. Preprocess middlewares can short-circuit the processing flow, returning `{stop, Response}` or `{stop, Response, Request}` instead of just `Request`. The first of those alternatives prevents the following preprocess middlewares to execute, as well as the callback module, skipping directly to the postprocess middlewares. The second alternative response format does the same but allows to modify the request information.
 
-An example of an API specification and a supported callback can be seen in [Quickstart](#quickstart).
+- **Callback module**.
+The router expects your callback module to export one function per operation defined in your API specification. It also expects each operation to include an `operationId` that, after being transformed to _snake_case_, will identify the function that is going to be called. Such function receives an `erf:request()` and must return an `erf:response()`.
+
+- **Postprocess middlewares** can also update the request, like the preprocess middlewares, by returning a `{erf:response(), erf:request()}` tuple or just return a `erf:response()` and leave the received request intact. This middlewares cannot short-circuit the processing flow.
+
+An example of an API specification and a supported callback can be seen in [Quickstart](#quickstart). Files `users_preprocess.erl` and `users_postprocess.erl` under `examples/users` exemplify how to use `erf` middlewares. Try out the example by running `rebar3 as examples shell` from the root of this project.
 
 ## Hot-configuration reloading
 

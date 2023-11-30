@@ -76,12 +76,15 @@
     | connect.
 -type path_parameter() :: {binary(), binary()}.
 -type query_parameter() :: {binary(), binary()}.
--type request() :: {
-    Path :: [binary()],
-    Method :: method(),
-    QueryParameters :: [query_parameter()],
-    Headers :: [header()],
-    Body :: body()
+-type request() :: #{
+    path := [binary()],
+    path_parameters => [path_parameter()],
+    method := method(),
+    query_parameters := [query_parameter()],
+    headers := [header()],
+    body := body(),
+    peer := undefined | binary(),
+    context => any()
 }.
 -type response() :: {
     StatusCode :: pos_integer(),

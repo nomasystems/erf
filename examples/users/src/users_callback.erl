@@ -3,20 +3,20 @@
 
 %%% EXTERNAL EXPORTS
 -export([
-    create_user/4,
-    get_user/4,
-    delete_user/4
+    create_user/1,
+    get_user/1,
+    delete_user/1
 ]).
 
 %%%-------------------------------------------------------
 %%% EXTERNAL EXPORTS
 %%%-------------------------------------------------------
-create_user(_PathParameters, _QueryParameters, _Headers, Body) ->
+create_user(#{body := Body} = _Request) ->
     Id = base64:encode(crypto:strong_rand_bytes(16)),
     ets:insert(users, {Id, Body#{<<"id">> => Id}}),
     {201, [], Body#{<<"id">> => Id}}.
 
-get_user(PathParameters, _QueryParameters, _Headers, _Body) ->
+get_user(#{path_parameters := PathParameters} = _Request) ->
     Id = proplists:get_value(<<"userId">>, PathParameters),
     case ets:lookup(users, Id) of
         [] ->
@@ -28,7 +28,7 @@ get_user(PathParameters, _QueryParameters, _Headers, _Body) ->
             {200, [], User}
     end.
 
-delete_user(PathParameters, _QueryParameters, _Headers, _Body) ->
+delete_user(#{path_parameters := PathParameters} = _Request) ->
     Id = proplists:get_value(<<"userId">>, PathParameters),
     case ets:lookup(users, Id) of
         [] ->

@@ -71,34 +71,23 @@ foo(_Conf) ->
         version => <<"1.0.0">>,
         schemas => #{
             <<"version_foo_version">> => #{
-                <<"type">> => <<"integer">>,
-                <<"nullable">> => false
+                type => integer
             },
-            <<"get_foo_request_body">> => undefined,
-            <<"get_foo_response_body">> => #{
-                <<"anyOf">> => [
+            <<"get_foo_request_body">> => true,
+            <<"get_foo_response_body_200">> => #{
+                any_of => [#{enum => [<<"bar">>, <<"baz">>]}]
+            },
+            <<"get_foo_response_body_default">> => #{
+                any_of => [
                     #{
-                        <<"anyOf">> => [
-                            #{
-                                <<"description">> => <<"A foo">>,
-                                <<"enum">> => [<<"bar">>, <<"baz">>],
-                                <<"type">> => <<"string">>
+                        type => object,
+                        properties => #{
+                            description => #{
+                                description =>
+                                    <<"An English human-friendly description of the error.">>,
+                                type => string
                             }
-                        ]
-                    },
-                    #{
-                        <<"anyOf">> => [
-                            #{
-                                <<"properties">> => #{
-                                    <<"description">> => #{
-                                        <<"description">> =>
-                                            <<"An English human-friendly description of the error.">>,
-                                        <<"type">> => <<"string">>
-                                    }
-                                },
-                                <<"type">> => <<"object">>
-                            }
-                        ]
+                        }
                     }
                 ]
             }
@@ -110,7 +99,8 @@ foo(_Conf) ->
                     #{
                         ref => <<"version_foo_version">>,
                         name => <<"version">>,
-                        type => path
+                        type => path,
+                        required => true
                     }
                 ],
                 operations => [
@@ -118,8 +108,24 @@ foo(_Conf) ->
                         id => <<"get_foo">>,
                         method => get,
                         parameters => [],
-                        request_body => undefined,
-                        response_body => <<"get_foo_response_body">>
+                        request => #{
+                            body => #{
+                                ref => <<"get_foo_request_body">>,
+                                required => false
+                            }
+                        },
+                        responses => #{
+                            200 => #{
+                                body => #{
+                                    ref => <<"get_foo_response_body_200">>
+                                }
+                            },
+                            '*' => #{
+                                body => #{
+                                    ref => <<"get_foo_response_body_default">>
+                                }
+                            }
+                        }
                     }
                 ]
             }

@@ -171,7 +171,7 @@ A detailed description of each parameter can be found in the following list:
 - `callback`: Name of the callback module.
 - `port`: Port the server will listen to. Defaults to `8080`.
 - `name`: Name under which the server is registered. Defaults to `erf`.
-- `spec_parser`: Name of the specification parser module. Defaults to `erf_oas_3_0`.
+- `spec_parser`: Name of the specification parser module. Defaults to `erf_parser_oas_3_0`.
 - `preprocess_middlewares`: List of names of middlewares to be invoked before the request is forwarded to the callback. Defaults to `[]`.
 - `postprocess_middlewares`: List of names of middlewares to be invoked after the response is returned by the callback. Defaults to `[]`.
 - `ssl`: Boolean flag that enables/disables SSL. Defaults to `false`.

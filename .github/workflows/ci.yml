@@ -1,4 +1,4 @@
-name: erf ci
+name: CI
 
 on:
   push:

@@ -38,7 +38,7 @@
                 "summary": "Create foo",
                 "operationId": "createFoo",
                 "requestBody": {
-                    "$ref": "common_oas_3_0_spec.json#/components/requestBodies/Foo"
+                    "$ref": "common_oas_3_0_spec.json#/components/requestBodies/PostFoo"
                 },
                 "responses": {
                     "201": {

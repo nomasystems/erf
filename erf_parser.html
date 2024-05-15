@@ -4,20 +4,21 @@
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="generator" content="ExDoc v0.30.7">
-    <meta name="project" content="erf v0.1.0">
+    <meta name="generator" content="ExDoc v0.31.2">
+    <meta name="project" content="erf v0.1.2">
 
-    <title>erf_parser — erf v0.1.0</title>
-    <link rel="stylesheet" href="dist/html-erlang-BDSMJ657.css" />
+
+    <title>erf_parser — erf v0.1.2</title>
+    <link rel="stylesheet" href="dist/html-erlang-DUKXLSAT.css" />
 
 
     <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
-    <script src="dist/handlebars.templates-EPF2X7PV.js"></script>
-    <script src="dist/sidebar_items-D7A5B7C6.js"></script>
+    <script src="dist/handlebars.templates-A7S2WMC7.js"></script>
+    <script src="dist/sidebar_items-CD0FFEC6.js"></script>
 
       <script src="docs_config.js"></script>
 
-    <script async src="dist/html-J2ASZTQE.js"></script>
+    <script async src="dist/html-JRPQ5PR6.js"></script>
 
 
   </head>
@@ -38,37 +39,24 @@
 
 <div class="main">
 
-<button class="sidebar-button sidebar-toggle" aria-label="toggle sidebar" aria-controls="sidebar">
+<button id="sidebar-menu" class="sidebar-button sidebar-toggle" aria-label="toggle sidebar" aria-controls="sidebar">
   <i class="ri-menu-line ri-lg" title="Collapse/expand sidebar"></i>
 </button>
 
-<nav id="sidebar" class="sidebar">
-  <form class="sidebar-search" action="search.html">
-    <label class="search-label">
-      <span class="sr-only">Search documentation of erf</span>
-      <input name="q" type="text" class="search-input" placeholder="Search..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
-    </label>
-    <button type="submit" class="search-button" aria-label="Submit Search">
-      <i class="ri-search-2-line" aria-hidden="true" title="Submit search"></i>
-    </button>
-    <button type="button" tabindex="-1" class="search-close-button" aria-hidden="true">
-      <i class="ri-close-line ri-lg" title="Cancel search"></i>
-    </button>
-  </form>
+<div class="background-layer"></div>
 
-  <div class="autocomplete">
-    <div class="autocomplete-results">
-    </div>
-  </div>
+<nav id="sidebar" class="sidebar">
 
   <div class="sidebar-header">
+    <div class="sidebar-projectInfo">
 
-    <div class="sidebar-projectDetails">
-      <a href="readme.html" class="sidebar-projectName" translate="no">
+      <div>
+        <a href="readme.html" class="sidebar-projectName" translate="no">
 erf
-      </a>
-      <div class="sidebar-projectVersion" translate="no">
-        v0.1.0
+        </a>
+        <div class="sidebar-projectVersion" translate="no">
+          v0.1.2
+        </div>
       </div>
     </div>
     <ul id="sidebar-listNav" class="sidebar-listNav" role="tablist">
@@ -103,21 +91,39 @@ Pages
   <output role="status" id="toast"></output>
   <div class="content-outer">
     <div id="content" class="content-inner">
+      <div class="top-search">
+        <div class="search-settings">
+          <form class="search-bar" action="search.html">
+            <label class="search-label">
+              <span class="sr-only">Search documentation of erf</span>
+              <input name="q" type="text" class="search-input" placeholder="Press / to search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+            </label>
+            <button type="submit" class="search-button" aria-label="Submit Search">
+              <i class="ri-search-2-line ri-lg" aria-hidden="true" title="Submit search"></i>
+            </button>
+            <button type="button" tabindex="-1" class="search-close-button" aria-hidden="true">
+              <i class="ri-close-line ri-lg" title="Cancel search"></i>
+            </button>
+          </form>
+          <div class="autocomplete">
+          </div>
+          <button class="icon-settings display-settings">
+            <i class="ri-settings-3-line"></i>
+            <span class="sr-only">Settings</span>
+          </button>
+        </div>
+
+      </div>
 
 <h1>
-<button class="icon-action display-settings">
-  <i class="ri-settings-3-line"></i>
-  <span class="sr-only">Settings</span>
-</button>
 
-
-    <a href="https://github.com/nomasystems/erf/blob/0.1.0/src/erf_parser.erl#L16" title="View Source" class="icon-action" rel="help">
+    <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L16" title="View Source" class="icon-action" rel="help">
       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
       <span class="sr-only">View Source</span>
     </a>
 
   <span translate="no">erf_parser</span> <small>behaviour</small>
-  <small class="app-vsn" translate="no">(erf v0.1.0)</small>
+  <small class="app-vsn" translate="no">(erf v0.1.2)</small>
 
 </h1>
 
@@ -142,6 +148,14 @@ Module that parses a specification file into an API AST.
     <div class="summary-row">
       <div class="summary-signature">
         <a href="#t:api/0" translate="no">api/0</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:body/0" translate="no">body/0</a>
 
       </div>
 
@@ -206,6 +220,22 @@ Module that parses a specification file into an API AST.
     <div class="summary-row">
       <div class="summary-signature">
         <a href="#t:ref/0" translate="no">ref/0</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:request/0" translate="no">request/0</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:response/0" translate="no">response/0</a>
 
       </div>
 
@@ -279,7 +309,7 @@ Module that parses a specification file into an API AST.
     </a>
     <h1 class="signature" translate="no">api/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.0/src/erf_parser.erl#L24" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L24" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -292,10 +322,38 @@ Module that parses a specification file into an API AST.
       <div class="specs">
 
           <pre translate="no"><span class="attribute">-type</span> api() ::
-    #{name := binary(),
-      version := binary(),
+    #{name := <a href="https://www.erlang.org/doc/man/erlang.html#type-binary">binary</a>(),
+      version := <a href="https://www.erlang.org/doc/man/erlang.html#type-binary">binary</a>(),
       endpoints := [<a href="#t:endpoint/0">endpoint</a>()],
       schemas := #{<a href="#t:ref/0">ref</a>() => <a href="#t:schema/0">schema</a>()}}.</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="t:body/0">
+
+  <div class="detail-header">
+    <a href="#t:body/0" class="detail-link" title="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this type</span>
+    </a>
+    <h1 class="signature" translate="no">body/0</h1>
+
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L30" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">-type</span> body() :: #{ref := <a href="#t:ref/0">ref</a>(), required := <a href="https://www.erlang.org/doc/man/erlang.html#type-boolean">boolean</a>()}.</pre>
 
       </div>
 
@@ -311,7 +369,7 @@ Module that parses a specification file into an API AST.
     </a>
     <h1 class="signature" translate="no">endpoint/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.0/src/erf_parser.erl#L30" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L34" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -339,7 +397,7 @@ Module that parses a specification file into an API AST.
     </a>
     <h1 class="signature" translate="no">method/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.0/src/erf_parser.erl#L35" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L39" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -367,7 +425,7 @@ Module that parses a specification file into an API AST.
     </a>
     <h1 class="signature" translate="no">operation/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.0/src/erf_parser.erl#L36" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L40" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -380,11 +438,11 @@ Module that parses a specification file into an API AST.
       <div class="specs">
 
           <pre translate="no"><span class="attribute">-type</span> operation() ::
-    #{id := binary(),
+    #{id := <a href="https://www.erlang.org/doc/man/erlang.html#type-binary">binary</a>(),
       method := <a href="#t:method/0">method</a>(),
       parameters := [<a href="#t:parameter/0">parameter</a>()],
-      request_body := <a href="#t:ref/0">ref</a>(),
-      responses := #{'*' | <a href="#t:status_code/0">status_code</a>() := <a href="#t:ref/0">ref</a>()}}.</pre>
+      request := <a href="#t:request/0">request</a>(),
+      responses := #{'*' | <a href="#t:status_code/0">status_code</a>() := <a href="#t:response/0">response</a>()}}.</pre>
 
       </div>
 
@@ -400,7 +458,7 @@ Module that parses a specification file into an API AST.
     </a>
     <h1 class="signature" translate="no">parameter/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.0/src/erf_parser.erl#L45" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L49" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -412,7 +470,8 @@ Module that parses a specification file into an API AST.
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">-type</span> parameter() :: #{ref := <a href="#t:ref/0">ref</a>(), name := <a href="#t:parameter_name/0">parameter_name</a>(), type := <a href="#t:parameter_type/0">parameter_type</a>()}.</pre>
+          <pre translate="no"><span class="attribute">-type</span> parameter() ::
+    #{ref := <a href="#t:ref/0">ref</a>(), name := <a href="#t:parameter_name/0">parameter_name</a>(), type := <a href="#t:parameter_type/0">parameter_type</a>(), required := <a href="https://www.erlang.org/doc/man/erlang.html#type-boolean">boolean</a>()}.</pre>
 
       </div>
 
@@ -428,7 +487,7 @@ Module that parses a specification file into an API AST.
     </a>
     <h1 class="signature" translate="no">parameter_name/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.0/src/erf_parser.erl#L50" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L55" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -440,7 +499,7 @@ Module that parses a specification file into an API AST.
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">-type</span> parameter_name() :: binary().</pre>
+          <pre translate="no"><span class="attribute">-type</span> parameter_name() :: <a href="https://www.erlang.org/doc/man/erlang.html#type-binary">binary</a>().</pre>
 
       </div>
 
@@ -456,7 +515,7 @@ Module that parses a specification file into an API AST.
     </a>
     <h1 class="signature" translate="no">parameter_type/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.0/src/erf_parser.erl#L51" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L56" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -484,7 +543,7 @@ Module that parses a specification file into an API AST.
     </a>
     <h1 class="signature" translate="no">path/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.0/src/erf_parser.erl#L52" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L57" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -496,7 +555,7 @@ Module that parses a specification file into an API AST.
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">-type</span> path() :: binary().</pre>
+          <pre translate="no"><span class="attribute">-type</span> path() :: <a href="https://www.erlang.org/doc/man/erlang.html#type-binary">binary</a>().</pre>
 
       </div>
 
@@ -512,7 +571,7 @@ Module that parses a specification file into an API AST.
     </a>
     <h1 class="signature" translate="no">ref/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.0/src/erf_parser.erl#L53" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L58" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -524,7 +583,63 @@ Module that parses a specification file into an API AST.
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">-type</span> ref() :: binary().</pre>
+          <pre translate="no"><span class="attribute">-type</span> ref() :: <a href="https://www.erlang.org/doc/man/erlang.html#type-binary">binary</a>().</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="t:request/0">
+
+  <div class="detail-header">
+    <a href="#t:request/0" class="detail-link" title="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this type</span>
+    </a>
+    <h1 class="signature" translate="no">request/0</h1>
+
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L59" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">-type</span> request() :: #{body := <a href="#t:body/0">body</a>()}.</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="t:response/0">
+
+  <div class="detail-header">
+    <a href="#t:response/0" class="detail-link" title="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this type</span>
+    </a>
+    <h1 class="signature" translate="no">response/0</h1>
+
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L62" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">-type</span> response() :: #{body := <a href="#t:body/0">body</a>()}.</pre>
 
       </div>
 
@@ -540,7 +655,7 @@ Module that parses a specification file into an API AST.
     </a>
     <h1 class="signature" translate="no">schema/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.0/src/erf_parser.erl#L54" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L65" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -568,7 +683,7 @@ Module that parses a specification file into an API AST.
     </a>
     <h1 class="signature" translate="no">status_code/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.0/src/erf_parser.erl#L55" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L66" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -608,7 +723,7 @@ Module that parses a specification file into an API AST.
     </a>
     <h1 class="signature" translate="no">parse/1</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.0/src/erf_parser.erl#L71" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L89" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -622,10 +737,10 @@ Module that parses a specification file into an API AST.
 
           <pre translate="no"><span class="attribute">-callback</span> parse(SpecPath) -> Result
          when
-             SpecPath :: binary(),
+             SpecPath :: <a href="https://www.erlang.org/doc/man/erlang.html#type-binary">binary</a>(),
              Result :: {ok, API} | {error, Reason},
              API :: <a href="#t:api/0">api</a>(),
-             Reason :: term().</pre>
+             Reason :: <a href="https://www.erlang.org/doc/man/erlang.html#type-term">term</a>().</pre>
 
       </div>
 
@@ -653,7 +768,7 @@ Module that parses a specification file into an API AST.
     </a>
     <h1 class="signature" translate="no">parse(SpecPath, SpecParser)</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.0/src/erf_parser.erl#L87" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L105" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -667,11 +782,11 @@ Module that parses a specification file into an API AST.
 
           <pre translate="no"><span class="attribute">-spec</span> parse(SpecPath, SpecParser) -> Result
          when
-             SpecPath :: binary(),
-             SpecParser :: module(),
+             SpecPath :: <a href="https://www.erlang.org/doc/man/erlang.html#type-binary">binary</a>(),
+             SpecParser :: <a href="https://www.erlang.org/doc/man/erlang.html#type-module">module</a>(),
              Result :: {ok, API} | {error, Reason},
              API :: <a href="#t:api/0">api</a>(),
-             Reason :: term().</pre>
+             Reason :: <a href="https://www.erlang.org/doc/man/erlang.html#type-term">term</a>().</pre>
 
       </div>
 
@@ -686,11 +801,9 @@ Parses an specification file into an API AST given a specification format.
         <p>
 
             <span class="line">
-              <a href="https://hex.pm/packages/erf/0.1.0" class="footer-hex-package">Hex Package</a>
+              <a href="https://hex.pm/packages/erf/0.1.2" class="footer-hex-package">Hex Package</a>
 
-              <a href="https://preview.hex.pm/preview/erf/0.1.0">Hex Preview</a>
-
-                (<a href="https://preview.hex.pm/preview/erf/0.1.0/show/src/erf_parser.erl">current file</a>)
+              <a href="https://preview.hex.pm/preview/erf/0.1.2">Hex Preview</a>
 
             </span>
 
@@ -704,11 +817,12 @@ Parses an specification file into an API AST given a specification format.
 
         <p class="built-using">
           Built using
-          <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.30.7) for the
+          <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.31.2) for the
 
             <a href="https://erlang.org" title="Erlang" target="_blank" translate="no">Erlang programming language</a>
 
         </p>
+
       </footer>
     </div>
   </div>

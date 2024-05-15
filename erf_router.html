@@ -4,20 +4,21 @@
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="generator" content="ExDoc v0.30.7">
-    <meta name="project" content="erf v0.1.0">
+    <meta name="generator" content="ExDoc v0.31.2">
+    <meta name="project" content="erf v0.1.2">
 
-    <title>erf_router — erf v0.1.0</title>
-    <link rel="stylesheet" href="dist/html-erlang-BDSMJ657.css" />
+
+    <title>erf_router — erf v0.1.2</title>
+    <link rel="stylesheet" href="dist/html-erlang-DUKXLSAT.css" />
 
 
     <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
-    <script src="dist/handlebars.templates-EPF2X7PV.js"></script>
-    <script src="dist/sidebar_items-D7A5B7C6.js"></script>
+    <script src="dist/handlebars.templates-A7S2WMC7.js"></script>
+    <script src="dist/sidebar_items-CD0FFEC6.js"></script>
 
       <script src="docs_config.js"></script>
 
-    <script async src="dist/html-J2ASZTQE.js"></script>
+    <script async src="dist/html-JRPQ5PR6.js"></script>
 
 
   </head>
@@ -38,37 +39,24 @@
 
 <div class="main">
 
-<button class="sidebar-button sidebar-toggle" aria-label="toggle sidebar" aria-controls="sidebar">
+<button id="sidebar-menu" class="sidebar-button sidebar-toggle" aria-label="toggle sidebar" aria-controls="sidebar">
   <i class="ri-menu-line ri-lg" title="Collapse/expand sidebar"></i>
 </button>
 
-<nav id="sidebar" class="sidebar">
-  <form class="sidebar-search" action="search.html">
-    <label class="search-label">
-      <span class="sr-only">Search documentation of erf</span>
-      <input name="q" type="text" class="search-input" placeholder="Search..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
-    </label>
-    <button type="submit" class="search-button" aria-label="Submit Search">
-      <i class="ri-search-2-line" aria-hidden="true" title="Submit search"></i>
-    </button>
-    <button type="button" tabindex="-1" class="search-close-button" aria-hidden="true">
-      <i class="ri-close-line ri-lg" title="Cancel search"></i>
-    </button>
-  </form>
+<div class="background-layer"></div>
 
-  <div class="autocomplete">
-    <div class="autocomplete-results">
-    </div>
-  </div>
+<nav id="sidebar" class="sidebar">
 
   <div class="sidebar-header">
+    <div class="sidebar-projectInfo">
 
-    <div class="sidebar-projectDetails">
-      <a href="readme.html" class="sidebar-projectName" translate="no">
+      <div>
+        <a href="readme.html" class="sidebar-projectName" translate="no">
 erf
-      </a>
-      <div class="sidebar-projectVersion" translate="no">
-        v0.1.0
+        </a>
+        <div class="sidebar-projectVersion" translate="no">
+          v0.1.2
+        </div>
       </div>
     </div>
     <ul id="sidebar-listNav" class="sidebar-listNav" role="tablist">
@@ -103,21 +91,39 @@ Pages
   <output role="status" id="toast"></output>
   <div class="content-outer">
     <div id="content" class="content-inner">
+      <div class="top-search">
+        <div class="search-settings">
+          <form class="search-bar" action="search.html">
+            <label class="search-label">
+              <span class="sr-only">Search documentation of erf</span>
+              <input name="q" type="text" class="search-input" placeholder="Press / to search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+            </label>
+            <button type="submit" class="search-button" aria-label="Submit Search">
+              <i class="ri-search-2-line ri-lg" aria-hidden="true" title="Submit search"></i>
+            </button>
+            <button type="button" tabindex="-1" class="search-close-button" aria-hidden="true">
+              <i class="ri-close-line ri-lg" title="Cancel search"></i>
+            </button>
+          </form>
+          <div class="autocomplete">
+          </div>
+          <button class="icon-settings display-settings">
+            <i class="ri-settings-3-line"></i>
+            <span class="sr-only">Settings</span>
+          </button>
+        </div>
+
+      </div>
 
 <h1>
-<button class="icon-action display-settings">
-  <i class="ri-settings-3-line"></i>
-  <span class="sr-only">Settings</span>
-</button>
 
-
-    <a href="https://github.com/nomasystems/erf/blob/0.1.0/src/erf_router.erl#L16" title="View Source" class="icon-action" rel="help">
+    <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_router.erl#L16" title="View Source" class="icon-action" rel="help">
       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
       <span class="sr-only">View Source</span>
     </a>
 
   <span translate="no">erf_router</span> 
-  <small class="app-vsn" translate="no">(erf v0.1.0)</small>
+  <small class="app-vsn" translate="no">(erf v0.1.2)</small>
 
 </h1>
 
@@ -207,7 +213,7 @@ Pages
     </a>
     <h1 class="signature" translate="no">callback/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.0/src/erf_router.erl#L36" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_router.erl#L36" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -219,7 +225,7 @@ Pages
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">-type</span> callback() :: module().</pre>
+          <pre translate="no"><span class="attribute">-type</span> callback() :: <a href="https://www.erlang.org/doc/man/erlang.html#type-module">module</a>().</pre>
 
       </div>
 
@@ -235,7 +241,7 @@ Pages
     </a>
     <h1 class="signature" translate="no">generator_opts/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.0/src/erf_router.erl#L37" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_router.erl#L37" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -263,7 +269,7 @@ Pages
     </a>
     <h1 class="signature" translate="no">t/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.0/src/erf_router.erl#L35" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_router.erl#L35" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -303,7 +309,7 @@ Pages
     </a>
     <h1 class="signature" translate="no">generate(API, Opts)</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.0/src/erf_router.erl#L49" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_router.erl#L49" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -320,7 +326,7 @@ Pages
                 API :: <a href="erf.html#t:api/0">erf:api</a>(),
                 Opts :: <a href="#t:generator_opts/0">generator_opts</a>(),
                 Result :: {Mod, Router},
-                Mod :: module(),
+                Mod :: <a href="https://www.erlang.org/doc/man/erlang.html#type-module">module</a>(),
                 Router :: <a href="#t:t/0">t</a>().</pre>
 
       </div>
@@ -337,7 +343,7 @@ Generates an Erlang Syntax Tree of a router module from an API AST.
     </a>
     <h1 class="signature" translate="no">load(Router)</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.0/src/erf_router.erl#L93" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_router.erl#L93" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -353,8 +359,8 @@ Generates an Erlang Syntax Tree of a router module from an API AST.
         when
             Router :: <a href="#t:t/0">t</a>(),
             Result :: ok | {ok, Warnings} | error | {error, {Errors, Warnings}},
-            Errors :: [term()],
-            Warnings :: [term()].</pre>
+            Errors :: [<a href="https://www.erlang.org/doc/man/erlang.html#type-term">term</a>()],
+            Warnings :: [<a href="https://www.erlang.org/doc/man/erlang.html#type-term">term</a>()].</pre>
 
       </div>
 
@@ -369,11 +375,9 @@ Loads a router module into the Erlang Runtime System.
         <p>
 
             <span class="line">
-              <a href="https://hex.pm/packages/erf/0.1.0" class="footer-hex-package">Hex Package</a>
+              <a href="https://hex.pm/packages/erf/0.1.2" class="footer-hex-package">Hex Package</a>
 
-              <a href="https://preview.hex.pm/preview/erf/0.1.0">Hex Preview</a>
-
-                (<a href="https://preview.hex.pm/preview/erf/0.1.0/show/src/erf_router.erl">current file</a>)
+              <a href="https://preview.hex.pm/preview/erf/0.1.2">Hex Preview</a>
 
             </span>
 
@@ -387,11 +391,12 @@ Loads a router module into the Erlang Runtime System.
 
         <p class="built-using">
           Built using
-          <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.30.7) for the
+          <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.31.2) for the
 
             <a href="https://erlang.org" title="Erlang" target="_blank" translate="no">Erlang programming language</a>
 
         </p>
+
       </footer>
     </div>
   </div>

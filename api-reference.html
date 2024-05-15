@@ -4,20 +4,21 @@
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="generator" content="ExDoc v0.30.7">
-    <meta name="project" content="erf v0.1.0">
+    <meta name="generator" content="ExDoc v0.31.2">
+    <meta name="project" content="erf v0.1.2">
 
-    <title>API Reference — erf v0.1.0</title>
-    <link rel="stylesheet" href="dist/html-erlang-BDSMJ657.css" />
+
+    <title>API Reference — erf v0.1.2</title>
+    <link rel="stylesheet" href="dist/html-erlang-DUKXLSAT.css" />
 
 
     <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
-    <script src="dist/handlebars.templates-EPF2X7PV.js"></script>
-    <script src="dist/sidebar_items-D7A5B7C6.js"></script>
+    <script src="dist/handlebars.templates-A7S2WMC7.js"></script>
+    <script src="dist/sidebar_items-CD0FFEC6.js"></script>
 
       <script src="docs_config.js"></script>
 
-    <script async src="dist/html-J2ASZTQE.js"></script>
+    <script async src="dist/html-JRPQ5PR6.js"></script>
 
 
   </head>
@@ -38,37 +39,24 @@
 
 <div class="main">
 
-<button class="sidebar-button sidebar-toggle" aria-label="toggle sidebar" aria-controls="sidebar">
+<button id="sidebar-menu" class="sidebar-button sidebar-toggle" aria-label="toggle sidebar" aria-controls="sidebar">
   <i class="ri-menu-line ri-lg" title="Collapse/expand sidebar"></i>
 </button>
 
-<nav id="sidebar" class="sidebar">
-  <form class="sidebar-search" action="search.html">
-    <label class="search-label">
-      <span class="sr-only">Search documentation of erf</span>
-      <input name="q" type="text" class="search-input" placeholder="Search..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
-    </label>
-    <button type="submit" class="search-button" aria-label="Submit Search">
-      <i class="ri-search-2-line" aria-hidden="true" title="Submit search"></i>
-    </button>
-    <button type="button" tabindex="-1" class="search-close-button" aria-hidden="true">
-      <i class="ri-close-line ri-lg" title="Cancel search"></i>
-    </button>
-  </form>
+<div class="background-layer"></div>
 
-  <div class="autocomplete">
-    <div class="autocomplete-results">
-    </div>
-  </div>
+<nav id="sidebar" class="sidebar">
 
   <div class="sidebar-header">
+    <div class="sidebar-projectInfo">
 
-    <div class="sidebar-projectDetails">
-      <a href="readme.html" class="sidebar-projectName" translate="no">
+      <div>
+        <a href="readme.html" class="sidebar-projectName" translate="no">
 erf
-      </a>
-      <div class="sidebar-projectVersion" translate="no">
-        v0.1.0
+        </a>
+        <div class="sidebar-projectVersion" translate="no">
+          v0.1.2
+        </div>
       </div>
     </div>
     <ul id="sidebar-listNav" class="sidebar-listNav" role="tablist">
@@ -103,13 +91,31 @@ Pages
   <output role="status" id="toast"></output>
   <div class="content-outer">
     <div id="content" class="content-inner">
+      <div class="top-search">
+        <div class="search-settings">
+          <form class="search-bar" action="search.html">
+            <label class="search-label">
+              <span class="sr-only">Search documentation of erf</span>
+              <input name="q" type="text" class="search-input" placeholder="Press / to search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+            </label>
+            <button type="submit" class="search-button" aria-label="Submit Search">
+              <i class="ri-search-2-line ri-lg" aria-hidden="true" title="Submit search"></i>
+            </button>
+            <button type="button" tabindex="-1" class="search-close-button" aria-hidden="true">
+              <i class="ri-close-line ri-lg" title="Cancel search"></i>
+            </button>
+          </form>
+          <div class="autocomplete">
+          </div>
+          <button class="icon-settings display-settings">
+            <i class="ri-settings-3-line"></i>
+            <span class="sr-only">Settings</span>
+          </button>
+        </div>
+
+      </div>
 
 <h1>
-<button class="icon-action display-settings">
-  <i class="ri-settings-3-line"></i>
-  <span class="sr-only">Settings</span>
-</button>
-
 
     <a href="https://github.com/nomasystems/erf" title="View Source" class="icon-action" rel="help">
       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
@@ -117,7 +123,7 @@ Pages
     </a>
 
 
-  <span>API Reference <small class="app-vsn">erf v0.1.0</small></span>
+  <span>API Reference <small class="app-vsn">erf v0.1.2</small></span>
 </h1>
 
 
@@ -136,7 +142,7 @@ Pages
 
   </div>
 
-    <div class="summary-synopsis"><a href="erf.html#content"><code>erf</code></a> is a library that provides a design-first framework to build RESTful APIs in Erlang.</div>
+    <div class="summary-synopsis"><code>erf</code> is a library that provides a design-first framework to build RESTful APIs in Erlang.</div>
 
 </div>
 <div class="summary-row">
@@ -145,16 +151,7 @@ Pages
 
   </div>
 
-    <div class="summary-synopsis"><a href="erf.html"><code>erf</code></a>'s configuration manager module.</div>
-
-</div>
-<div class="summary-row">
-  <div class="summary-signature">
-    <a href="erf_oas_3_0.html" translate="no">erf_oas_3_0</a>
-
-  </div>
-
-    <div class="summary-synopsis">An OpenAPI Specification 3.0 <a href="erf_parser.html"><code>erf_parser</code></a>.</div>
+    <div class="summary-synopsis"><code>erf</code>'s configuration manager module.</div>
 
 </div>
 <div class="summary-row">
@@ -168,11 +165,20 @@ Pages
 </div>
 <div class="summary-row">
   <div class="summary-signature">
+    <a href="erf_parser_oas_3_0.html" translate="no">erf_parser_oas_3_0</a>
+
+  </div>
+
+    <div class="summary-synopsis">An OpenAPI Specification 3.0 <code>erf_parser</code>.</div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
     <a href="erf_postprocess_middleware.html" translate="no">erf_postprocess_middleware</a>
 
   </div>
 
-    <div class="summary-synopsis">Behaviour for <a href="erf.html"><code>erf</code></a>'s postprocessing middlewares.</div>
+    <div class="summary-synopsis">Behaviour for <code>erf</code>'s postprocessing middlewares.</div>
 
 </div>
 <div class="summary-row">
@@ -181,7 +187,7 @@ Pages
 
   </div>
 
-    <div class="summary-synopsis">Behaviour for <a href="erf.html"><code>erf</code></a>'s preprocessing middlewares.</div>
+    <div class="summary-synopsis">Behaviour for <code>erf</code>'s preprocessing middlewares.</div>
 
 </div>
 <div class="summary-row">
@@ -197,7 +203,7 @@ Pages
 
   </div>
 
-    <div class="summary-synopsis"><a href="erf.html"><code>erf</code></a>'s static files handler utility module.</div>
+    <div class="summary-synopsis"><code>erf</code>'s static files handler utility module.</div>
 
 </div>
 <div class="summary-row">
@@ -233,9 +239,9 @@ Overview
         <p>
 
             <span class="line">
-              <a href="https://hex.pm/packages/erf/0.1.0" class="footer-hex-package">Hex Package</a>
+              <a href="https://hex.pm/packages/erf/0.1.2" class="footer-hex-package">Hex Package</a>
 
-              <a href="https://preview.hex.pm/preview/erf/0.1.0">Hex Preview</a>
+              <a href="https://preview.hex.pm/preview/erf/0.1.2">Hex Preview</a>
 
             </span>
 
@@ -249,11 +255,12 @@ Overview
 
         <p class="built-using">
           Built using
-          <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.30.7) for the
+          <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.31.2) for the
 
             <a href="https://erlang.org" title="Erlang" target="_blank" translate="no">Erlang programming language</a>
 
         </p>
+
       </footer>
     </div>
   </div>

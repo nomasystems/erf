@@ -70,11 +70,11 @@ parse(SpecPath) ->
                     },
                     API = parse_api(OAS, CTX),
                     {ok, ndto_parser_json_schema:clean_optionals(API)};
-                false ->
-                    {error, {invalid_spec, <<"Invalid OpenAPI Specification 3.0">>}}
+                {false, Reason} ->
+                    {error, {invalid_oas_3_0_spec, Reason}}
             end;
         {error, Reason} ->
-            {error, {invalid_spec, Reason}}
+            {error, {invalid_oas_3_0_spec, Reason}}
     end.
 
 %%%-----------------------------------------------------------------------------

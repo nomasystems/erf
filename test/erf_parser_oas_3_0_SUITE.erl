@@ -274,8 +274,9 @@ invalid(_Conf) ->
         code:lib_dir(erf, test) ++ "/fixtures/invalid_oas_3_0_spec.json"
     ),
 
-    {error, {invalid_spec, <<"Invalid OpenAPI Specification 3.0">>}} = erf_parser:parse(
-        Invalid, erf_parser_oas_3_0
+    ?assertMatch(
+        {error, {invalid_oas_3_0_spec, _Reason}},
+        erf_parser:parse(Invalid, erf_parser_oas_3_0)
     ),
 
     ok.

@@ -164,7 +164,7 @@ foo(_Conf) ->
 
     ?assertEqual({200, [], <<"bar">>}, Mod:handle(Req)),
 
-    meck:expect(version_foo_version, is_valid, fun(_Value) -> false end),
+    meck:expect(get_foo_request_body, is_valid, fun(_Value) -> {false, reason} end),
 
     ?assertEqual({400, [], undefined}, Mod:handle(Req)),
 

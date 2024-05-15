@@ -205,23 +205,6 @@ apply_postprocess_middlewares(Request, RawResponse, [Middleware | Rest]) ->
             apply_postprocess_middlewares(Request, Response, Rest)
     end.
 
--spec chain_conditions(FunCalls, Operator) -> Result when
-    FunCalls :: [erl_syntax:syntaxTree()],
-    Operator :: 'andalso',
-    Result :: erl_syntax:syntaxTree().
-chain_conditions(FunCalls, 'andalso' = Operator) ->
-    chain_conditions(FunCalls, Operator, erl_syntax:atom(true)).
-
-chain_conditions([], _Operator, Acc) ->
-    Acc;
-chain_conditions([FunCall | Rest], Operator, Acc) ->
-    NewAcc = erl_syntax:infix_expr(
-        Acc,
-        erl_syntax:operator(Operator),
-        FunCall
-    ),
-    chain_conditions(Rest, Operator, NewAcc).
-
 -spec handle_ast(API, Opts) -> Result when
     API :: erf:api(),
     Opts :: generator_opts(),
@@ -368,7 +351,12 @@ handle_ast(API, #{callback := Callback} = Opts) ->
                                         ]
                                     ),
                                     erl_syntax:clause(
-                                        [erl_syntax:atom(false)],
+                                        [
+                                            erl_syntax:tuple([
+                                                erl_syntax:atom(false),
+                                                erl_syntax:variable('_Reason')
+                                            ])
+                                        ],
                                         none,
                                         [
                                             erl_syntax:tuple(
@@ -715,7 +703,24 @@ is_valid_request(RawParameters, Request) ->
             end,
             FilteredParameters
         ),
-    chain_conditions([RequestBody | Parameters], 'andalso').
+    erl_syntax:application(
+        erl_syntax:atom('ndto_validation'),
+        erl_syntax:atom('andalso'),
+        [
+            erl_syntax:list([
+                erl_syntax:tuple([
+                    erl_syntax:fun_expr([
+                        erl_syntax:clause(
+                            none,
+                            [Condition]
+                        )
+                    ]),
+                    erl_syntax:list([])
+                ])
+             || Condition <- [RequestBody | Parameters]
+            ])
+        ]
+    ).
 
 -spec load_binary(ModuleName, Bin) -> Result when
     ModuleName :: atom(),

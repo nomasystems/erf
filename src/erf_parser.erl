@@ -27,6 +27,10 @@
     endpoints := [endpoint()],
     schemas := #{ref() => schema()}
 }.
+-type body() :: #{
+    ref := ref(),
+    required := boolean()
+}.
 -type endpoint() :: #{
     path := path(),
     parameters := [parameter()],
@@ -37,32 +41,46 @@
     id := binary(),
     method := method(),
     parameters := [parameter()],
-    request_body := ref(),
+    request := request(),
     responses := #{
-        '*' | status_code() := ref()
+        '*' | status_code() := response()
     }
 }.
 -type parameter() :: #{
     ref := ref(),
     name := parameter_name(),
-    type := parameter_type()
+    type := parameter_type(),
+    required := boolean()
 }.
 -type parameter_name() :: binary().
 -type parameter_type() :: header | cookie | path | query.
 -type path() :: binary().
 -type ref() :: binary().
+-type request() :: #{
+    body := body()
+}.
+-type response() :: #{
+    body := body()
+}.
 -type schema() :: ndto:schema().
 -type status_code() :: 100..599.
 
 %%% TYPE EXPORTS
 -export_type([
     api/0,
+    body/0,
     endpoint/0,
     method/0,
     operation/0,
     parameter/0,
+    parameter_name/0,
+    parameter_type/0,
+    path/0,
     ref/0,
-    schema/0
+    request/0,
+    response/0,
+    schema/0,
+    status_code/0
 ]).
 
 %%%-----------------------------------------------------------------------------

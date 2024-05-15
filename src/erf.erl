@@ -41,7 +41,7 @@
 
 %%% TYPES
 -type api() :: erf_parser:api().
--type body() :: njson:t().
+-type body() :: undefined | njson:t().
 -type conf() :: #{
     spec_path := binary(),
     callback := module(),
@@ -76,12 +76,15 @@
     | connect.
 -type path_parameter() :: {binary(), binary()}.
 -type query_parameter() :: {binary(), binary()}.
--type request() :: {
-    Path :: [binary()],
-    Method :: method(),
-    QueryParameters :: [query_parameter()],
-    Headers :: [header()],
-    Body :: body()
+-type request() :: #{
+    path := [binary()],
+    path_parameters => [path_parameter()],
+    method := method(),
+    query_parameters := [query_parameter()],
+    headers := [header()],
+    body := body(),
+    peer := undefined | binary(),
+    context => any()
 }.
 -type response() :: {
     StatusCode :: pos_integer(),
@@ -204,7 +207,7 @@ reload_conf(Name, NewConf) ->
 init([Name, RawConf]) ->
     RawErfConf = #{
         spec_path => maps:get(spec_path, RawConf),
-        spec_parser => maps:get(spec_parser, RawConf, erf_oas_3_0),
+        spec_parser => maps:get(spec_parser, RawConf, erf_parser_oas_3_0),
         callback => maps:get(callback, RawConf),
         static_routes => maps:get(static_routes, RawConf, []),
         swagger_ui => maps:get(swagger_ui, RawConf, false),

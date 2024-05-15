@@ -56,7 +56,7 @@
             }
         },
         "requestBodies": {
-            "Foo": {
+            "PostFoo": {
                 "content": {
                     "application/json": {
                         "schema": {

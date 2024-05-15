@@ -126,18 +126,24 @@ handle(ElliRequest, [Name]) ->
     {ok, PreProcessMiddlewares} = erf_conf:preprocess_middlewares(Name),
     {ok, RouterMod} = erf_conf:router_mod(Name),
     {ok, PostProcessMiddlewares} = erf_conf:postprocess_middlewares(Name),
-    InitialRequest = preprocess(ElliRequest),
-    InitialResponse =
-        case apply_preprocess_middlewares(InitialRequest, PreProcessMiddlewares) of
-            {stop, Resp} ->
-                Resp;
-            Request ->
-                RouterMod:handle(Request)
-        end,
-    Response = apply_postprocess_middlewares(
-        InitialRequest, InitialResponse, PostProcessMiddlewares
-    ),
-    postprocess(InitialRequest, Response).
+    case preprocess(ElliRequest) of
+        {ok, Request} ->
+            {InitialResponse, InitialRequest} =
+                case apply_preprocess_middlewares(Request, PreProcessMiddlewares) of
+                    {stop, PreprocessResponse, PreprocessRequest} ->
+                        {PreprocessResponse, PreprocessRequest};
+                    PreprocessRequest ->
+                        {RouterMod:handle(PreprocessRequest), PreprocessRequest}
+                end,
+            Response = apply_postprocess_middlewares(
+                InitialRequest, InitialResponse, PostProcessMiddlewares
+            ),
+            postprocess(InitialRequest, Response);
+        {error, _Reason} ->
+            ContentTypeHeader = string:casefold(<<"content-type">>),
+            % TODO: handle error
+            {500, [{ContentTypeHeader, <<"text/plain">>}], <<"Internal Server Error">>}
+    end.
 
 -spec handle_event(Event, Data, CallbackArgs) -> ok when
     Event :: atom(),
@@ -171,13 +177,15 @@ handle_event(_Event, _Data, _CallbackArgs) ->
 -spec apply_preprocess_middlewares(Request, Middlewares) -> Result when
     Request :: erf:request(),
     Middlewares :: [erf_preprocess_middleware:t()],
-    Result :: erf:request() | {stop, erf:response()}.
+    Result :: erf:request() | {stop, erf:response(), erf:request()} | {stop, erf:response()}.
 apply_preprocess_middlewares(Request, []) ->
     Request;
 apply_preprocess_middlewares(RawRequest, [Middleware | Rest]) ->
     case Middleware:preprocess(RawRequest) of
         {stop, Response} ->
-            {stop, Response};
+            {stop, Response, RawRequest};
+        {stop, Response, Request} ->
+            {stop, Response, Request};
         Request ->
             apply_preprocess_middlewares(Request, Rest)
     end.
@@ -190,25 +198,12 @@ apply_preprocess_middlewares(RawRequest, [Middleware | Rest]) ->
 apply_postprocess_middlewares(_Request, Response, []) ->
     Response;
 apply_postprocess_middlewares(Request, RawResponse, [Middleware | Rest]) ->
-    Response = Middleware:postprocess(Request, RawResponse),
-    apply_postprocess_middlewares(Request, Response, Rest).
-
--spec chain_conditions(FunCalls, Operator) -> Result when
-    FunCalls :: [erl_syntax:syntaxTree()],
-    Operator :: 'andalso',
-    Result :: erl_syntax:syntaxTree().
-chain_conditions(FunCalls, 'andalso' = Operator) ->
-    chain_conditions(FunCalls, Operator, erl_syntax:atom(true)).
-
-chain_conditions([], _Operator, Acc) ->
-    Acc;
-chain_conditions([FunCall | Rest], Operator, Acc) ->
-    NewAcc = erl_syntax:infix_expr(
-        Acc,
-        erl_syntax:operator(Operator),
-        FunCall
-    ),
-    chain_conditions(Rest, Operator, NewAcc).
+    case Middleware:postprocess(Request, RawResponse) of
+        {Response, NewRequest} ->
+            apply_postprocess_middlewares(NewRequest, Response, Rest);
+        Response ->
+            apply_postprocess_middlewares(Request, Response, Rest)
+    end.
 
 -spec handle_ast(API, Opts) -> Result when
     API :: erf:api(),
@@ -258,7 +253,7 @@ handle_ast(API, #{callback := Callback} = Opts) ->
                         end,
                         Parameters
                     ),
-                    RequestBody = maps:get(request_body, Operation),
+                    Request = maps:get(request, Operation),
 
                     PathParametersAST = erl_syntax:list(
                         lists:map(
@@ -282,18 +277,35 @@ handle_ast(API, #{callback := Callback} = Opts) ->
                     ),
                     IsValidRequestAST = is_valid_request(
                         Parameters,
-                        RequestBody
+                        Request
                     ),
 
                     erl_syntax:clause(
                         [
-                            erl_syntax:tuple([
-                                Path,
-                                Method,
-                                erl_syntax:variable('QueryParameters'),
-                                erl_syntax:variable('Headers'),
-                                erl_syntax:variable('Body')
-                            ])
+                            erl_syntax:match_expr(
+                                erl_syntax:variable('Request'),
+                                erl_syntax:map_expr(
+                                    none,
+                                    [
+                                        erl_syntax:map_field_exact(
+                                            erl_syntax:atom(path),
+                                            Path
+                                        ),
+                                        erl_syntax:map_field_exact(
+                                            erl_syntax:atom(method),
+                                            Method
+                                        ),
+                                        erl_syntax:map_field_exact(
+                                            erl_syntax:atom(query_parameters),
+                                            erl_syntax:variable('QueryParameters')
+                                        ),
+                                        erl_syntax:map_field_exact(
+                                            erl_syntax:atom(body),
+                                            erl_syntax:variable('Body')
+                                        )
+                                    ]
+                                )
+                            )
                         ],
                         none,
                         [
@@ -323,16 +335,28 @@ handle_ast(API, #{callback := Callback} = Opts) ->
                                                     )
                                                 ),
                                                 [
-                                                    erl_syntax:variable('PathParameters'),
-                                                    erl_syntax:variable('QueryParameters'),
-                                                    erl_syntax:variable('Headers'),
-                                                    erl_syntax:variable('Body')
+                                                    erl_syntax:map_expr(
+                                                        erl_syntax:variable('Request'),
+                                                        [
+                                                            erl_syntax:map_field_assoc(
+                                                                erl_syntax:atom('path_parameters'),
+                                                                erl_syntax:variable(
+                                                                    'PathParameters'
+                                                                )
+                                                            )
+                                                        ]
+                                                    )
                                                 ]
                                             )
                                         ]
                                     ),
                                     erl_syntax:clause(
-                                        [erl_syntax:atom(false)],
+                                        [
+                                            erl_syntax:tuple([
+                                                erl_syntax:atom(false),
+                                                erl_syntax:variable('_Reason')
+                                            ])
+                                        ],
                                         none,
                                         [
                                             erl_syntax:tuple(
@@ -354,13 +378,22 @@ handle_ast(API, #{callback := Callback} = Opts) ->
             NotAllowedMethod =
                 erl_syntax:clause(
                     [
-                        erl_syntax:tuple([
-                            Path,
-                            erl_syntax:variable('_Method'),
-                            erl_syntax:variable('_QueryParameters'),
-                            erl_syntax:variable('_Headers'),
-                            erl_syntax:variable('_Body')
-                        ])
+                        erl_syntax:match_expr(
+                            erl_syntax:variable('Request'),
+                            erl_syntax:map_expr(
+                                none,
+                                [
+                                    erl_syntax:map_field_exact(
+                                        erl_syntax:atom(path),
+                                        Path
+                                    ),
+                                    erl_syntax:map_field_exact(
+                                        erl_syntax:atom(method),
+                                        erl_syntax:variable('_Method')
+                                    )
+                                ]
+                            )
+                        )
                     ],
                     none,
                     [
@@ -456,13 +489,35 @@ handle_ast(API, #{callback := Callback} = Opts) ->
                     end,
                 erl_syntax:clause(
                     [
-                        erl_syntax:tuple([
-                            PatternPathAST,
-                            erl_syntax:atom(get),
-                            erl_syntax:variable('_QueryParameters'),
-                            erl_syntax:variable('_Headers'),
-                            erl_syntax:variable('_Body')
-                        ])
+                        erl_syntax:map_expr(
+                            none,
+                            [
+                                erl_syntax:map_field_exact(
+                                    erl_syntax:atom(path),
+                                    PatternPathAST
+                                ),
+                                erl_syntax:map_field_exact(
+                                    erl_syntax:atom(method),
+                                    erl_syntax:atom(get)
+                                ),
+                                erl_syntax:map_field_exact(
+                                    erl_syntax:atom(query_parameters),
+                                    erl_syntax:variable('_QueryParameters')
+                                ),
+                                erl_syntax:map_field_exact(
+                                    erl_syntax:atom(headers),
+                                    erl_syntax:variable('_Headers')
+                                ),
+                                erl_syntax:map_field_exact(
+                                    erl_syntax:atom(body),
+                                    erl_syntax:variable('_Body')
+                                ),
+                                erl_syntax:map_field_exact(
+                                    erl_syntax:atom(peer),
+                                    erl_syntax:variable('_Peer')
+                                )
+                            ]
+                        )
                     ],
                     none,
                     [
@@ -501,7 +556,9 @@ handle_ast(API, #{callback := Callback} = Opts) ->
         ),
     NotFoundClause =
         erl_syntax:clause(
-            [erl_syntax:variable('_Req')],
+            [
+                erl_syntax:variable('_Req')
+            ],
             none,
             [
                 erl_syntax:tuple(
@@ -518,100 +575,152 @@ handle_ast(API, #{callback := Callback} = Opts) ->
         RESTClauses ++ StaticClauses ++ [NotFoundClause]
     ).
 
--spec is_valid_request(Parameters, RequestBody) -> Result when
+-spec is_valid_request(Parameters, Request) -> Result when
     Parameters :: [erf_parser:parameter()],
-    RequestBody :: erf_parser:ref(),
+    Request :: erf_parser:request(),
     Result :: erl_syntax:syntaxTree().
-is_valid_request(RawParameters, RequestBody) ->
-    Body =
-        case RequestBody of
-            undefined ->
-                erl_syntax:atom(true);
-            _RequestBody ->
-                RequestBodyModule = erlang:binary_to_atom(erf_util:to_snake_case(RequestBody)),
-                erl_syntax:application(
-                    erl_syntax:atom(RequestBodyModule),
-                    erl_syntax:atom(is_valid),
-                    [erl_syntax:variable('Body')]
+is_valid_request(RawParameters, Request) ->
+    RawRequestBody = maps:get(body, Request),
+    RequestBodyRef = maps:get(ref, RawRequestBody),
+    RequestBodyModule =
+        erlang:binary_to_atom(erf_util:to_snake_case(RequestBodyRef)),
+    RequestBodyIsValid =
+        erl_syntax:application(
+            erl_syntax:atom(RequestBodyModule),
+            erl_syntax:atom(is_valid),
+            [erl_syntax:variable('Body')]
+        ),
+    RequestBody =
+        case maps:get(required, RawRequestBody) of
+            true ->
+                RequestBodyIsValid;
+            false ->
+                erl_syntax:infix_expr(
+                    erl_syntax:infix_expr(
+                        erl_syntax:variable('Body'),
+                        erl_syntax:operator('=:='),
+                        erl_syntax:atom(undefined)
+                    ),
+                    erl_syntax:operator('orelse'),
+                    RequestBodyIsValid
                 )
         end,
-    Parameters = lists:filtermap(
-        fun(Parameter) ->
-            ParameterModule = erlang:binary_to_atom(maps:get(ref, Parameter)),
-            ParameterName = maps:get(name, Parameter),
-            ParameterType = maps:get(type, Parameter),
-            case ParameterType of
-                header ->
-                    {
-                        true,
-                        erl_syntax:application(
-                            erl_syntax:atom(ParameterModule),
-                            erl_syntax:atom(is_valid),
-                            [
-                                erl_syntax:application(
-                                    erl_syntax:atom(proplists),
-                                    erl_syntax:atom(get_value),
-                                    [
-                                        erl_syntax:binary([
-                                            erl_syntax:binary_field(
-                                                erl_syntax:string(
-                                                    erlang:binary_to_list(ParameterName)
-                                                )
+    FilteredParameters =
+        lists:filtermap(
+            fun(Parameter) ->
+                ParameterModule = erlang:binary_to_atom(maps:get(ref, Parameter)),
+                ParameterName = maps:get(name, Parameter),
+                ParameterType = maps:get(type, Parameter),
+                case ParameterType of
+                    header ->
+                        GetParameter =
+                            erl_syntax:application(
+                                erl_syntax:atom(proplists),
+                                erl_syntax:atom(get_value),
+                                [
+                                    erl_syntax:binary([
+                                        erl_syntax:binary_field(
+                                            erl_syntax:string(
+                                                erlang:binary_to_list(ParameterName)
                                             )
-                                        ]),
-                                        erl_syntax:variable('Headers')
-                                    ]
+                                        )
+                                    ]),
+                                    erl_syntax:variable('Headers')
+                                ]
+                            ),
+                        ParameterRequired = maps:get(required, Parameter),
+                        {true, #{
+                            module => ParameterModule,
+                            get => GetParameter,
+                            required => ParameterRequired
+                        }};
+                    cookie ->
+                        %% TODO: implement
+                        false;
+                    path ->
+                        GetParameter =
+                            erl_syntax:variable(
+                                erlang:binary_to_atom(
+                                    erf_util:to_pascal_case(ParameterName)
                                 )
-                            ]
-                        )
-                    };
-                cookie ->
-                    %% TODO: implement
-                    false;
-                path ->
-                    {
-                        true,
-                        erl_syntax:application(
-                            erl_syntax:atom(ParameterModule),
-                            erl_syntax:atom(is_valid),
-                            [
-                                erl_syntax:variable(
-                                    erlang:binary_to_atom(
-                                        erf_util:to_pascal_case(ParameterName)
-                                    )
-                                )
-                            ]
-                        )
-                    };
-                query ->
-                    {
-                        true,
-                        erl_syntax:application(
-                            erl_syntax:atom(ParameterModule),
-                            erl_syntax:atom(is_valid),
-                            [
-                                erl_syntax:application(
-                                    erl_syntax:atom(proplists),
-                                    erl_syntax:atom(get_value),
-                                    [
-                                        erl_syntax:binary([
-                                            erl_syntax:binary_field(
-                                                erl_syntax:string(
-                                                    erlang:binary_to_list(ParameterName)
-                                                )
+                            ),
+                        {true, #{
+                            module => ParameterModule,
+                            get => GetParameter,
+                            required => true
+                        }};
+                    query ->
+                        GetParameter =
+                            erl_syntax:application(
+                                erl_syntax:atom(proplists),
+                                erl_syntax:atom(get_value),
+                                [
+                                    erl_syntax:binary([
+                                        erl_syntax:binary_field(
+                                            erl_syntax:string(
+                                                erlang:binary_to_list(ParameterName)
                                             )
-                                        ]),
-                                        erl_syntax:variable('QueryParameters')
-                                    ]
-                                )
-                            ]
+                                        )
+                                    ]),
+                                    erl_syntax:variable('QueryParameters')
+                                ]
+                            ),
+                        ParameterRequired = maps:get(required, Parameter),
+                        {true, #{
+                            module => ParameterModule,
+                            get => GetParameter,
+                            required => ParameterRequired
+                        }}
+                end
+            end,
+            RawParameters
+        ),
+    Parameters =
+        lists:map(
+            fun(#{module := ParameterModule, get := GetParameter, required := ParameterRequired}) ->
+                IsValidParameter =
+                    erl_syntax:application(
+                        erl_syntax:atom(ParameterModule),
+                        erl_syntax:atom(is_valid),
+                        [GetParameter]
+                    ),
+                OptionalParameter =
+                    erl_syntax:infix_expr(
+                        GetParameter,
+                        erl_syntax:operator('=:='),
+                        erl_syntax:atom(undefined)
+                    ),
+                case ParameterRequired of
+                    true ->
+                        IsValidParameter;
+                    false ->
+                        erl_syntax:infix_expr(
+                            OptionalParameter,
+                            erl_syntax:operator('orelse'),
+                            IsValidParameter
                         )
-                    }
-            end
-        end,
-        RawParameters
-    ),
-    chain_conditions([Body | Parameters], 'andalso').
+                end
+            end,
+            FilteredParameters
+        ),
+    erl_syntax:application(
+        erl_syntax:atom('ndto_validation'),
+        erl_syntax:atom('andalso'),
+        [
+            erl_syntax:list([
+                erl_syntax:tuple([
+                    erl_syntax:fun_expr([
+                        erl_syntax:clause(
+                            none,
+                            [Condition]
+                        )
+                    ]),
+                    erl_syntax:list([])
+                ])
+             || Condition <- [RequestBody | Parameters]
+            ])
+        ]
+    ).
 
 -spec load_binary(ModuleName, Bin) -> Result when
     ModuleName :: atom(),
@@ -635,7 +744,9 @@ load_binary(ModuleName, Bin) ->
     Response :: erf:response(),
     Resp :: elli_handler:result().
 postprocess(
-    {_ReqPath, _ReqMethod, _ReqQueryParameters, ReqHeaders, _ReqBody},
+    #{
+        headers := ReqHeaders
+    } = _Request,
     {Status, Headers, {file, File}}
 ) ->
     % File responses are handled by elli_sendfile
@@ -646,33 +757,66 @@ postprocess(
     ),
     {Status, Headers, {file, File, Range}};
 postprocess(_Request, {Status, RawHeaders, RawBody}) ->
-    {Headers, Body} =
-        case proplists:get_value(<<"content-type">>, RawHeaders, undefined) of
-            undefined ->
-                {
-                    [{<<"content-type">>, <<"application/json">>} | RawHeaders],
-                    njson:encode(RawBody)
-                };
-            _Otherwise ->
-                case RawBody of
-                    undefined ->
-                        {RawHeaders, <<>>};
-                    _RawBody ->
-                        {RawHeaders, RawBody}
-                end
-        end,
-    {Status, Headers, Body}.
+    ContentTypeHeader = string:casefold(<<"content-type">>),
+    case proplists:get_value(ContentTypeHeader, RawHeaders, undefined) of
+        undefined ->
+            case njson:encode(RawBody) of
+                {ok, EncodedBody} ->
+                    Headers = [{ContentTypeHeader, <<"application/json">>} | RawHeaders],
+                    {Status, Headers, EncodedBody};
+                {error, _Reason} ->
+                    % TODO: handle error
+                    {500, [{ContentTypeHeader, <<"text/plain">>}], <<"Internal Server Error">>}
+            end;
+        _Otherwise ->
+            {Status, RawHeaders, RawBody}
+    end.
 
--spec preprocess(Req) -> Request when
+-spec preprocess(Req) -> Result when
     Req :: elli:req(),
-    Request :: erf:request().
+    Result :: {ok, Request} | {error, Reason},
+    Request :: erf:request(),
+    Reason :: term().
 preprocess(Req) ->
     Path = elli_request:path(Req),
     Method = preprocess_method(elli_request:method(Req)),
     QueryParameters = elli_request:get_args_decoded(Req),
     Headers = elli_request:headers(Req),
-    Body = njson:decode(elli_request:body(Req)),
-    {Path, Method, QueryParameters, Headers, Body}.
+    Peer = elli_request:peer(Req),
+    ContentTypeHeader = string:casefold(<<"content-type">>),
+    RawBody =
+        case elli_request:body(Req) of
+            <<>> ->
+                undefined;
+            ElliBody ->
+                ElliBody
+        end,
+
+    case proplists:get_value(ContentTypeHeader, Headers, undefined) of
+        <<"application/json">> ->
+            case njson:decode(RawBody) of
+                {ok, Body} ->
+                    {ok, #{
+                        path => Path,
+                        method => Method,
+                        query_parameters => QueryParameters,
+                        headers => Headers,
+                        body => Body,
+                        peer => Peer
+                    }};
+                {error, Reason} ->
+                    {error, {cannot_decode_body, Reason}}
+            end;
+        _ContentType ->
+            {ok, #{
+                path => Path,
+                method => Method,
+                query_parameters => QueryParameters,
+                headers => Headers,
+                body => RawBody,
+                peer => Peer
+            }}
+    end.
 
 -spec preprocess_method(ElliMethod) -> Result when
     ElliMethod :: elli:http_method(),

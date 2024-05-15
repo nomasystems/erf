@@ -29,4 +29,9 @@
 %%%-----------------------------------------------------------------------------
 -callback preprocess(Request) -> Result when
     Request :: erf:request(),
-    Result :: erf:request() | {stop, erf:response()}.
+    Result ::
+        {stop, Response}
+        | {stop, Response, NewRequest}
+        | NewRequest,
+    NewRequest :: erf:request(),
+    Response :: erf:response().

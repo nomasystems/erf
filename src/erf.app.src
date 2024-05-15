@@ -1,6 +1,6 @@
 {application, erf, [
     {description, "A design-first Erlang REST Framework"},
-    {vsn, "0.1.0"},
+    {vsn, "0.1.2"},
     {registered, []},
     {applications, [kernel, stdlib, compiler, syntax_tools, elli, ndto, njson]},
     {env, []}

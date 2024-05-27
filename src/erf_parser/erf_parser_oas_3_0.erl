@@ -15,6 +15,8 @@
 %% @doc An OpenAPI Specification 3.0 <code>erf_parser</code>.
 -module(erf_parser_oas_3_0).
 
+-include_lib("kernel/include/logger.hrl").
+
 %%% BEHAVIOURS
 -behaviour(erf_parser).
 
@@ -70,11 +72,12 @@ parse(SpecPath) ->
                     },
                     API = parse_api(OAS, CTX),
                     {ok, ndto_parser_json_schema:clean_optionals(API)};
-                {false, Reason} ->
-                    {error, {invalid_oas_3_0_spec, Reason}}
+                false ->
+                    {error, {invalid_oas_3_0_spec, undefined}}
             end;
         {error, Reason} ->
             {error, {invalid_oas_3_0_spec, Reason}}
+
     end.
 
 %%%-----------------------------------------------------------------------------

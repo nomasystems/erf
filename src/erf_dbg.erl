@@ -30,7 +30,7 @@
 % @doc Registers an operation ID to module association. Doing such registering
 % is required for the `trace` method on this module to properly work. The
 % provided operation ID needs to be a string obtained by calling
-% `erf_util:to_snake_case`. This function is not to be called multiple times 
+% `erf_util:to_snake_case`. This function is not to be called multiple times
 -spec register(SnakeOperationId, Module) -> Result when
     SnakeOperationId :: binary(),
     Module :: module(),
@@ -42,7 +42,7 @@ register(SnakeOperationId, Module) ->
 
 % @doc Traces the module associated to the provided `OperationId`. For this to
 % work it is required that such association has been registered using the
-% `register` method on this module. 
+% `register` method on this module.
 -spec trace(OperationId) -> Result when
     OperationId :: string(),
     Result :: not_found | {ok, MatchDesc},

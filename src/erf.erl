@@ -251,7 +251,7 @@ init([Name, RawConf]) ->
 %%%-----------------------------------------------------------------------------
 -spec dbg_register_operations(Endpoints) -> Result when
     Endpoints :: [{erf_parser:endpoint()}],
-    Result :: ok. 
+    Result :: ok.
 dbg_register_operations(Endpoints) ->
     Operations = lists:flatten(lists:map(fun(E) -> maps:get(operations, E) end, Endpoints)),
     lists:foreach(
@@ -261,13 +261,14 @@ dbg_register_operations(Endpoints) ->
             Body = maps:get(body, Request, #{}),
             Ref = maps:get(ref, Body, undefined),
             case Ref of
-                undefined -> 
+                undefined ->
                     ok;
                 _ ->
                     ok = erf_dbg:register(SnakeOperationId, binary_to_atom(Ref))
             end
         end,
-        Operations).
+        Operations
+    ).
 
 -spec build_dtos(Schemas) -> Result when
     Schemas :: [{erf_parser:ref(), ndto:schema()}],

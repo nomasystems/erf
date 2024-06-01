@@ -249,6 +249,26 @@ init([Name, RawConf]) ->
 %%%-----------------------------------------------------------------------------
 %%% INTERNAL FUNCTIONS
 %%%-----------------------------------------------------------------------------
+-spec dbg_register_operations(Endpoints) -> Result when
+    Endpoints :: [{erf_parser:endpoint()}],
+    Result :: ok. 
+dbg_register_operations(Endpoints) ->
+    Operations = lists:flatten(lists:map(fun(E) -> maps:get(operations, E) end, Endpoints)),
+    lists:foreach(
+        fun(Operation) ->
+            SnakeOperationId = maps:get(id, Operation),
+            Request = maps:get(request, Operation, #{}),
+            Body = maps:get(body, Request, #{}),
+            Ref = maps:get(ref, Body, undefined),
+            case Ref of
+                undefined -> 
+                    ok;
+                _ ->
+                    ok = erf_dbg:register(SnakeOperationId, binary_to_atom(Ref))
+            end
+        end,
+        Operations).
+
 -spec build_dtos(Schemas) -> Result when
     Schemas :: [{erf_parser:ref(), ndto:schema()}],
     Result :: ok | {error, Reason},
@@ -312,6 +332,8 @@ build_router(SpecPath, SpecParser, Callback, RawStaticRoutes, SwaggerUI) ->
     case erf_parser:parse(SpecPath, SpecParser) of
         {ok, API} ->
             Schemas = maps:to_list(maps:get(schemas, API)),
+            Endpoints = maps:get(endpoints, API),
+            ok = dbg_register_operations(Endpoints),
             case build_dtos(Schemas) of
                 ok ->
                     StaticRoutes =

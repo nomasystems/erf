@@ -253,11 +253,37 @@ statics(_Conf) ->
         )
     ),
 
+    {ok, FileWithSpaces} = file:read_file(
+        filename:join(
+            code:lib_dir(erf, test), <<"fixtures/test with spaces.json">>
+        )
+    ),
+
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 200, "OK"}, _ResultHeaders, FileWithSpaces}},
+        httpc:request(
+            get,
+            {"http://localhost:8789/static/test%20with%20spaces.json"},
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
     ?assertMatch(
         {ok, {{"HTTP/1.1", 206, "Partial Content"}, _ResultHeaders, <<"{">>}},
         httpc:request(
             get,
             {"http://localhost:8789/static/common_oas_3_0_spec.json", [{"range", "bytes=0-0"}]},
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 206, "Partial Content"}, _ResultHeaders, <<"{">>}},
+        httpc:request(
+            get,
+            {"http://localhost:8789/static/test%20with%20spaces.json"},
             [],
             [{body_format, binary}]
         )

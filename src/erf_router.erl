@@ -778,6 +778,9 @@ postprocess(_Request, {Status, RawHeaders, RawBody}) ->
     Request :: erf:request(),
     Reason :: term().
 preprocess(Req) ->
+    Scheme = elli_request:scheme(Req),
+    Host = elli_request:host(Req),
+    Port = elli_request:port(Req),
     Path = elli_request:path(Req),
     Method = preprocess_method(elli_request:method(Req)),
     QueryParameters = elli_request:get_args_decoded(Req),
@@ -797,6 +800,9 @@ preprocess(Req) ->
             case njson:decode(RawBody) of
                 {ok, Body} ->
                     {ok, #{
+                        scheme => Scheme,
+                        host => Host,
+                        port => Port,
                         path => Path,
                         method => Method,
                         query_parameters => QueryParameters,
@@ -809,6 +815,9 @@ preprocess(Req) ->
             end;
         _ContentType ->
             {ok, #{
+                scheme => Scheme,
+                host => Host,
+                port => Port,
                 path => Path,
                 method => Method,
                 query_parameters => QueryParameters,

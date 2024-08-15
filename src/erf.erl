@@ -77,6 +77,9 @@
 -type path_parameter() :: {binary(), binary()}.
 -type query_parameter() :: {binary(), binary()}.
 -type request() :: #{
+    scheme := undefined | binary(),
+    host := undefined | binary(),
+    port := undefined | 1..65535,
     path := [binary()],
     path_parameters => [path_parameter()],
     method := method(),

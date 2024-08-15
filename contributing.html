@@ -4,21 +4,19 @@
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="generator" content="ExDoc v0.31.2">
+    <meta name="generator" content="ExDoc v0.32.2">
     <meta name="project" content="erf v0.1.2">
 
 
     <title>Contributing — erf v0.1.2</title>
-    <link rel="stylesheet" href="dist/html-erlang-DUKXLSAT.css" />
+    <link rel="stylesheet" href="dist/html-erlang-EBZIIHAS.css" />
 
 
     <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
-    <script src="dist/handlebars.templates-A7S2WMC7.js"></script>
+    <script src="dist/handlebars.templates-K7URE6B4.js"></script>
     <script src="dist/sidebar_items-CD0FFEC6.js"></script>
-
-      <script src="docs_config.js"></script>
-
-    <script async src="dist/html-JRPQ5PR6.js"></script>
+    <script src="docs_config.js"></script>
+    <script async src="dist/html-BHYOTRCH.js"></script>
 
 
   </head>
@@ -37,13 +35,11 @@
       } catch (error) { }
     </script>
 
-<div class="main">
+<div class="body-wrapper">
 
 <button id="sidebar-menu" class="sidebar-button sidebar-toggle" aria-label="toggle sidebar" aria-controls="sidebar">
   <i class="ri-menu-line ri-lg" title="Collapse/expand sidebar"></i>
 </button>
-
-<div class="background-layer"></div>
 
 <nav id="sidebar" class="sidebar">
 
@@ -89,42 +85,42 @@ Pages
 
 <main class="content">
   <output role="status" id="toast"></output>
-  <div class="content-outer">
-    <div id="content" class="content-inner">
-      <div class="top-search">
-        <div class="search-settings">
-          <form class="search-bar" action="search.html">
-            <label class="search-label">
-              <span class="sr-only">Search documentation of erf</span>
-              <input name="q" type="text" class="search-input" placeholder="Press / to search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
-            </label>
-            <button type="submit" class="search-button" aria-label="Submit Search">
-              <i class="ri-search-2-line ri-lg" aria-hidden="true" title="Submit search"></i>
-            </button>
-            <button type="button" tabindex="-1" class="search-close-button" aria-hidden="true">
-              <i class="ri-close-line ri-lg" title="Cancel search"></i>
-            </button>
-          </form>
-          <div class="autocomplete">
-          </div>
-          <button class="icon-settings display-settings">
-            <i class="ri-settings-3-line"></i>
-            <span class="sr-only">Settings</span>
+
+  <div id="content" class="content-inner">
+    <div class="top-search">
+      <div class="search-settings">
+        <form class="search-bar" action="search.html">
+          <label class="search-label">
+            <span class="sr-only">Search documentation of erf</span>
+            <input name="q" type="text" class="search-input" placeholder="Press / to search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+          </label>
+          <button type="submit" class="search-button" aria-label="Submit Search">
+            <i class="ri-search-2-line ri-lg" aria-hidden="true" title="Submit search"></i>
           </button>
+          <button type="button" tabindex="-1" class="search-close-button" aria-hidden="true">
+            <i class="ri-close-line ri-lg" title="Cancel search"></i>
+          </button>
+        </form>
+        <div class="autocomplete">
         </div>
-
+        <button class="icon-settings display-settings">
+          <i class="ri-settings-3-line"></i>
+          <span class="sr-only">Settings</span>
+        </button>
       </div>
+    </div>
 
-<h1>
+<div id="top-content">
+  <h1>
 
-    <a href="https://github.com/nomasystems/erf/blob/0.1.2/CONTRIBUTING.md#L1" title="View Source" class="icon-action" rel="help">
-      <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-      <span class="sr-only">View Source</span>
-    </a>
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/CONTRIBUTING.md#L1" title="View Source" class="icon-action" rel="help">
+        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        <span class="sr-only">View Source</span>
+      </a>
 
 
-  <span>Contributing to erf</span>
-</h1>
+    <span>Contributing to erf</span>
+  </h1>
 
 <p>Any contribution is welcome. Here you have the guidelines you must follow to contribute to the project.</p><h2 id="table-of-contents" class="section-heading">
   <a href="#table-of-contents" class="hover-link">
@@ -163,7 +159,9 @@ Pages
   <span class="text">Development</span>
 </h2>
 <p>In order to develop something for the project, you must follow these rules:</p><ol><li>Find an appropriate issue to solve:<ul><li>Only verified issues with complete information must be addressed (avoid issues with label <code class="inline">needs triage</code>, as they must be reviewed by the nomasystems group).</li><li>If an issue is already assigned to another user, it means that this user is already solving the issue. Please, respect other people's work and don't interfere.</li><li>Issues labeled with <code class="inline">good first issue</code> are quicker and simpler, so they can be a good starting point when contributing.</li></ul></li><li>Assign the issue to yourself, so other developers know that you are already working on it. Don't be ashamed if you find later that you won't be able to solve the issue, just left it unassigned so someone else can work on it.</li><li>Create a branch to solve the issue:<ul><li>If the issue has the label <code class="inline">documentation</code>:<ul><li>The new branch must be created from the branch named <code class="inline">develop</code>.</li><li>The name of the new branch must be <code class="inline">docs/{IssueIdentifier}-{IssueTitle in kebab-case}</code>.</li></ul></li><li>If the issue has the label <code class="inline">bug</code>:<ul><li>The new branch must be created from the branch named <code class="inline">main</code>.</li><li>The name of the new branch must be <code class="inline">fix/{IssueIdentifier}-{IssueTitle in kebab-case}</code>.</li></ul></li><li>If the issue has the label <code class="inline">enhancement</code>:<ul><li>The new branch must be created from the branch named <code class="inline">develop</code>.</li><li>The name of the new branch must be <code class="inline">feat/{IssueIdentifier}-{IssueTitle in kebab-case}</code>.</li></ul></li></ul></li><li>Make the changes in the new branch. Don't forget to:<ul><li>Add new test cases checking that the bug is solved / the new feature is successfully implemented.</li><li>Use <a href="https://www.conventionalcommits.org/en/v1.0.0/">Conventional Commits</a> to create commit messages. If a commit closes an issue, the footer must include the expression <code class="inline">closes #IssueIdentifier</code>.</li></ul></li><li>When the issue is solved, create a new pull request:<ul><li>Add a description with the changes you've made.</li><li>Link the issue to the PR.</li><li>Left it unassigned, someone from the nomasystems group will review it as soon as possible.</li></ul></li></ol>
-<div class="bottom-actions">
+</div>
+
+<div class="bottom-actions" id="bottom-actions">
   <div class="bottom-actions-item">
 
       <a href="readme.html" class="bottom-actions-button" rel="prev">
@@ -189,36 +187,35 @@ License
 
   </div>
 </div>
-      <footer class="footer">
-        <p>
-
-            <span class="line">
-              <a href="https://hex.pm/packages/erf/0.1.2" class="footer-hex-package">Hex Package</a>
-
-              <a href="https://preview.hex.pm/preview/erf/0.1.2">Hex Preview</a>
-
-                (<a href="https://preview.hex.pm/preview/erf/0.1.2/show/CONTRIBUTING.md">current file</a>)
-
-            </span>
+    <footer class="footer">
+      <p>
 
           <span class="line">
-            <button class="a-main footer-button display-quick-switch" title="Search HexDocs packages">
-              Search HexDocs
-            </button>
+            <a href="https://hex.pm/packages/erf/0.1.2" class="footer-hex-package">Hex Package</a>
+
+            <a href="https://preview.hex.pm/preview/erf/0.1.2">Hex Preview</a>
+
+              (<a href="https://preview.hex.pm/preview/erf/0.1.2/show/CONTRIBUTING.md">current file</a>)
 
           </span>
-        </p>
 
-        <p class="built-using">
-          Built using
-          <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.31.2) for the
+        <span class="line">
+          <button class="a-main footer-button display-quick-switch" title="Search HexDocs packages">
+            Search HexDocs
+          </button>
 
-            <a href="https://erlang.org" title="Erlang" target="_blank" translate="no">Erlang programming language</a>
+        </span>
+      </p>
 
-        </p>
+      <p class="built-using">
+        Built using
+        <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.32.2) for the
 
-      </footer>
-    </div>
+          <a href="https://erlang.org" title="Erlang" target="_blank" translate="no">Erlang programming language</a>
+
+      </p>
+
+    </footer>
   </div>
 </main>
 </div>

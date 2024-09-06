@@ -141,8 +141,12 @@ handle(ElliRequest, [Name]) ->
             postprocess(InitialRequest, Response);
         {error, _Reason} ->
             ContentTypeHeader = string:casefold(<<"content-type">>),
-            % TODO: handle error
-            {500, [{ContentTypeHeader, <<"text/plain">>}], <<"Internal Server Error">>}
+            {ok, ErrorBody} = njson:encode(#{
+                <<"title">> => <<"Bad Request">>,
+                <<"status">> => 400,
+                <<"detail">> => <<"Failed to read request">>
+            }),
+            {400, [{ContentTypeHeader, <<"application/json">>}], ErrorBody}
     end.
 
 -spec handle_event(Event, Data, CallbackArgs) -> ok when
@@ -760,10 +764,22 @@ postprocess(_Request, {Status, RawHeaders, RawBody}) ->
     ContentTypeHeader = string:casefold(<<"content-type">>),
     case proplists:get_value(ContentTypeHeader, RawHeaders, undefined) of
         undefined ->
+            case RawBody of
+                undefined ->
+                    {Status, RawHeaders, []};
+                _RawBody ->
+                    case njson:encode(RawBody) of
+                        {ok, EncodedBody} ->
+                            Headers = [{ContentTypeHeader, <<"application/json">>} | RawHeaders],
+                            {Status, Headers, EncodedBody};
+                        {error, _Reason} ->
+                            {Status, [{ContentTypeHeader, <<"text/plain">>} | RawHeaders], RawBody}
+                    end
+            end;
+        <<"application/json">> ->
             case njson:encode(RawBody) of
                 {ok, EncodedBody} ->
-                    Headers = [{ContentTypeHeader, <<"application/json">>} | RawHeaders],
-                    {Status, Headers, EncodedBody};
+                    {Status, RawHeaders, EncodedBody};
                 {error, _Reason} ->
                     % TODO: handle error
                     {500, [{ContentTypeHeader, <<"text/plain">>}], <<"Internal Server Error">>}
@@ -797,21 +813,26 @@ preprocess(Req) ->
 
     case proplists:get_value(ContentTypeHeader, Headers, undefined) of
         <<"application/json">> ->
-            case njson:decode(RawBody) of
-                {ok, Body} ->
-                    {ok, #{
-                        scheme => Scheme,
-                        host => Host,
-                        port => Port,
-                        path => Path,
-                        method => Method,
-                        query_parameters => QueryParameters,
-                        headers => Headers,
-                        body => Body,
-                        peer => Peer
-                    }};
-                {error, Reason} ->
-                    {error, {cannot_decode_body, Reason}}
+            case RawBody of
+                NonEmptyBinary when is_binary(NonEmptyBinary), byte_size(NonEmptyBinary) > 0 ->
+                    case njson:decode(RawBody) of
+                        {ok, Body} ->
+                            {ok, #{
+                                scheme => Scheme,
+                                host => Host,
+                                port => Port,
+                                path => Path,
+                                method => Method,
+                                query_parameters => QueryParameters,
+                                headers => Headers,
+                                body => Body,
+                                peer => Peer
+                            }};
+                        {error, Reason} ->
+                            {error, {cannot_decode_body, Reason}}
+                    end;
+                _RawBody ->
+                    {error, {cannot_decode_body, invalid_json}}
             end;
         _ContentType ->
             {ok, #{

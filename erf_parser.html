@@ -4,20 +4,19 @@
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="generator" content="ExDoc v0.32.2">
+    <meta name="generator" content="ExDoc v0.34.2">
     <meta name="project" content="erf v0.1.2">
 
 
     <title>erf_parser — erf v0.1.2</title>
-    <link rel="stylesheet" href="dist/html-erlang-EBZIIHAS.css" />
+    <link rel="stylesheet" href="dist/html-erlang-YKQ677RH.css" />
 
 
     <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
     <script src="dist/handlebars.templates-K7URE6B4.js"></script>
-    <script src="dist/sidebar_items-CD0FFEC6.js"></script>
+    <script src="dist/sidebar_items-28F82D22.js"></script>
     <script src="docs_config.js"></script>
-    <script async src="dist/html-BHYOTRCH.js"></script>
-
+    <script async src="dist/html-YIPIRHGU.js"></script>
 
   </head>
   <body data-type="modules" class="page-behaviour">
@@ -319,8 +318,8 @@ Module that parses a specification file into an API AST.
       <div class="specs">
 
           <pre translate="no"><span class="attribute">-type</span> api() ::
-          #{name := <a href="https://www.erlang.org/doc/man/erlang.html#type-binary">binary</a>(),
-            version := <a href="https://www.erlang.org/doc/man/erlang.html#type-binary">binary</a>(),
+          #{name := <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:binary/0">binary</a>(),
+            version := <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:binary/0">binary</a>(),
             endpoints := [<a href="#t:endpoint/0">endpoint</a>()],
             schemas := #{<a href="#t:ref/0">ref</a>() => <a href="#t:schema/0">schema</a>()}}.</pre>
 
@@ -350,7 +349,7 @@ Module that parses a specification file into an API AST.
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">-type</span> body() :: #{ref := <a href="#t:ref/0">ref</a>(), required := <a href="https://www.erlang.org/doc/man/erlang.html#type-boolean">boolean</a>()}.</pre>
+          <pre translate="no"><span class="attribute">-type</span> body() :: #{ref := <a href="#t:ref/0">ref</a>(), required := <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:boolean/0">boolean</a>()}.</pre>
 
       </div>
 
@@ -435,7 +434,7 @@ Module that parses a specification file into an API AST.
       <div class="specs">
 
           <pre translate="no"><span class="attribute">-type</span> operation() ::
-          #{id := <a href="https://www.erlang.org/doc/man/erlang.html#type-binary">binary</a>(),
+          #{id := <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:binary/0">binary</a>(),
             method := <a href="#t:method/0">method</a>(),
             parameters := [<a href="#t:parameter/0">parameter</a>()],
             request := <a href="#t:request/0">request</a>(),
@@ -468,7 +467,7 @@ Module that parses a specification file into an API AST.
       <div class="specs">
 
           <pre translate="no"><span class="attribute">-type</span> parameter() ::
-          #{ref := <a href="#t:ref/0">ref</a>(), name := <a href="#t:parameter_name/0">parameter_name</a>(), type := <a href="#t:parameter_type/0">parameter_type</a>(), required := <a href="https://www.erlang.org/doc/man/erlang.html#type-boolean">boolean</a>()}.</pre>
+          #{ref := <a href="#t:ref/0">ref</a>(), name := <a href="#t:parameter_name/0">parameter_name</a>(), type := <a href="#t:parameter_type/0">parameter_type</a>(), required := <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:boolean/0">boolean</a>()}.</pre>
 
       </div>
 
@@ -496,7 +495,7 @@ Module that parses a specification file into an API AST.
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">-type</span> parameter_name() :: <a href="https://www.erlang.org/doc/man/erlang.html#type-binary">binary</a>().</pre>
+          <pre translate="no"><span class="attribute">-type</span> parameter_name() :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:binary/0">binary</a>().</pre>
 
       </div>
 
@@ -552,7 +551,7 @@ Module that parses a specification file into an API AST.
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">-type</span> path() :: <a href="https://www.erlang.org/doc/man/erlang.html#type-binary">binary</a>().</pre>
+          <pre translate="no"><span class="attribute">-type</span> path() :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:binary/0">binary</a>().</pre>
 
       </div>
 
@@ -580,7 +579,7 @@ Module that parses a specification file into an API AST.
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">-type</span> ref() :: <a href="https://www.erlang.org/doc/man/erlang.html#type-binary">binary</a>().</pre>
+          <pre translate="no"><span class="attribute">-type</span> ref() :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:binary/0">binary</a>().</pre>
 
       </div>
 
@@ -734,10 +733,10 @@ Module that parses a specification file into an API AST.
 
           <pre translate="no"><span class="attribute">-callback</span> parse(SpecPath) -> Result
                    when
-                       SpecPath :: <a href="https://www.erlang.org/doc/man/erlang.html#type-binary">binary</a>(),
+                       SpecPath :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:binary/0">binary</a>(),
                        Result :: {ok, API} | {error, Reason},
                        API :: <a href="#t:api/0">api</a>(),
-                       Reason :: <a href="https://www.erlang.org/doc/man/erlang.html#type-term">term</a>().</pre>
+                       Reason :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:term/0">term</a>().</pre>
 
       </div>
 
@@ -779,11 +778,11 @@ Module that parses a specification file into an API AST.
 
           <pre translate="no"><span class="attribute">-spec</span> parse(SpecPath, SpecParser) -> Result
                when
-                   SpecPath :: <a href="https://www.erlang.org/doc/man/erlang.html#type-binary">binary</a>(),
-                   SpecParser :: <a href="https://www.erlang.org/doc/man/erlang.html#type-module">module</a>(),
+                   SpecPath :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:binary/0">binary</a>(),
+                   SpecParser :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:module/0">module</a>(),
                    Result :: {ok, API} | {error, Reason},
                    API :: <a href="#t:api/0">api</a>(),
-                   Reason :: <a href="https://www.erlang.org/doc/man/erlang.html#type-term">term</a>().</pre>
+                   Reason :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:term/0">term</a>().</pre>
 
       </div>
 
@@ -814,7 +813,7 @@ Parses an specification file into an API AST given a specification format.
 
       <p class="built-using">
         Built using
-        <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.32.2) for the
+        <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.34.2) for the
 
           <a href="https://erlang.org" title="Erlang" target="_blank" translate="no">Erlang programming language</a>
 
@@ -824,7 +823,6 @@ Parses an specification file into an API AST given a specification format.
   </div>
 </main>
 </div>
-
 
   </body>
 </html>

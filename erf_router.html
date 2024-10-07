@@ -4,20 +4,19 @@
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="generator" content="ExDoc v0.32.2">
+    <meta name="generator" content="ExDoc v0.34.2">
     <meta name="project" content="erf v0.1.2">
 
 
     <title>erf_router — erf v0.1.2</title>
-    <link rel="stylesheet" href="dist/html-erlang-EBZIIHAS.css" />
+    <link rel="stylesheet" href="dist/html-erlang-YKQ677RH.css" />
 
 
     <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
     <script src="dist/handlebars.templates-K7URE6B4.js"></script>
-    <script src="dist/sidebar_items-CD0FFEC6.js"></script>
+    <script src="dist/sidebar_items-28F82D22.js"></script>
     <script src="docs_config.js"></script>
-    <script async src="dist/html-BHYOTRCH.js"></script>
-
+    <script async src="dist/html-YIPIRHGU.js"></script>
 
   </head>
   <body data-type="modules" class="page-module">
@@ -180,6 +179,16 @@ Pages
 
     <div class="summary-row">
       <div class="summary-signature">
+        <a href="#handle/2" data-no-tooltip translate="no">handle(Name, Request)</a>
+
+      </div>
+
+        <div class="summary-synopsis">Handles an HTTP request.</div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
         <a href="#load/1" data-no-tooltip translate="no">load(Router)</a>
 
       </div>
@@ -210,7 +219,7 @@ Pages
     </a>
     <h1 class="signature" translate="no">callback/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_router.erl#L36" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_router.erl#L31" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -222,7 +231,7 @@ Pages
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">-type</span> callback() :: <a href="https://www.erlang.org/doc/man/erlang.html#type-module">module</a>().</pre>
+          <pre translate="no"><span class="attribute">-type</span> callback() :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:module/0">module</a>().</pre>
 
       </div>
 
@@ -238,7 +247,7 @@ Pages
     </a>
     <h1 class="signature" translate="no">generator_opts/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_router.erl#L37" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_router.erl#L32" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -266,7 +275,7 @@ Pages
     </a>
     <h1 class="signature" translate="no">t/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_router.erl#L35" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_router.erl#L30" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -306,7 +315,7 @@ Pages
     </a>
     <h1 class="signature" translate="no">generate(API, Opts)</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_router.erl#L49" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_router.erl#L44" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -323,12 +332,41 @@ Pages
                       API :: <a href="erf.html#t:api/0">erf:api</a>(),
                       Opts :: <a href="#t:generator_opts/0">generator_opts</a>(),
                       Result :: {Mod, Router},
-                      Mod :: <a href="https://www.erlang.org/doc/man/erlang.html#type-module">module</a>(),
+                      Mod :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:module/0">module</a>(),
                       Router :: <a href="#t:t/0">t</a>().</pre>
 
       </div>
 
 Generates an Erlang Syntax Tree of a router module from an API AST.
+  </section>
+</section>
+<section class="detail" id="handle/2">
+
+  <div class="detail-header">
+    <a href="#handle/2" class="detail-link" data-no-tooltip title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">handle(Name, Request)</h1>
+
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_router.erl#L116" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">-spec</span> handle(Name, Request) -> Result
+                when Name :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:atom/0">atom</a>(), Request :: <a href="erf.html#t:request/0">erf:request</a>(), Result :: <a href="erf.html#t:response/0">erf:response</a>().</pre>
+
+      </div>
+
+Handles an HTTP request.
   </section>
 </section>
 <section class="detail" id="load/1">
@@ -340,7 +378,7 @@ Generates an Erlang Syntax Tree of a router module from an API AST.
     </a>
     <h1 class="signature" translate="no">load(Router)</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_router.erl#L93" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_router.erl#L88" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -356,8 +394,8 @@ Generates an Erlang Syntax Tree of a router module from an API AST.
               when
                   Router :: <a href="#t:t/0">t</a>(),
                   Result :: ok | {ok, Warnings} | error | {error, {Errors, Warnings}},
-                  Errors :: [<a href="https://www.erlang.org/doc/man/erlang.html#type-term">term</a>()],
-                  Warnings :: [<a href="https://www.erlang.org/doc/man/erlang.html#type-term">term</a>()].</pre>
+                  Errors :: [<a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:term/0">term</a>()],
+                  Warnings :: [<a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:term/0">term</a>()].</pre>
 
       </div>
 
@@ -388,7 +426,7 @@ Loads a router module into the Erlang Runtime System.
 
       <p class="built-using">
         Built using
-        <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.32.2) for the
+        <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.34.2) for the
 
           <a href="https://erlang.org" title="Erlang" target="_blank" translate="no">Erlang programming language</a>
 
@@ -398,7 +436,6 @@ Loads a router module into the Erlang Runtime System.
   </div>
 </main>
 </div>
-
 
   </body>
 </html>

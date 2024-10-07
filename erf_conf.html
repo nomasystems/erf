@@ -4,20 +4,19 @@
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="generator" content="ExDoc v0.32.2">
+    <meta name="generator" content="ExDoc v0.34.2">
     <meta name="project" content="erf v0.1.2">
 
 
     <title>erf_conf — erf v0.1.2</title>
-    <link rel="stylesheet" href="dist/html-erlang-EBZIIHAS.css" />
+    <link rel="stylesheet" href="dist/html-erlang-YKQ677RH.css" />
 
 
     <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
     <script src="dist/handlebars.templates-K7URE6B4.js"></script>
-    <script src="dist/sidebar_items-CD0FFEC6.js"></script>
+    <script src="dist/sidebar_items-28F82D22.js"></script>
     <script src="docs_config.js"></script>
-    <script async src="dist/html-BHYOTRCH.js"></script>
-
+    <script async src="dist/html-YIPIRHGU.js"></script>
 
   </head>
   <body data-type="modules" class="page-module">
@@ -271,16 +270,16 @@ Pages
       <div class="specs">
 
           <pre translate="no"><span class="attribute">-type</span> t() ::
-          #{callback => <a href="https://www.erlang.org/doc/man/erlang.html#type-module">module</a>(),
-            log_level => <a href="https://www.erlang.org/doc/man/logger.html#type-level">logger:level</a>(),
-            preprocess_middlewares => [<a href="https://www.erlang.org/doc/man/erlang.html#type-module">module</a>()],
-            postprocess_middlewares => [<a href="https://www.erlang.org/doc/man/erlang.html#type-module">module</a>()],
+          #{callback => <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:module/0">module</a>(),
+            log_level => <a href="https://www.erlang.org/doc/apps/kernel/logger.html#t:level/0">logger:level</a>(),
+            preprocess_middlewares => [<a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:module/0">module</a>()],
+            postprocess_middlewares => [<a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:module/0">module</a>()],
             router => erl_syntax:syntaxTree(),
-            router_mod => <a href="https://www.erlang.org/doc/man/erlang.html#type-module">module</a>(),
-            spec_path => <a href="https://www.erlang.org/doc/man/erlang.html#type-binary">binary</a>(),
-            spec_parser => <a href="https://www.erlang.org/doc/man/erlang.html#type-module">module</a>(),
+            router_mod => <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:module/0">module</a>(),
+            spec_path => <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:binary/0">binary</a>(),
+            spec_parser => <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:module/0">module</a>(),
             static_routes => [<a href="erf.html#t:static_route/0">erf:static_route</a>()],
-            swagger_ui => <a href="https://www.erlang.org/doc/man/erlang.html#type-boolean">boolean</a>()}.</pre>
+            swagger_ui => <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:boolean/0">boolean</a>()}.</pre>
 
       </div>
 
@@ -320,7 +319,7 @@ Pages
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">-spec</span> clear(Name) -> Result when Name :: <a href="https://www.erlang.org/doc/man/erlang.html#type-atom">atom</a>(), Result :: ok.</pre>
+          <pre translate="no"><span class="attribute">-spec</span> clear(Name) -> Result when Name :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:atom/0">atom</a>(), Result :: ok.</pre>
 
       </div>
 
@@ -348,7 +347,7 @@ Clears the configuration for the given <code>Name</code>.
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">-spec</span> get(Name) -> Result when Name :: <a href="https://www.erlang.org/doc/man/erlang.html#type-atom">atom</a>(), Result :: {ok, Conf} | {error, not_found}, Conf :: <a href="#t:t/0">t</a>().</pre>
+          <pre translate="no"><span class="attribute">-spec</span> get(Name) -> Result when Name :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:atom/0">atom</a>(), Result :: {ok, Conf} | {error, not_found}, Conf :: <a href="#t:t/0">t</a>().</pre>
 
       </div>
 
@@ -378,9 +377,9 @@ Returns the configuration for the given <code>Name</code>.
 
           <pre translate="no"><span class="attribute">-spec</span> log_level(Name) -> Result
                    when
-                       Name :: <a href="https://www.erlang.org/doc/man/erlang.html#type-atom">atom</a>(),
+                       Name :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:atom/0">atom</a>(),
                        Result :: {ok, LogLevel} | {error, not_found},
-                       LogLevel :: <a href="https://www.erlang.org/doc/man/logger.html#type-level">logger:level</a>().</pre>
+                       LogLevel :: <a href="https://www.erlang.org/doc/apps/kernel/logger.html#t:level/0">logger:level</a>().</pre>
 
       </div>
 
@@ -410,9 +409,9 @@ Returns the log level for the given <code>Name</code>.
 
           <pre translate="no"><span class="attribute">-spec</span> postprocess_middlewares(Name) -> Result
                                  when
-                                     Name :: <a href="https://www.erlang.org/doc/man/erlang.html#type-atom">atom</a>(),
+                                     Name :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:atom/0">atom</a>(),
                                      Result :: {ok, PostprocessMiddlewares} | {error, not_found},
-                                     PostprocessMiddlewares :: [<a href="https://www.erlang.org/doc/man/erlang.html#type-module">module</a>()].</pre>
+                                     PostprocessMiddlewares :: [<a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:module/0">module</a>()].</pre>
 
       </div>
 
@@ -442,9 +441,9 @@ Returns the postprocess middlewares for the given <code>Name</code>.
 
           <pre translate="no"><span class="attribute">-spec</span> preprocess_middlewares(Name) -> Result
                                 when
-                                    Name :: <a href="https://www.erlang.org/doc/man/erlang.html#type-atom">atom</a>(),
+                                    Name :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:atom/0">atom</a>(),
                                     Result :: {ok, PreprocessMiddlewares} | {error, not_found},
-                                    PreprocessMiddlewares :: [<a href="https://www.erlang.org/doc/man/erlang.html#type-module">module</a>()].</pre>
+                                    PreprocessMiddlewares :: [<a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:module/0">module</a>()].</pre>
 
       </div>
 
@@ -474,7 +473,7 @@ Returns the preprocess middlewares for the given <code>Name</code>.
 
           <pre translate="no"><span class="attribute">-spec</span> router(Name) -> Result
                 when
-                    Name :: <a href="https://www.erlang.org/doc/man/erlang.html#type-atom">atom</a>(),
+                    Name :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:atom/0">atom</a>(),
                     Result :: {ok, Router} | {error, not_found},
                     Router :: erl_syntax:syntaxTree().</pre>
 
@@ -506,9 +505,9 @@ Returns the router for the given <code>Name</code>.
 
           <pre translate="no"><span class="attribute">-spec</span> router_mod(Name) -> Result
                     when
-                        Name :: <a href="https://www.erlang.org/doc/man/erlang.html#type-atom">atom</a>(),
+                        Name :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:atom/0">atom</a>(),
                         Result :: {ok, RouterMod} | {error, not_found},
-                        RouterMod :: <a href="https://www.erlang.org/doc/man/erlang.html#type-module">module</a>().</pre>
+                        RouterMod :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:module/0">module</a>().</pre>
 
       </div>
 
@@ -536,7 +535,7 @@ Returns the router module name for the given <code>Name</code>.
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">-spec</span> set(Name, Conf) -> Result when Name :: <a href="https://www.erlang.org/doc/man/erlang.html#type-atom">atom</a>(), Conf :: <a href="#t:t/0">t</a>(), Result :: ok.</pre>
+          <pre translate="no"><span class="attribute">-spec</span> set(Name, Conf) -> Result when Name :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:atom/0">atom</a>(), Conf :: <a href="#t:t/0">t</a>(), Result :: ok.</pre>
 
       </div>
 
@@ -567,7 +566,7 @@ Sets the configuration for the given <code>Name</code>.
 
       <p class="built-using">
         Built using
-        <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.32.2) for the
+        <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.34.2) for the
 
           <a href="https://erlang.org" title="Erlang" target="_blank" translate="no">Erlang programming language</a>
 
@@ -577,7 +576,6 @@ Sets the configuration for the given <code>Name</code>.
   </div>
 </main>
 </div>
-
 
   </body>
 </html>

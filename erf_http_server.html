@@ -8,7 +8,7 @@
     <meta name="project" content="erf v0.1.2">
 
 
-    <title>erf_preprocess_middleware — erf v0.1.2</title>
+    <title>erf_http_server — erf v0.1.2</title>
     <link rel="stylesheet" href="dist/html-erlang-YKQ677RH.css" />
 
 
@@ -112,19 +112,19 @@ Pages
 <div id="top-content">
   <h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_preprocess_middleware.erl#L16" title="View Source" class="icon-action" rel="help">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_http_server.erl#L16" title="View Source" class="icon-action" rel="help">
         <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         <span class="sr-only">View Source</span>
       </a>
 
-    <span translate="no">erf_preprocess_middleware</span> <small>behaviour</small>
+    <span translate="no">erf_http_server</span> <small>behaviour</small>
     <small class="app-vsn" translate="no">(erf v0.1.2)</small>
 
   </h1>
 
 
     <section id="moduledoc">
-Behaviour for <code>erf</code>'s preprocessing middlewares.
+<code>erf</code>'s interface to interact with its underlying HTTP server.
     </section>
 
 </div>
@@ -143,11 +143,25 @@ Behaviour for <code>erf</code>'s preprocessing middlewares.
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#t:t/0" data-no-tooltip translate="no">t/0</a>
+        <a href="#t:conf/0" data-no-tooltip translate="no">conf/0</a>
 
       </div>
 
-        <div class="summary-synopsis">A module that implements this behaviour.</div>
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:extra_conf/0" data-no-tooltip translate="no">extra_conf/0</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:t/0" data-no-tooltip translate="no">t/0</a>
+
+      </div>
 
     </div>
 
@@ -159,7 +173,21 @@ Behaviour for <code>erf</code>'s preprocessing middlewares.
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#c:preprocess/1" data-no-tooltip translate="no">preprocess/1</a>
+        <a href="#c:start_link/3" data-no-tooltip translate="no">start_link/3</a>
+
+      </div>
+
+    </div>
+
+</div>
+<div class="summary-functions summary">
+  <h2>
+    <a href="#functions">Functions</a>
+  </h2>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#start_link/4" data-no-tooltip translate="no">start_link(Module, ModuleExtraConf, Name, Conf)</a>
 
       </div>
 
@@ -178,6 +206,63 @@ Behaviour for <code>erf</code>'s preprocessing middlewares.
       <span class="text">Types</span>
     </h1>
     <div class="types-list">
+<section class="detail" id="t:conf/0">
+
+  <div class="detail-header">
+    <a href="#t:conf/0" class="detail-link" data-no-tooltip title="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this type</span>
+    </a>
+    <h1 class="signature" translate="no">conf/0</h1>
+
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_http_server.erl#L24" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">-type</span> conf() ::
+          #{port => <a href="https://www.erlang.org/doc/apps/kernel/inet.html#t:port_number/0">inet:port_number</a>(), ssl => <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:boolean/0">boolean</a>(), certfile => <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:binary/0">binary</a>(), keyfile => <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:binary/0">binary</a>()}.</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="t:extra_conf/0">
+
+  <div class="detail-header">
+    <a href="#t:extra_conf/0" class="detail-link" data-no-tooltip title="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this type</span>
+    </a>
+    <h1 class="signature" translate="no">extra_conf/0</h1>
+
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_http_server.erl#L31" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">-type</span> extra_conf() :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:term/0">term</a>().</pre>
+
+      </div>
+
+
+  </section>
+</section>
 <section class="detail" id="t:t/0">
 
   <div class="detail-header">
@@ -187,7 +272,7 @@ Behaviour for <code>erf</code>'s preprocessing middlewares.
     </a>
     <h1 class="signature" translate="no">t/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_preprocess_middleware.erl#L19" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_http_server.erl#L30" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -203,7 +288,7 @@ Behaviour for <code>erf</code>'s preprocessing middlewares.
 
       </div>
 
-A module that implements this behaviour.
+
   </section>
 </section>
 
@@ -218,16 +303,16 @@ A module that implements this behaviour.
       <span class="text">Callbacks</span>
     </h1>
     <div class="callbacks-list">
-<section class="detail" id="c:preprocess/1">
+<section class="detail" id="c:start_link/3">
 
   <div class="detail-header">
-    <a href="#c:preprocess/1" class="detail-link" data-no-tooltip title="Link to this callback">
+    <a href="#c:start_link/3" class="detail-link" data-no-tooltip title="Link to this callback">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this callback</span>
     </a>
-    <h1 class="signature" translate="no">preprocess/1</h1>
+    <h1 class="signature" translate="no">start_link/3</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_preprocess_middleware.erl#L30" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_http_server.erl#L43" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -239,12 +324,58 @@ A module that implements this behaviour.
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">-callback</span> preprocess(Request) -> Result
+          <pre translate="no"><span class="attribute">-callback</span> start_link(Name, Conf, ExtraConf) -> Result
                         when
-                            Request :: <a href="erf.html#t:request/0">erf:request</a>(),
-                            Result :: {stop, Response} | {stop, Response, NewRequest} | NewRequest,
-                            NewRequest :: <a href="erf.html#t:request/0">erf:request</a>(),
-                            Response :: <a href="erf.html#t:response/0">erf:response</a>().</pre>
+                            Name :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:atom/0">atom</a>(),
+                            Conf :: <a href="#t:conf/0">conf</a>(),
+                            ExtraConf :: <a href="#t:extra_conf/0">extra_conf</a>(),
+                            Result :: <a href="https://www.erlang.org/doc/apps/stdlib/supervisor.html#t:startlink_ret/0">supervisor:startlink_ret</a>().</pre>
+
+      </div>
+
+
+  </section>
+</section>
+
+    </div>
+  </section>
+
+  <section id="functions" class="details-list">
+    <h1 class="section-heading">
+      <a class="hover-link" href="#functions">
+        <i class="ri-link-m" aria-hidden="true"></i>
+      </a>
+      <span class="text">Functions</span>
+    </h1>
+    <div class="functions-list">
+<section class="detail" id="start_link/4">
+
+  <div class="detail-header">
+    <a href="#start_link/4" class="detail-link" data-no-tooltip title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">start_link(Module, ModuleExtraConf, Name, Conf)</h1>
+
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_http_server.erl#L58" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">-spec</span> start_link(Module, ModuleExtraConf, Name, Conf) -> Result
+                    when
+                        Module :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:module/0">module</a>(),
+                        ModuleExtraConf :: <a href="#t:extra_conf/0">extra_conf</a>(),
+                        Name :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:atom/0">atom</a>(),
+                        Conf :: <a href="#t:conf/0">conf</a>(),
+                        Result :: <a href="https://www.erlang.org/doc/apps/stdlib/supervisor.html#t:startlink_ret/0">supervisor:startlink_ret</a>().</pre>
 
       </div>
 

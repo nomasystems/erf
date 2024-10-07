@@ -4,20 +4,19 @@
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="generator" content="ExDoc v0.32.2">
+    <meta name="generator" content="ExDoc v0.34.2">
     <meta name="project" content="erf v0.1.2">
 
 
     <title>erf — erf v0.1.2</title>
-    <link rel="stylesheet" href="dist/html-erlang-EBZIIHAS.css" />
+    <link rel="stylesheet" href="dist/html-erlang-YKQ677RH.css" />
 
 
     <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
     <script src="dist/handlebars.templates-K7URE6B4.js"></script>
-    <script src="dist/sidebar_items-CD0FFEC6.js"></script>
+    <script src="dist/sidebar_items-28F82D22.js"></script>
     <script src="docs_config.js"></script>
-    <script async src="dist/html-BHYOTRCH.js"></script>
-
+    <script async src="dist/html-YIPIRHGU.js"></script>
 
   </head>
   <body data-type="modules" class="page-module">
@@ -383,25 +382,19 @@ Pages
       <div class="specs">
 
           <pre translate="no"><span class="attribute">-type</span> conf() ::
-          #{spec_path := <a href="https://www.erlang.org/doc/man/erlang.html#type-binary">binary</a>(),
-            callback := <a href="https://www.erlang.org/doc/man/erlang.html#type-module">module</a>(),
-            port => <a href="https://www.erlang.org/doc/man/inet.html#type-port_number">inet:port_number</a>(),
-            name => <a href="https://www.erlang.org/doc/man/erlang.html#type-atom">atom</a>(),
-            spec_parser => <a href="https://www.erlang.org/doc/man/erlang.html#type-module">module</a>(),
-            preprocess_middlewares => [<a href="https://www.erlang.org/doc/man/erlang.html#type-module">module</a>()],
-            postprocess_middlewares => [<a href="https://www.erlang.org/doc/man/erlang.html#type-module">module</a>()],
-            ssl => <a href="https://www.erlang.org/doc/man/erlang.html#type-boolean">boolean</a>(),
-            certfile => <a href="https://www.erlang.org/doc/man/erlang.html#type-binary">binary</a>(),
-            keyfile => <a href="https://www.erlang.org/doc/man/erlang.html#type-binary">binary</a>(),
+          #{spec_path := <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:binary/0">binary</a>(),
+            callback := <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:module/0">module</a>(),
+            port => <a href="https://www.erlang.org/doc/apps/kernel/inet.html#t:port_number/0">inet:port_number</a>(),
+            name => <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:atom/0">atom</a>(),
+            spec_parser => <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:module/0">module</a>(),
+            preprocess_middlewares => [<a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:module/0">module</a>()],
+            postprocess_middlewares => [<a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:module/0">module</a>()],
+            ssl => <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:boolean/0">boolean</a>(),
+            certfile => <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:binary/0">binary</a>(),
+            keyfile => <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:binary/0">binary</a>(),
             static_routes => [<a href="#t:static_route/0">static_route</a>()],
-            swagger_ui => <a href="https://www.erlang.org/doc/man/erlang.html#type-boolean">boolean</a>(),
-            min_acceptors => <a href="https://www.erlang.org/doc/man/erlang.html#type-pos_integer">pos_integer</a>(),
-            accept_timeout => <a href="https://www.erlang.org/doc/man/erlang.html#type-pos_integer">pos_integer</a>(),
-            request_timeout => <a href="https://www.erlang.org/doc/man/erlang.html#type-pos_integer">pos_integer</a>(),
-            header_timeout => <a href="https://www.erlang.org/doc/man/erlang.html#type-pos_integer">pos_integer</a>(),
-            body_timeout => <a href="https://www.erlang.org/doc/man/erlang.html#type-pos_integer">pos_integer</a>(),
-            max_body_size => <a href="https://www.erlang.org/doc/man/erlang.html#type-pos_integer">pos_integer</a>(),
-            log_level => <a href="https://www.erlang.org/doc/man/logger.html#type-level">logger:level</a>()}.</pre>
+            swagger_ui => <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:boolean/0">boolean</a>(),
+            log_level => <a href="https://www.erlang.org/doc/apps/kernel/logger.html#t:level/0">logger:level</a>()}.</pre>
 
       </div>
 
@@ -417,7 +410,7 @@ Pages
     </a>
     <h1 class="signature" translate="no">header/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L66" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L60" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -429,7 +422,7 @@ Pages
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">-type</span> header() :: {<a href="https://www.erlang.org/doc/man/erlang.html#type-binary">binary</a>(), <a href="https://www.erlang.org/doc/man/erlang.html#type-binary">binary</a>()}.</pre>
+          <pre translate="no"><span class="attribute">-type</span> header() :: {<a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:binary/0">binary</a>(), <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:binary/0">binary</a>()}.</pre>
 
       </div>
 
@@ -445,7 +438,7 @@ Pages
     </a>
     <h1 class="signature" translate="no">method/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L67" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L61" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -473,7 +466,7 @@ Pages
     </a>
     <h1 class="signature" translate="no">path_parameter/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L77" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L71" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -485,7 +478,7 @@ Pages
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">-type</span> path_parameter() :: {<a href="https://www.erlang.org/doc/man/erlang.html#type-binary">binary</a>(), <a href="https://www.erlang.org/doc/man/erlang.html#type-binary">binary</a>()}.</pre>
+          <pre translate="no"><span class="attribute">-type</span> path_parameter() :: {<a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:binary/0">binary</a>(), <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:binary/0">binary</a>()}.</pre>
 
       </div>
 
@@ -501,7 +494,7 @@ Pages
     </a>
     <h1 class="signature" translate="no">query_parameter/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L78" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L72" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -513,7 +506,7 @@ Pages
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">-type</span> query_parameter() :: {<a href="https://www.erlang.org/doc/man/erlang.html#type-binary">binary</a>(), <a href="https://www.erlang.org/doc/man/erlang.html#type-binary">binary</a>()}.</pre>
+          <pre translate="no"><span class="attribute">-type</span> query_parameter() :: {<a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:binary/0">binary</a>(), <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:binary/0">binary</a>()}.</pre>
 
       </div>
 
@@ -529,7 +522,7 @@ Pages
     </a>
     <h1 class="signature" translate="no">request/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L79" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L73" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -542,17 +535,17 @@ Pages
       <div class="specs">
 
           <pre translate="no"><span class="attribute">-type</span> request() ::
-          #{scheme := undefined | <a href="https://www.erlang.org/doc/man/erlang.html#type-binary">binary</a>(),
-            host := undefined | <a href="https://www.erlang.org/doc/man/erlang.html#type-binary">binary</a>(),
+          #{scheme := undefined | <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:binary/0">binary</a>(),
+            host := undefined | <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:binary/0">binary</a>(),
             port := undefined | 1..65535,
-            path := [<a href="https://www.erlang.org/doc/man/erlang.html#type-binary">binary</a>()],
+            path := [<a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:binary/0">binary</a>()],
             path_parameters => [<a href="#t:path_parameter/0">path_parameter</a>()],
             method := <a href="#t:method/0">method</a>(),
             query_parameters := [<a href="#t:query_parameter/0">query_parameter</a>()],
             headers := [<a href="#t:header/0">header</a>()],
             body := <a href="#t:body/0">body</a>(),
-            peer := undefined | <a href="https://www.erlang.org/doc/man/erlang.html#type-binary">binary</a>(),
-            context => <a href="https://www.erlang.org/doc/man/erlang.html#type-any">any</a>()}.</pre>
+            peer := undefined | <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:binary/0">binary</a>(),
+            context => <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:any/0">any</a>()}.</pre>
 
       </div>
 
@@ -568,7 +561,7 @@ Pages
     </a>
     <h1 class="signature" translate="no">response/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L92" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L86" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -581,7 +574,7 @@ Pages
       <div class="specs">
 
           <pre translate="no"><span class="attribute">-type</span> response() ::
-          {StatusCode :: <a href="https://www.erlang.org/doc/man/erlang.html#type-pos_integer">pos_integer</a>(), Headers :: [<a href="#t:header/0">header</a>()], Body :: <a href="#t:body/0">body</a>() | {file, <a href="https://www.erlang.org/doc/man/erlang.html#type-binary">binary</a>()}}.</pre>
+          {StatusCode :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:pos_integer/0">pos_integer</a>(), Headers :: [<a href="#t:header/0">header</a>()], Body :: <a href="#t:body/0">body</a>() | {file, <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:binary/0">binary</a>()}}.</pre>
 
       </div>
 
@@ -597,7 +590,7 @@ Pages
     </a>
     <h1 class="signature" translate="no">static_dir/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L97" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L91" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -609,7 +602,7 @@ Pages
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">-type</span> static_dir() :: {dir, <a href="https://www.erlang.org/doc/man/erlang.html#type-binary">binary</a>()}.</pre>
+          <pre translate="no"><span class="attribute">-type</span> static_dir() :: {dir, <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:binary/0">binary</a>()}.</pre>
 
       </div>
 
@@ -625,7 +618,7 @@ Pages
     </a>
     <h1 class="signature" translate="no">static_file/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L98" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L92" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -637,7 +630,7 @@ Pages
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">-type</span> static_file() :: {file, <a href="https://www.erlang.org/doc/man/erlang.html#type-binary">binary</a>()}.</pre>
+          <pre translate="no"><span class="attribute">-type</span> static_file() :: {file, <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:binary/0">binary</a>()}.</pre>
 
       </div>
 
@@ -653,7 +646,7 @@ Pages
     </a>
     <h1 class="signature" translate="no">static_route/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L99" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L93" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -665,7 +658,7 @@ Pages
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">-type</span> static_route() :: {Path :: <a href="https://www.erlang.org/doc/man/erlang.html#type-binary">binary</a>(), Resource :: <a href="#t:static_file/0">static_file</a>() | <a href="#t:static_dir/0">static_dir</a>()}.</pre>
+          <pre translate="no"><span class="attribute">-type</span> static_route() :: {Path :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:binary/0">binary</a>(), Resource :: <a href="#t:static_file/0">static_file</a>() | <a href="#t:static_dir/0">static_dir</a>()}.</pre>
 
       </div>
 
@@ -693,7 +686,7 @@ Pages
     </a>
     <h1 class="signature" translate="no">get_router(Name)</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L161" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L150" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -707,10 +700,10 @@ Pages
 
           <pre translate="no"><span class="attribute">-spec</span> get_router(Name) -> Result
                     when
-                        Name :: <a href="https://www.erlang.org/doc/man/erlang.html#type-atom">atom</a>(),
+                        Name :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:atom/0">atom</a>(),
                         Result :: {ok, Router} | {error, Reason},
-                        Router :: <a href="https://www.erlang.org/doc/man/erlang.html#type-binary">binary</a>(),
-                        Reason :: <a href="https://www.erlang.org/doc/man/erlang.html#type-term">term</a>().</pre>
+                        Router :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:binary/0">binary</a>(),
+                        Reason :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:term/0">term</a>().</pre>
 
       </div>
 
@@ -726,7 +719,7 @@ Returns the router for an instance of the server.
     </a>
     <h1 class="signature" translate="no">init(_)</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L210" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L199" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -748,7 +741,7 @@ Returns the router for an instance of the server.
     </a>
     <h1 class="signature" translate="no">reload_conf(Name, Conf)</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L182" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L171" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -762,10 +755,10 @@ Returns the router for an instance of the server.
 
           <pre translate="no"><span class="attribute">-spec</span> reload_conf(Name, Conf) -> Result
                      when
-                         Name :: <a href="https://www.erlang.org/doc/man/erlang.html#type-atom">atom</a>(),
+                         Name :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:atom/0">atom</a>(),
                          Conf :: <a href="erf_conf.html#t:t/0">erf_conf:t</a>(),
                          Result :: ok | {error, Reason},
-                         Reason :: <a href="https://www.erlang.org/doc/man/erlang.html#type-term">term</a>().</pre>
+                         Reason :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:term/0">term</a>().</pre>
 
       </div>
 
@@ -781,7 +774,7 @@ Reloads the configuration for an instance of the server.
     </a>
     <h1 class="signature" translate="no">start_link(Conf)</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L129" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L118" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -797,8 +790,8 @@ Reloads the configuration for an instance of the server.
                     when
                         Conf :: <a href="#t:conf/0">conf</a>(),
                         Result :: {ok, Pid} | ignore | {error, Reason},
-                        Pid :: <a href="https://www.erlang.org/doc/man/erlang.html#type-pid">pid</a>(),
-                        Reason :: <a href="https://www.erlang.org/doc/man/erlang.html#type-term">term</a>().</pre>
+                        Pid :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:pid/0">pid</a>(),
+                        Reason :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:term/0">term</a>().</pre>
 
       </div>
 
@@ -814,7 +807,7 @@ Starts the supervision tree for an instance of the server.
     </a>
     <h1 class="signature" translate="no">stop(Name)</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L142" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L131" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -826,7 +819,7 @@ Starts the supervision tree for an instance of the server.
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">-spec</span> stop(Name) -> Result when Name :: <a href="https://www.erlang.org/doc/man/erlang.html#type-atom">atom</a>(), Result :: ok | {error, Reason}, Reason :: <a href="https://www.erlang.org/doc/man/erlang.html#type-term">term</a>().</pre>
+          <pre translate="no"><span class="attribute">-spec</span> stop(Name) -> Result when Name :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:atom/0">atom</a>(), Result :: ok | {error, Reason}, Reason :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:term/0">term</a>().</pre>
 
       </div>
 
@@ -857,7 +850,7 @@ Stops the supervision tree for an instance of the server.
 
       <p class="built-using">
         Built using
-        <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.32.2) for the
+        <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.34.2) for the
 
           <a href="https://erlang.org" title="Erlang" target="_blank" translate="no">Erlang programming language</a>
 
@@ -867,7 +860,6 @@ Stops the supervision tree for an instance of the server.
   </div>
 </main>
 </div>
-
 
   </body>
 </html>

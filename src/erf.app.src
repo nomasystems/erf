@@ -3,5 +3,8 @@
     {vsn, "0.1.2"},
     {registered, []},
     {applications, [kernel, stdlib, compiler, syntax_tools, elli, ndto, njson]},
+    {optional_applications, [
+        telemetry
+    ]},
     {env, []}
 ]}.

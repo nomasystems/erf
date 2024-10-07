@@ -51,7 +51,7 @@
 %%%-----------------------------------------------------------------------------
 -spec start_link(Module, ModuleExtraConf, Name, Conf) -> Result when
     Module :: module(),
-    ModuleConf :: extra_conf(),
+    ModuleExtraConf :: extra_conf(),
     Name :: atom(),
     Conf :: conf(),
     Result :: supervisor:startlink_ret().

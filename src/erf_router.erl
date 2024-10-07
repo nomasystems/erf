@@ -22,13 +22,8 @@
 %%% EXTERNAL EXPORTS
 -export([
     generate/2,
-    load/1
-]).
-
-%%% ELLI HANDLER EXPORTS
--export([
-    handle/2,
-    handle_event/3
+    load/1,
+    handle/2
 ]).
 
 %%% TYPES
@@ -113,20 +108,16 @@ load(Router) ->
             error
     end.
 
-%%%-----------------------------------------------------------------------------
-%%% ELLI HANDLER EXPORTS
-%%%-----------------------------------------------------------------------------
--spec handle(InitialRequest, CallbackArgs) -> Result when
-    InitialRequest :: elli:req(),
-    CallbackArgs :: [Name :: atom()],
-    Result :: elli_handler:result().
+-spec handle(Name, Request) -> Result when
+    Name :: atom(),
+    Request :: erf:request(),
+    Result :: erf:response().
 %% @doc Handles an HTTP request.
-%% @private
-handle(ElliRequest, [Name]) ->
+handle(Name, RawRequest) ->
     {ok, PreProcessMiddlewares} = erf_conf:preprocess_middlewares(Name),
     {ok, RouterMod} = erf_conf:router_mod(Name),
     {ok, PostProcessMiddlewares} = erf_conf:postprocess_middlewares(Name),
-    case preprocess(ElliRequest) of
+    case preprocess(RawRequest) of
         {ok, Request} ->
             {InitialResponse, InitialRequest} =
                 case apply_preprocess_middlewares(Request, PreProcessMiddlewares) of
@@ -148,32 +139,6 @@ handle(ElliRequest, [Name]) ->
             }),
             {400, [{ContentTypeHeader, <<"application/json">>}], ErrorBody}
     end.
-
--spec handle_event(Event, Data, CallbackArgs) -> ok when
-    Event :: atom(),
-    Data :: term(),
-    CallbackArgs :: [Name :: atom()].
-%% @doc Handles an elli event.
-%% @private
-handle_event(request_throw, [Request, Exception, Stacktrace], [Name]) ->
-    {ok, LogLevel} = erf_conf:log_level(Name),
-    ?LOG(LogLevel, "[erf] Request ~p threw exception ~p:~n~p", [Request, Exception, Stacktrace]);
-handle_event(request_error, [Request, Exception, Stacktrace], [Name]) ->
-    {ok, LogLevel} = erf_conf:log_level(Name),
-    ?LOG(LogLevel, "[erf] Request ~p errored with exception ~p.~nStacktrace:~n~p", [
-        preprocess(Request), Exception, Stacktrace
-    ]);
-handle_event(request_exit, [Request, Exception, Stacktrace], [Name]) ->
-    {ok, LogLevel} = erf_conf:log_level(Name),
-    ?LOG(LogLevel, "[erf] Request ~p exited with exception ~p.~nStacktrace:~n~p", [
-        preprocess(Request), Exception, Stacktrace
-    ]);
-handle_event(file_error, [ErrorReason], [Name]) ->
-    {ok, LogLevel} = erf_conf:log_level(Name),
-    ?LOG(LogLevel, "[erf] Returning file errored with reason: ~p", [ErrorReason]);
-handle_event(_Event, _Data, _CallbackArgs) ->
-    % TODO: take better advantage of the event system
-    ok.
 
 %%%-----------------------------------------------------------------------------
 %%% INTERNAL FUNCTIONS
@@ -743,23 +708,12 @@ load_binary(ModuleName, Bin) ->
             {error, Reason}
     end.
 
--spec postprocess(Request, Response) -> Resp when
+-spec postprocess(Request, RawResponse) -> Response when
     Request :: erf:request(),
-    Response :: erf:response(),
-    Resp :: elli_handler:result().
-postprocess(
-    #{
-        headers := ReqHeaders
-    } = _Request,
-    {Status, Headers, {file, File}}
-) ->
-    % File responses are handled by elli_sendfile
-    Range = elli_request:get_range(
-        % elli:req() mock
-        {req, 'GET', undefined, undefined, undefined, [], [], <<>>, {1, 1}, ReqHeaders, ReqHeaders,
-            <<>>, erlang:self(), undefined, {undefined, []}}
-    ),
-    {Status, Headers, {file, File, Range}};
+    RawResponse :: erf:response(),
+    Response :: erf:response().
+postprocess(_Request, {_Status, _Headers, {file, _Path}} = Response) ->
+    Response;
 postprocess(_Request, {Status, RawHeaders, RawBody}) ->
     ContentTypeHeader = string:casefold(<<"content-type">>),
     case proplists:get_value(ContentTypeHeader, RawHeaders, undefined) of
@@ -788,46 +742,22 @@ postprocess(_Request, {Status, RawHeaders, RawBody}) ->
             {Status, RawHeaders, RawBody}
     end.
 
--spec preprocess(Req) -> Result when
-    Req :: elli:req(),
+-spec preprocess(RawRequest) -> Result when
+    RawRequest :: erf:request(),
     Result :: {ok, Request} | {error, Reason},
     Request :: erf:request(),
     Reason :: term().
-preprocess(Req) ->
-    Scheme = elli_request:scheme(Req),
-    Host = elli_request:host(Req),
-    Port = elli_request:port(Req),
-    Path = elli_request:path(Req),
-    Method = preprocess_method(elli_request:method(Req)),
-    QueryParameters = elli_request:get_args_decoded(Req),
-    Headers = elli_request:headers(Req),
-    Peer = elli_request:peer(Req),
+preprocess(RawRequest) ->
+    Headers = maps:get(headers, RawRequest, []),
     ContentTypeHeader = string:casefold(<<"content-type">>),
-    RawBody =
-        case elli_request:body(Req) of
-            <<>> ->
-                undefined;
-            ElliBody ->
-                ElliBody
-        end,
-
+    RawBody = maps:get(body, RawRequest, undefined),
     case proplists:get_value(ContentTypeHeader, Headers, undefined) of
         <<"application/json">> ->
             case RawBody of
                 NonEmptyBinary when is_binary(NonEmptyBinary), byte_size(NonEmptyBinary) > 0 ->
                     case njson:decode(RawBody) of
                         {ok, Body} ->
-                            {ok, #{
-                                scheme => Scheme,
-                                host => Host,
-                                port => Port,
-                                path => Path,
-                                method => Method,
-                                query_parameters => QueryParameters,
-                                headers => Headers,
-                                body => Body,
-                                peer => Peer
-                            }};
+                            {ok, RawRequest#{body => Body}};
                         {error, Reason} ->
                             {error, {cannot_decode_body, Reason}}
                     end;
@@ -835,37 +765,5 @@ preprocess(Req) ->
                     {error, {cannot_decode_body, invalid_json}}
             end;
         _ContentType ->
-            {ok, #{
-                scheme => Scheme,
-                host => Host,
-                port => Port,
-                path => Path,
-                method => Method,
-                query_parameters => QueryParameters,
-                headers => Headers,
-                body => RawBody,
-                peer => Peer
-            }}
+            {ok, RawRequest}
     end.
-
--spec preprocess_method(ElliMethod) -> Result when
-    ElliMethod :: elli:http_method(),
-    Result :: erf:method().
-preprocess_method('GET') ->
-    get;
-preprocess_method('POST') ->
-    post;
-preprocess_method('PUT') ->
-    put;
-preprocess_method('DELETE') ->
-    delete;
-preprocess_method(<<"PATCH">>) ->
-    patch;
-preprocess_method('HEAD') ->
-    head;
-preprocess_method('OPTIONS') ->
-    options;
-preprocess_method('TRACE') ->
-    trace;
-preprocess_method(<<"CONNECT">>) ->
-    connect.

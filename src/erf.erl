@@ -55,12 +55,6 @@
     keyfile => binary(),
     static_routes => [static_route()],
     swagger_ui => boolean(),
-    min_acceptors => pos_integer(),
-    accept_timeout => pos_integer(),
-    request_timeout => pos_integer(),
-    header_timeout => pos_integer(),
-    body_timeout => pos_integer(),
-    max_body_size => pos_integer(),
     log_level => logger:level()
 }.
 -type header() :: {binary(), binary()}.
@@ -111,11 +105,6 @@
     response/0,
     static_route/0
 ]).
-
-%%% MACROS
--define(ELLI_SERVER_NAME(Name),
-    (erlang:binary_to_atom(<<"erf_", (erlang:atom_to_binary(Name))/binary>>))
-).
 
 %%%-----------------------------------------------------------------------------
 %%% START/STOP EXPORTS
@@ -230,7 +219,10 @@ init([Name, RawConf]) ->
             ErfConf = RawErfConf#{router_mod => RouterMod, router => Router},
             ok = erf_conf:set(Name, ErfConf),
 
-            ElliConf = build_elli_conf(RawConf),
+            {HTTPServer, HTTPServerExtraConf} = maps:get(
+                http_server, RawConf, {erf_http_server_elli, #{}}
+            ),
+            HTTPServerConf = build_http_server_conf(RawConf),
             SupFlags = #{
                 strategy => one_for_one,
                 intensity => 1,
@@ -238,11 +230,13 @@ init([Name, RawConf]) ->
             },
             ChildSpec = {
                 Name,
-                {elli, start_link, [ElliConf]},
+                {erf_http_server, start_link, [
+                    HTTPServer, HTTPServerExtraConf, Name, HTTPServerConf
+                ]},
                 permanent,
                 5000,
                 worker,
-                [elli]
+                [erf_http_server]
             },
             {ok, {SupFlags, [ChildSpec]}};
         {error, Reason} ->
@@ -274,32 +268,16 @@ build_dtos([{Ref, Schema} | Schemas]) ->
             {error, {dto_loading_failed, Errors}}
     end.
 
--spec build_elli_conf(Conf) -> ElliConf when
-    Conf :: conf(),
-    ElliConf :: [{atom(), term()}].
-build_elli_conf(Conf) ->
-    Name = maps:get(name, Conf, erf),
-    lists:filter(
-        fun
-            ({_K, undefined}) -> false;
-            ({_K, _V}) -> true
-        end,
-        [
-            {callback, erf_router},
-            {callback_args, [Name]},
-            {port, maps:get(port, Conf, 8080)},
-            {ssl, maps:get(ssl, Conf, false)},
-            {certfile, maps:get(certfile, Conf, undefined)},
-            {keyfile, maps:get(keyfile, Conf, undefined)},
-            {name, {local, ?ELLI_SERVER_NAME(Name)}},
-            {min_acceptors, maps:get(min_acceptors, Conf, 20)},
-            {accept_timeout, maps:get(accept_timeout, Conf, 10000)},
-            {request_timeout, maps:get(request_timeout, Conf, 60000)},
-            {header_timeout, maps:get(header_timeout, Conf, 10000)},
-            {body_timeout, maps:get(body_timeout, Conf, 30000)},
-            {max_body_size, maps:get(max_body_size, Conf, 1024000)}
-        ]
-    ).
+-spec build_http_server_conf(ErfConf) -> HTTPServerConf when
+    ErfConf :: erf:conf(),
+    HTTPServerConf :: erf_http_server:conf().
+build_http_server_conf(ErfConf) ->
+    #{
+        port => maps:get(port, ErfConf, 8080),
+        ssl => maps:get(ssl, ErfConf, false),
+        certfile => maps:get(certfile, ErfConf, undefined),
+        keyfile => maps:get(keyfile, ErfConf, undefined)
+    }.
 
 -spec build_router(SpecPath, SpecParser, Callback, StaticRoutes, SwaggerUI) -> Result when
     SpecPath :: binary(),

@@ -49,11 +49,11 @@
 %%%-----------------------------------------------------------------------------
 %%% EXTERNAL EXPORTS
 %%%-----------------------------------------------------------------------------
--spec start_link(Server, ServerExtraConf, Name, Conf) -> Result when
-    Server :: t(),
-    ServerExtraConf :: extra_conf(),
+-spec start_link(Module, ModuleExtraConf, Name, Conf) -> Result when
+    Module :: module(),
+    ModuleConf :: extra_conf(),
     Name :: atom(),
     Conf :: conf(),
     Result :: supervisor:startlink_ret().
-start_link(Server, ServerExtraConf, Name, Conf) ->
-    Server:start_link(Name, Conf, ServerExtraConf).
+start_link(Module, ModuleExtraConf, Name, Conf) ->
+    Module:start_link(Name, Conf, ModuleExtraConf).

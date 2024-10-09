@@ -22,6 +22,7 @@
     get/1,
     preprocess_middlewares/1,
     postprocess_middlewares/1,
+    route_patterns/1,
     router/1,
     router_mod/1,
     set/2
@@ -33,6 +34,7 @@
     log_level => logger:level(),
     preprocess_middlewares => [module()],
     postprocess_middlewares => [module()],
+    route_patterns => erf:route_patterns(),
     router => erl_syntax:syntaxTree(),
     router_mod => module(),
     spec_path => binary(),
@@ -112,6 +114,19 @@ postprocess_middlewares(Name) ->
             {error, not_found};
         {ok, Conf} ->
             {ok, maps:get(postprocess_middlewares, Conf)}
+    end.
+
+-spec route_patterns(Name) -> Result when
+    Name :: atom(),
+    Result :: {ok, RoutePatterns} | {error, not_found},
+    RoutePatterns :: erf:route_patterns().
+%% @doc Returns a mapping between the routes and their matching RegEx for a given <code>Name</code>.
+route_patterns(Name) ->
+    case ?MODULE:get(Name) of
+        {error, not_found} ->
+            {error, not_found};
+        {ok, Conf} ->
+            {ok, maps:get(route_patterns, Conf)}
     end.
 
 -spec router(Name) -> Result when

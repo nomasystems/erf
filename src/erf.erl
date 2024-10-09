@@ -31,6 +31,7 @@
 %%% EXTERNAL EXPORTS
 -export([
     get_router/1,
+    match_route/2,
     reload_conf/2
 ]).
 
@@ -81,6 +82,7 @@
     headers := [header()],
     body := body(),
     peer := undefined | binary(),
+    route := binary(),
     context => any()
 }.
 -type response() :: {
@@ -88,6 +90,7 @@
     Headers :: [header()],
     Body :: body() | {file, binary()}
 }.
+-type route_patterns() :: [{Route :: binary(), RouteRegEx :: re:mp()}].
 -type static_dir() :: {dir, binary()}.
 -type static_file() :: {file, binary()}.
 -type static_route() :: {Path :: binary(), Resource :: static_file() | static_dir()}.
@@ -103,8 +106,13 @@
     query_parameter/0,
     request/0,
     response/0,
+    route_patterns/0,
     static_route/0
 ]).
+
+%%% MACROS
+-define(URL_ENCODED_STRING_REGEX, <<"(?:[^%]|%[0-9A-Fa-f]{2})+">>).
+% from https://rgxdb.com/r/48L3HPJP
 
 %%%-----------------------------------------------------------------------------
 %%% START/STOP EXPORTS
@@ -162,6 +170,20 @@ get_router(Name) ->
             {error, server_not_started}
     end.
 
+-spec match_route(Name, RawPath) -> Result when
+    Name :: atom(),
+    RawPath :: binary(),
+    Result :: {ok, Route} | {error, Reason},
+    Route :: binary(),
+    Reason :: term().
+match_route(Name, RawPath) ->
+    case erf_conf:route_patterns(Name) of
+        {ok, RoutePatterns} ->
+            match_route_(RawPath, RoutePatterns);
+        Error ->
+            Error
+    end.
+
 -spec reload_conf(Name, Conf) -> Result when
     Name :: atom(),
     Conf :: erf_conf:t(),
@@ -186,8 +208,13 @@ reload_conf(Name, NewConf) ->
     SwaggerUI = maps:get(swagger_ui, Conf),
 
     case build_router(SpecPath, SpecParser, Callback, StaticRoutes, SwaggerUI) of
-        {ok, RouterMod, Router} ->
-            erf_conf:set(Name, Conf#{router_mod => RouterMod, router => Router}),
+        {ok, RouterMod, Router, API} ->
+            RoutePatterns = route_patterns(API),
+            erf_conf:set(Name, Conf#{
+                route_patterns => RoutePatterns,
+                router_mod => RouterMod,
+                router => Router
+            }),
             ok;
         {error, Reason} ->
             {error, Reason}
@@ -215,8 +242,13 @@ init([Name, RawConf]) ->
     SwaggerUI = maps:get(swagger_ui, RawErfConf),
 
     case build_router(SpecPath, SpecParser, Callback, StaticRoutes, SwaggerUI) of
-        {ok, RouterMod, Router} ->
-            ErfConf = RawErfConf#{router_mod => RouterMod, router => Router},
+        {ok, RouterMod, Router, API} ->
+            RoutePatterns = route_patterns(API),
+            ErfConf = RawErfConf#{
+                route_patterns => RoutePatterns,
+                router_mod => RouterMod,
+                router => Router
+            },
             ok = erf_conf:set(Name, ErfConf),
 
             {HTTPServer, HTTPServerExtraConf} = maps:get(
@@ -285,9 +317,10 @@ build_http_server_conf(ErfConf) ->
     Callback :: module(),
     StaticRoutes :: [static_route()],
     SwaggerUI :: boolean(),
-    Result :: {ok, RouterMod, Router} | {error, Reason},
+    Result :: {ok, RouterMod, Router, API} | {error, Reason},
     RouterMod :: module(),
     Router :: erl_syntax:syntaxTree(),
+    API :: api(),
     Reason :: term().
 build_router(SpecPath, SpecParser, Callback, RawStaticRoutes, SwaggerUI) ->
     case erf_parser:parse(SpecPath, SpecParser) of
@@ -319,10 +352,10 @@ build_router(SpecPath, SpecParser, Callback, RawStaticRoutes, SwaggerUI) ->
                     }),
                     case erf_router:load(Router) of
                         ok ->
-                            {ok, RouterMod, Router};
+                            {ok, RouterMod, Router, API};
                         {ok, Warnings} ->
                             log_warnings(Warnings, <<"router generation">>),
-                            {ok, RouterMod, Router};
+                            {ok, RouterMod, Router, API};
                         error ->
                             {error, {router_loading_failed, [unknown_error]}};
                         {error, {Errors, Warnings}} ->
@@ -346,3 +379,48 @@ log_warnings(Warnings, Step) ->
         end,
         Warnings
     ).
+
+-spec match_route_(RawPath, RoutePatterns) -> Result when
+    RawPath :: binary(),
+    RoutePatterns :: erf:route_patterns(),
+    Result :: {ok, Route} | {error, not_found},
+    Route :: binary().
+match_route_(_RawPath, []) ->
+    {error, not_found};
+match_route_(RawPath, [{Route, RouteRegEx} | Routes]) ->
+    case re:run(RawPath, RouteRegEx) of
+        nomatch ->
+            match_route_(RawPath, Routes);
+        _Otherwise ->
+            {ok, Route}
+    end.
+
+-spec route_patterns(API) -> RoutePatterns when
+    API :: api(),
+    RoutePatterns :: route_patterns().
+route_patterns(API) ->
+    RawRoutes = [maps:get(path, Endpoint) || Endpoint <- maps:get(endpoints, API)],
+    route_patterns(RawRoutes, []).
+
+-spec route_patterns(RawRoutes, Acc) -> RoutePatterns when
+    RawRoutes :: [binary()],
+    Acc :: list(),
+    RoutePatterns :: route_patterns().
+route_patterns([], Acc) ->
+    Acc;
+route_patterns([Route | Routes], Acc) ->
+    RegExParts = lists:map(
+        fun
+            (<<"{", _Variable/binary>>) ->
+                ?URL_ENCODED_STRING_REGEX;
+            (Part) ->
+                Part
+        end,
+        erlang:tl(string:split(Route, <<"/">>, all))
+    ),
+    RegEx =
+        <<"^",
+            (erlang:list_to_binary([
+                <<"/">> | lists:join(<<"/">>, RegExParts)
+            ]))/binary, "$">>,
+    route_patterns(Routes, [{Route, RegEx} | Acc]).

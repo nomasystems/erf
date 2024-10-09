@@ -209,7 +209,7 @@ reload_conf(Name, NewConf) ->
 
     case build_router(SpecPath, SpecParser, Callback, StaticRoutes, SwaggerUI) of
         {ok, RouterMod, Router, API} ->
-            RoutePatterns = route_patterns(API),
+            RoutePatterns = route_patterns(API, StaticRoutes, SwaggerUI),
             erf_conf:set(Name, Conf#{
                 route_patterns => RoutePatterns,
                 router_mod => RouterMod,
@@ -243,7 +243,7 @@ init([Name, RawConf]) ->
 
     case build_router(SpecPath, SpecParser, Callback, StaticRoutes, SwaggerUI) of
         {ok, RouterMod, Router, API} ->
-            RoutePatterns = route_patterns(API),
+            RoutePatterns = route_patterns(API, StaticRoutes, SwaggerUI),
             ErfConf = RawErfConf#{
                 route_patterns => RoutePatterns,
                 router_mod => RouterMod,
@@ -395,12 +395,35 @@ match_route_(RawPath, [{Route, RouteRegEx} | Routes]) ->
             {ok, Route}
     end.
 
--spec route_patterns(API) -> RoutePatterns when
+-spec route_patterns(API, StaticRoutes, SwaggerUI) -> RoutePatterns when
     API :: api(),
+    StaticRoutes :: [static_route()],
+    SwaggerUI :: boolean(),
     RoutePatterns :: route_patterns().
-route_patterns(API) ->
+route_patterns(API, StaticRoutes, SwaggerUI) ->
+    Acc =
+        lists:map(
+            fun
+                ({Path, {file, _ResourcePath}}) ->
+                    {Path, <<"^", Path/binary, "$">>};
+                ({Path, {dir, _ResourcePath}}) ->
+                    {Path, <<"^", Path/binary>>}
+            end,
+            StaticRoutes
+        ),
+    Acc1 =
+        case SwaggerUI of
+            true ->
+                [
+                    {<<"/swagger">>, <<"^/swagger$">>},
+                    {<<"/swagger/spec.json">>, <<"^/swagger/spec.json$">>}
+                    | Acc
+                ];
+            _false ->
+                Acc
+        end,
     RawRoutes = [maps:get(path, Endpoint) || Endpoint <- maps:get(endpoints, API)],
-    route_patterns(RawRoutes, []).
+    route_patterns(RawRoutes, Acc1).
 
 -spec route_patterns(RawRoutes, Acc) -> RoutePatterns when
     RawRoutes :: [binary()],

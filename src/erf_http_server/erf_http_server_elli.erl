@@ -176,7 +176,13 @@ preprocess(Name, Req) ->
                 ElliBody
         end,
     JoinPath = erlang:list_to_binary([<<"/">> | lists:join(<<"/">>, Path)]),
-    {ok, Route} = erf:match_route(Name, JoinPath),
+    Route = 
+        case erf:match_route(Name, JoinPath) of
+            {ok, R} ->
+                R;
+            {error, not_found} ->
+                JoinPath
+        end,
     #{
         scheme => Scheme,
         host => Host,

@@ -74,7 +74,7 @@ start_link(Name, Conf, ExtraConf) ->
 %% @doc Handles an HTTP request.
 %% @private
 handle(ElliRequest, [Name]) ->
-    ErfRequest = preprocess(ElliRequest),
+    ErfRequest = preprocess(Name, ElliRequest),
     ErfResponse = erf_router:handle(Name, ErfRequest),
     postprocess(ErfRequest, ErfResponse).
 
@@ -90,12 +90,12 @@ handle_event(request_throw, [Request, Exception, Stacktrace], [Name]) ->
 handle_event(request_error, [Request, Exception, Stacktrace], [Name]) ->
     {ok, LogLevel} = erf_conf:log_level(Name),
     ?LOG(LogLevel, "[erf] Request ~p errored with exception ~p.~nStacktrace:~n~p", [
-        preprocess(Request), Exception, Stacktrace
+        preprocess(Name, Request), Exception, Stacktrace
     ]);
 handle_event(request_exit, [Request, Exception, Stacktrace], [Name]) ->
     {ok, LogLevel} = erf_conf:log_level(Name),
     ?LOG(LogLevel, "[erf] Request ~p exited with exception ~p.~nStacktrace:~n~p", [
-        preprocess(Request), Exception, Stacktrace
+        preprocess(Name, Request), Exception, Stacktrace
     ]);
 handle_event(file_error, [ErrorReason], [Name]) ->
     {ok, LogLevel} = erf_conf:log_level(Name),
@@ -155,10 +155,11 @@ postprocess(
 postprocess(_Request, {Status, RawHeaders, RawBody}) ->
     {Status, RawHeaders, RawBody}.
 
--spec preprocess(Req) -> Request when
+-spec preprocess(Name, Req) -> Request when
+    Name :: atom(),
     Req :: elli:req(),
     Request :: erf:request().
-preprocess(Req) ->
+preprocess(Name, Req) ->
     Scheme = elli_request:scheme(Req),
     Host = elli_request:host(Req),
     Port = elli_request:port(Req),
@@ -174,6 +175,14 @@ preprocess(Req) ->
             ElliBody ->
                 ElliBody
         end,
+    JoinPath = erlang:list_to_binary([<<"/">> | lists:join(<<"/">>, Path)]),
+    Route = 
+        case erf:match_route(Name, JoinPath) of
+            {ok, R} ->
+                R;
+            {error, not_found} ->
+                JoinPath
+        end,
     #{
         scheme => Scheme,
         host => Host,
@@ -183,7 +192,8 @@ preprocess(Req) ->
         query_parameters => QueryParameters,
         headers => Headers,
         body => RawBody,
-        peer => Peer
+        peer => Peer,
+        route => Route
     }.
 
 -spec preprocess_method(ElliMethod) -> Result when

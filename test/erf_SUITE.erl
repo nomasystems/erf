@@ -120,6 +120,16 @@ foo(_Conf) ->
         )
     ),
 
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 404, "Not Found"}, _Result3Headers, <<>>}},
+        httpc:request(
+            get,
+            {"http://localhost:8789/1/not_found", []},
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
     ok = erf:stop(erf_server),
 
     meck:unload(erf_callback),

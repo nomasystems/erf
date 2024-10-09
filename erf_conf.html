@@ -14,7 +14,7 @@
 
     <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
     <script src="dist/handlebars.templates-K7URE6B4.js"></script>
-    <script src="dist/sidebar_items-28F82D22.js"></script>
+    <script src="dist/sidebar_items-E721B417.js"></script>
     <script src="docs_config.js"></script>
     <script async src="dist/html-YIPIRHGU.js"></script>
 
@@ -207,6 +207,16 @@ Pages
 
     <div class="summary-row">
       <div class="summary-signature">
+        <a href="#route_patterns/1" data-no-tooltip translate="no">route_patterns(Name)</a>
+
+      </div>
+
+        <div class="summary-synopsis">Returns a mapping between the routes and their matching RegEx for a given <code>Name</code>.</div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
         <a href="#router/1" data-no-tooltip translate="no">router(Name)</a>
 
       </div>
@@ -257,7 +267,7 @@ Pages
     </a>
     <h1 class="signature" translate="no">t/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_conf.erl#L31" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_conf.erl#L32" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -274,6 +284,7 @@ Pages
             log_level => <a href="https://www.erlang.org/doc/apps/kernel/logger.html#t:level/0">logger:level</a>(),
             preprocess_middlewares => [<a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:module/0">module</a>()],
             postprocess_middlewares => [<a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:module/0">module</a>()],
+            route_patterns => <a href="erf.html#t:route_patterns/0">erf:route_patterns</a>(),
             router => erl_syntax:syntaxTree(),
             router_mod => <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:module/0">module</a>(),
             spec_path => <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:binary/0">binary</a>(),
@@ -307,7 +318,7 @@ Pages
     </a>
     <h1 class="signature" translate="no">clear(Name)</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_conf.erl#L61" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_conf.erl#L63" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -335,7 +346,7 @@ Clears the configuration for the given <code>Name</code>.
     </a>
     <h1 class="signature" translate="no">get(Name)</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_conf.erl#L70" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_conf.erl#L72" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -363,7 +374,7 @@ Returns the configuration for the given <code>Name</code>.
     </a>
     <h1 class="signature" translate="no">log_level(Name)</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_conf.erl#L83" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_conf.erl#L85" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -395,7 +406,7 @@ Returns the log level for the given <code>Name</code>.
     </a>
     <h1 class="signature" translate="no">postprocess_middlewares(Name)</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_conf.erl#L109" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_conf.erl#L111" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -427,7 +438,7 @@ Returns the postprocess middlewares for the given <code>Name</code>.
     </a>
     <h1 class="signature" translate="no">preprocess_middlewares(Name)</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_conf.erl#L96" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_conf.erl#L98" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -450,6 +461,38 @@ Returns the postprocess middlewares for the given <code>Name</code>.
 Returns the preprocess middlewares for the given <code>Name</code>.
   </section>
 </section>
+<section class="detail" id="route_patterns/1">
+
+  <div class="detail-header">
+    <a href="#route_patterns/1" class="detail-link" data-no-tooltip title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">route_patterns(Name)</h1>
+
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_conf.erl#L124" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">-spec</span> route_patterns(Name) -> Result
+                        when
+                            Name :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:atom/0">atom</a>(),
+                            Result :: {ok, RoutePatterns} | {error, not_found},
+                            RoutePatterns :: <a href="erf.html#t:route_patterns/0">erf:route_patterns</a>().</pre>
+
+      </div>
+
+Returns a mapping between the routes and their matching RegEx for a given <code>Name</code>.
+  </section>
+</section>
 <section class="detail" id="router/1">
 
   <div class="detail-header">
@@ -459,7 +502,7 @@ Returns the preprocess middlewares for the given <code>Name</code>.
     </a>
     <h1 class="signature" translate="no">router(Name)</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_conf.erl#L122" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_conf.erl#L137" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -491,7 +534,7 @@ Returns the router for the given <code>Name</code>.
     </a>
     <h1 class="signature" translate="no">router_mod(Name)</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_conf.erl#L135" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_conf.erl#L150" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -523,7 +566,7 @@ Returns the router module name for the given <code>Name</code>.
     </a>
     <h1 class="signature" translate="no">set(Name, Conf)</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_conf.erl#L148" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_conf.erl#L163" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>

@@ -8,7 +8,7 @@
     <meta name="project" content="erf v0.1.2">
 
 
-    <title>erf_http_server — erf v0.1.2</title>
+    <title>erf_telemetry — erf v0.1.2</title>
     <link rel="stylesheet" href="dist/html-erlang-YKQ677RH.css" />
 
 
@@ -19,7 +19,7 @@
     <script async src="dist/html-YIPIRHGU.js"></script>
 
   </head>
-  <body data-type="modules" class="page-behaviour">
+  <body data-type="modules" class="page-module">
     <script>
 
       try {
@@ -112,20 +112,16 @@ Pages
 <div id="top-content">
   <h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_http_server.erl#L16" title="View Source" class="icon-action" rel="help">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_telemetry.erl#L16" title="View Source" class="icon-action" rel="help">
         <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         <span class="sr-only">View Source</span>
       </a>
 
-    <span translate="no">erf_http_server</span> <small>behaviour</small>
+    <span translate="no">erf_telemetry</span> 
     <small class="app-vsn" translate="no">(erf v0.1.2)</small>
 
   </h1>
 
-
-    <section id="moduledoc">
-<code>erf</code>'s interface to interact with its underlying HTTP server.
-    </section>
 
 </div>
 
@@ -143,7 +139,7 @@ Pages
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#t:conf/0" data-no-tooltip translate="no">conf/0</a>
+        <a href="#t:event/0" data-no-tooltip translate="no">event/0</a>
 
       </div>
 
@@ -151,7 +147,7 @@ Pages
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#t:extra_conf/0" data-no-tooltip translate="no">extra_conf/0</a>
+        <a href="#t:exception_data/0" data-no-tooltip translate="no">exception_data/0</a>
 
       </div>
 
@@ -159,21 +155,7 @@ Pages
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#t:t/0" data-no-tooltip translate="no">t/0</a>
-
-      </div>
-
-    </div>
-
-</div>
-<div class="summary-callbacks summary">
-  <h2>
-    <a href="#callbacks">Callbacks</a>
-  </h2>
-
-    <div class="summary-row">
-      <div class="summary-signature">
-        <a href="#c:start_link/3" data-no-tooltip translate="no">start_link/3</a>
+        <a href="#t:req_measurements/0" data-no-tooltip translate="no">req_measurements/0</a>
 
       </div>
 
@@ -187,7 +169,7 @@ Pages
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#start_link/4" data-no-tooltip translate="no">start_link(Module, ModuleExtraConf, Name, Conf)</a>
+        <a href="#event/4" data-no-tooltip translate="no">event(Event, Name, Req, Resp)</a>
 
       </div>
 
@@ -206,16 +188,16 @@ Pages
       <span class="text">Types</span>
     </h1>
     <div class="types-list">
-<section class="detail" id="t:conf/0">
+<section class="detail" id="t:event/0">
 
   <div class="detail-header">
-    <a href="#t:conf/0" class="detail-link" data-no-tooltip title="Link to this type">
+    <a href="#t:event/0" class="detail-link" data-no-tooltip title="Link to this type">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this type</span>
     </a>
-    <h1 class="signature" translate="no">conf/0</h1>
+    <h1 class="signature" translate="no">event/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_http_server.erl#L24" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_telemetry.erl#L24" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -227,24 +209,26 @@ Pages
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">-type</span> conf() ::
-          #{port => <a href="https://www.erlang.org/doc/apps/kernel/inet.html#t:port_number/0">inet:port_number</a>(), ssl => <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:boolean/0">boolean</a>(), certfile => <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:binary/0">binary</a>(), keyfile => <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:binary/0">binary</a>()}.</pre>
+          <pre translate="no"><span class="attribute">-type</span> event() ::
+          {request_complete, <a href="#t:req_measurements/0">req_measurements</a>()} |
+          {chunk_complete, <a href="#t:req_measurements/0">req_measurements</a>()} |
+          {request_exception, <a href="#t:exception_data/0">exception_data</a>()}.</pre>
 
       </div>
 
 
   </section>
 </section>
-<section class="detail" id="t:extra_conf/0">
+<section class="detail" id="t:exception_data/0">
 
   <div class="detail-header">
-    <a href="#t:extra_conf/0" class="detail-link" data-no-tooltip title="Link to this type">
+    <a href="#t:exception_data/0" class="detail-link" data-no-tooltip title="Link to this type">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this type</span>
     </a>
-    <h1 class="signature" translate="no">extra_conf/0</h1>
+    <h1 class="signature" translate="no">exception_data/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_http_server.erl#L31" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_telemetry.erl#L29" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -256,23 +240,23 @@ Pages
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">-type</span> extra_conf() :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:term/0">term</a>().</pre>
+          <pre translate="no"><span class="attribute">-type</span> exception_data() :: #{error := <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:binary/0">binary</a>(), stacktrace => <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:binary/0">binary</a>()}.</pre>
 
       </div>
 
 
   </section>
 </section>
-<section class="detail" id="t:t/0">
+<section class="detail" id="t:req_measurements/0">
 
   <div class="detail-header">
-    <a href="#t:t/0" class="detail-link" data-no-tooltip title="Link to this type">
+    <a href="#t:req_measurements/0" class="detail-link" data-no-tooltip title="Link to this type">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this type</span>
     </a>
-    <h1 class="signature" translate="no">t/0</h1>
+    <h1 class="signature" translate="no">req_measurements/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_http_server.erl#L30" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_telemetry.erl#L34" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -284,52 +268,12 @@ Pages
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">-type</span> t() :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:module/0">module</a>().</pre>
-
-      </div>
-
-
-  </section>
-</section>
-
-    </div>
-  </section>
-
-  <section id="callbacks" class="details-list">
-    <h1 class="section-heading">
-      <a class="hover-link" href="#callbacks">
-        <i class="ri-link-m" aria-hidden="true"></i>
-      </a>
-      <span class="text">Callbacks</span>
-    </h1>
-    <div class="callbacks-list">
-<section class="detail" id="c:start_link/3">
-
-  <div class="detail-header">
-    <a href="#c:start_link/3" class="detail-link" data-no-tooltip title="Link to this callback">
-      <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this callback</span>
-    </a>
-    <h1 class="signature" translate="no">start_link/3</h1>
-
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_http_server.erl#L43" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
-
-
-  </div>
-
-  <section class="docstring">
-
-      <div class="specs">
-
-          <pre translate="no"><span class="attribute">-callback</span> start_link(Name, Conf, ExtraConf) -> Result
-                        when
-                            Name :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:atom/0">atom</a>(),
-                            Conf :: <a href="#t:conf/0">conf</a>(),
-                            ExtraConf :: <a href="#t:extra_conf/0">extra_conf</a>(),
-                            Result :: <a href="https://www.erlang.org/doc/apps/stdlib/supervisor.html#t:startlink_ret/0">supervisor:startlink_ret</a>().</pre>
+          <pre translate="no"><span class="attribute">-type</span> req_measurements() ::
+          #{duration := <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:integer/0">integer</a>(),
+            req_body_duration => <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:integer/0">integer</a>(),
+            req_body_length => <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:integer/0">integer</a>(),
+            resp_body_length => <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:integer/0">integer</a>(),
+            resp_duration := <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:integer/0">integer</a>()}.</pre>
 
       </div>
 
@@ -348,16 +292,16 @@ Pages
       <span class="text">Functions</span>
     </h1>
     <div class="functions-list">
-<section class="detail" id="start_link/4">
+<section class="detail" id="event/4">
 
   <div class="detail-header">
-    <a href="#start_link/4" class="detail-link" data-no-tooltip title="Link to this function">
+    <a href="#event/4" class="detail-link" data-no-tooltip title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">start_link(Module, ModuleExtraConf, Name, Conf)</h1>
+    <h1 class="signature" translate="no">event(Event, Name, Req, Resp)</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_http_server.erl#L58" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_telemetry.erl#L57" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -369,13 +313,8 @@ Pages
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">-spec</span> start_link(Module, ModuleExtraConf, Name, Conf) -> Result
-                    when
-                        Module :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:module/0">module</a>(),
-                        ModuleExtraConf :: <a href="#t:extra_conf/0">extra_conf</a>(),
-                        Name :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:atom/0">atom</a>(),
-                        Conf :: <a href="#t:conf/0">conf</a>(),
-                        Result :: <a href="https://www.erlang.org/doc/apps/stdlib/supervisor.html#t:startlink_ret/0">supervisor:startlink_ret</a>().</pre>
+          <pre translate="no"><span class="attribute">-spec</span> event(Event, Name, Req, Resp) -> ok
+               when Event :: <a href="#t:event/0">event</a>(), Name :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:atom/0">atom</a>(), Req :: <a href="erf.html#t:request/0">erf:request</a>(), Resp :: <a href="erf.html#t:response/0">erf:response</a>().</pre>
 
       </div>
 

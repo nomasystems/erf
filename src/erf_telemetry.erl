@@ -22,17 +22,19 @@
 
 %%% TYPES
 -type event() ::
-    {request_complete, req_measurements()}
-    | {chunk_complete, req_measurements()}
+    {request_start, #{monotonic_time := monotonic_time()}}
+    | {request_complete, req_measurements()}
     | {request_exception, exception_data()}.
 
 -type exception_data() :: #{
     error := binary(),
+    monotonic_time := monotonic_time(),
     stacktrace => binary()
 }.
-
+-type monotonic_time() :: integer().
 -type req_measurements() :: #{
     duration := integer(),
+    monotonic_time := monotonic_time(),
     req_body_duration => integer(),
     req_body_length => integer(),
     resp_body_length => integer(),
@@ -43,6 +45,7 @@
 -export_type([
     event/0,
     exception_data/0,
+    monotonic_time/0,
     req_measurements/0
 ]).
 
@@ -53,7 +56,7 @@
     Event :: event(),
     Name :: atom(),
     Req :: erf:request(),
-    Resp :: erf:response().
+    Resp :: undefined | erf:response().
 event({request_exception, ExceptionData} = Event, Name, Req, Resp) ->
     case code:is_loaded(telemetry) of
         {file, _TelemetryBeam} ->
@@ -80,17 +83,22 @@ event({_EventName, Measurements} = Event, Name, Req, Resp) ->
 %%%-----------------------------------------------------------------------------
 %%% INTERNAL FUNCTIONS
 %%%-----------------------------------------------------------------------------
+metadata(Name, Req, undefined, RawMetadata) ->
+    RawMetadata#{
+        name => Name,
+        req => Req
+    };
 metadata(Name, Req, {RespStatus, RespHeaders, _Body}, RawMetadata) ->
     RawMetadata#{
+        name => Name,
         req => Req,
         resp_headers => RespHeaders,
-        resp_status => RespStatus,
-        name => Name
+        resp_status => RespStatus
     }.
 
-metric({request_complete, _}) ->
+metric({request_complete, _Measurements}) ->
     [erf, request, stop];
-metric({chunk_complete, _}) ->
-    [erf, request, stop];
-metric({request_exception, _}) ->
-    [erf, request, fail].
+metric({request_exception, _ExceptionData}) ->
+    [erf, request, fail];
+metric({request_start, _Measurements}) ->
+    [erf, request, start].

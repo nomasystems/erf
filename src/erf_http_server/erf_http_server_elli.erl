@@ -17,6 +17,7 @@
 
 %%% BEHAVIOURS
 -behaviour(erf_http_server).
+-behaviour(elli_handler).
 
 %%% INCLUDE FILES
 -include_lib("kernel/include/logger.hrl").
@@ -28,6 +29,7 @@
 
 %%% ELLI HANDLER EXPORTS
 -export([
+    init/2,
     handle/2,
     handle_event/3
 ]).
@@ -67,6 +69,19 @@ start_link(Name, Conf, ExtraConf) ->
 %%%-----------------------------------------------------------------------------
 %%% ELLI HANDLER EXPORTS
 %%%-----------------------------------------------------------------------------
+-spec init(InitialRequest, CallbackArgs) -> Result when
+    InitialRequest :: elli:req(),
+    CallbackArgs :: [Name :: atom()],
+    Result :: {ok, Behaviour :: standard}.
+init(Req, [Name]) ->
+    erf_telemetry:event(
+        {request_start, #{monotonic_time => erlang:monotonic_time()}}, 
+        Name, 
+        preprocess(Name, Req), 
+        undefined
+    ),
+    {ok, standard}.
+
 -spec handle(InitialRequest, CallbackArgs) -> Result when
     InitialRequest :: elli:req(),
     CallbackArgs :: [Name :: atom()],
@@ -87,7 +102,7 @@ handle(ElliRequest, [Name]) ->
 handle_event(request_complete, Args, CallbackArgs) ->
     handle_full_response(request_complete, Args, CallbackArgs);
 handle_event(chunk_complete, Args, CallbackArgs) ->
-    handle_full_response(chunk_complete, Args, CallbackArgs);
+    handle_full_response(request_complete, Args, CallbackArgs);
 handle_event(invalid_return, [Request, Unexpected], CallbackArgs) ->
     handle_exception(Request, Unexpected, CallbackArgs);
 handle_event(request_throw, [Request, Exception, Stacktrace], [Name]) ->
@@ -172,6 +187,7 @@ duration(StartKey, EndKey, Timings) ->
 handle_full_response(Event, [RawReq, StatusCode, Hs, Body, {Timings, Sizes}], [Name]) ->
     Metrics = #{
         duration => duration(Timings, request),
+        monotonic_time => erlang:monotonic_time(),
         req_body_duration => duration(Timings, req_body),
         req_body_length => size(Sizes, request_body), 
         resp_body_length => size(Sizes, response_body),
@@ -187,14 +203,16 @@ handle_full_response(Event, [RawReq, StatusCode, Hs, Body, {Timings, Sizes}], [N
 handle_exception(RawReq, [Exception, Stacktrace], [Name]) ->
     Req = preprocess(Name, RawReq),
     ExceptionData = #{
-        stacktrace => erlang:list_to_binary(io_lib:format("~p", [Stacktrace])),
-        error => erlang:list_to_binary(io_lib:format("~p", [Exception]))
+        error => erlang:list_to_binary(io_lib:format("~p", [Exception])),
+        monotonic_time => erlang:monotonic_time(),
+        stacktrace => erlang:list_to_binary(io_lib:format("~p", [Stacktrace]))
     },
     erf_telemetry:event({request_exception, ExceptionData}, Name, Req, {500, [], undefined});
 handle_exception(RawReq, Unexpected, [Name]) ->
     Req = preprocess(Name, RawReq),
     ExceptionData = #{
-        error => erlang:list_to_binary(io_lib:format("~p", [Unexpected]))
+        error => erlang:list_to_binary(io_lib:format("~p", [Unexpected])),
+        monotonic_time => erlang:monotonic_time()
     },
     erf_telemetry:event({request_exception, ExceptionData}, Name, Req, {500, [], undefined}).
 

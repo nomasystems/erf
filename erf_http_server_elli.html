@@ -14,7 +14,7 @@
 
     <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
     <script src="dist/handlebars.templates-K7URE6B4.js"></script>
-    <script src="dist/sidebar_items-EA2B2E28.js"></script>
+    <script src="dist/sidebar_items-003BF5D7.js"></script>
     <script src="docs_config.js"></script>
     <script async src="dist/html-YIPIRHGU.js"></script>
 
@@ -157,6 +157,14 @@ An <code>elli</code> implementation for <code>erf_http_server</code>.
 
     <div class="summary-row">
       <div class="summary-signature">
+        <a href="#init/2" data-no-tooltip translate="no">init(InitialRequest, CallbackArgs)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
         <a href="#start_link/3" data-no-tooltip translate="no">start_link(Name, Conf, ExtraConf)</a>
 
       </div>
@@ -185,7 +193,7 @@ An <code>elli</code> implementation for <code>erf_http_server</code>.
     </a>
     <h1 class="signature" translate="no">extra_conf/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_http_server/erf_http_server_elli.erl#L36" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_http_server/erf_http_server_elli.erl#L38" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -222,6 +230,38 @@ An <code>elli</code> implementation for <code>erf_http_server</code>.
       <span class="text">Functions</span>
     </h1>
     <div class="functions-list">
+<section class="detail" id="init/2">
+
+  <div class="detail-header">
+    <a href="#init/2" class="detail-link" data-no-tooltip title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">init(InitialRequest, CallbackArgs)</h1>
+
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_http_server/erf_http_server_elli.erl#L76" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">-spec</span> init(InitialRequest, CallbackArgs) -> Result
+              when
+                  InitialRequest :: <a href="https://hexdocs.pm/elli/elli.html#t:req/0">elli:req</a>(),
+                  CallbackArgs :: [Name :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:atom/0">atom</a>()],
+                  Result :: {ok, Behaviour :: standard}.</pre>
+
+      </div>
+
+
+  </section>
+</section>
 <section class="detail" id="start_link/3">
 
   <div class="detail-header">
@@ -231,7 +271,7 @@ An <code>elli</code> implementation for <code>erf_http_server</code>.
     </a>
     <h1 class="signature" translate="no">start_link(Name, Conf, ExtraConf)</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_http_server/erf_http_server_elli.erl#L63" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_http_server/erf_http_server_elli.erl#L65" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>

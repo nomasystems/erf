@@ -14,7 +14,7 @@
 
     <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
     <script src="dist/handlebars.templates-K7URE6B4.js"></script>
-    <script src="dist/sidebar_items-EA2B2E28.js"></script>
+    <script src="dist/sidebar_items-003BF5D7.js"></script>
     <script src="docs_config.js"></script>
     <script async src="dist/html-YIPIRHGU.js"></script>
 
@@ -155,6 +155,14 @@ Pages
 
     <div class="summary-row">
       <div class="summary-signature">
+        <a href="#t:monotonic_time/0" data-no-tooltip translate="no">monotonic_time/0</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
         <a href="#t:req_measurements/0" data-no-tooltip translate="no">req_measurements/0</a>
 
       </div>
@@ -210,8 +218,8 @@ Pages
       <div class="specs">
 
           <pre translate="no"><span class="attribute">-type</span> event() ::
+          {request_start, #{monotonic_time := <a href="#t:monotonic_time/0">monotonic_time</a>()}} |
           {request_complete, <a href="#t:req_measurements/0">req_measurements</a>()} |
-          {chunk_complete, <a href="#t:req_measurements/0">req_measurements</a>()} |
           {request_exception, <a href="#t:exception_data/0">exception_data</a>()}.</pre>
 
       </div>
@@ -240,7 +248,36 @@ Pages
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">-type</span> exception_data() :: #{error := <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:binary/0">binary</a>(), stacktrace => <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:binary/0">binary</a>()}.</pre>
+          <pre translate="no"><span class="attribute">-type</span> exception_data() ::
+          #{error := <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:binary/0">binary</a>(), monotonic_time := <a href="#t:monotonic_time/0">monotonic_time</a>(), stacktrace => <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:binary/0">binary</a>()}.</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="t:monotonic_time/0">
+
+  <div class="detail-header">
+    <a href="#t:monotonic_time/0" class="detail-link" data-no-tooltip title="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this type</span>
+    </a>
+    <h1 class="signature" translate="no">monotonic_time/0</h1>
+
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_telemetry.erl#L34" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">-type</span> monotonic_time() :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:integer/0">integer</a>().</pre>
 
       </div>
 
@@ -256,7 +293,7 @@ Pages
     </a>
     <h1 class="signature" translate="no">req_measurements/0</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_telemetry.erl#L34" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_telemetry.erl#L35" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -270,6 +307,7 @@ Pages
 
           <pre translate="no"><span class="attribute">-type</span> req_measurements() ::
           #{duration := <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:integer/0">integer</a>(),
+            monotonic_time := <a href="#t:monotonic_time/0">monotonic_time</a>(),
             req_body_duration => <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:integer/0">integer</a>(),
             req_body_length => <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:integer/0">integer</a>(),
             resp_body_length => <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:integer/0">integer</a>(),
@@ -301,7 +339,7 @@ Pages
     </a>
     <h1 class="signature" translate="no">event(Event, Name, Req, Resp)</h1>
 
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_telemetry.erl#L57" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_telemetry.erl#L60" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -314,7 +352,11 @@ Pages
       <div class="specs">
 
           <pre translate="no"><span class="attribute">-spec</span> event(Event, Name, Req, Resp) -> ok
-               when Event :: <a href="#t:event/0">event</a>(), Name :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:atom/0">atom</a>(), Req :: <a href="erf.html#t:request/0">erf:request</a>(), Resp :: <a href="erf.html#t:response/0">erf:response</a>().</pre>
+               when
+                   Event :: <a href="#t:event/0">event</a>(),
+                   Name :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:atom/0">atom</a>(),
+                   Req :: <a href="erf.html#t:request/0">erf:request</a>(),
+                   Resp :: undefined | <a href="erf.html#t:response/0">erf:response</a>().</pre>
 
       </div>
 

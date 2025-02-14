@@ -101,7 +101,7 @@ foo(_Conf) ->
     ),
 
     ?assertMatch(
-        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, <<>>}},
+        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, <<_/binary>>}},
         httpc:request(
             post,
             {"http://localhost:8789/1/foo", [], "application/json", <<"\"foobar\"">>},

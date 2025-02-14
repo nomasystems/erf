@@ -252,7 +252,7 @@ handle_ast(API, #{callback := Callback} = Opts) ->
                     erl_syntax:clause(
                         [
                             erl_syntax:match_expr(
-                                erl_syntax:variable('Request'),
+                                erl_syntax:variable('Request0'),
                                 erl_syntax:map_expr(
                                     none,
                                     [
@@ -286,6 +286,18 @@ handle_ast(API, #{callback := Callback} = Opts) ->
                                 erl_syntax:variable('IsValidRequest'),
                                 IsValidRequestAST
                             ),
+                            erl_syntax:match_expr(
+                                erl_syntax:variable('Request'),
+                                erl_syntax:map_expr(
+                                    erl_syntax:variable('Request0'),
+                                    [
+                                        erl_syntax:map_field_assoc(
+                                            erl_syntax:atom('path_parameters'),
+                                            erl_syntax:variable('PathParameters')
+                                        )
+                                    ]
+                                )
+                            ),
                             erl_syntax:case_expr(
                                 erl_syntax:variable('IsValidRequest'),
                                 [
@@ -303,19 +315,7 @@ handle_ast(API, #{callback := Callback} = Opts) ->
                                                         utf8
                                                     )
                                                 ),
-                                                [
-                                                    erl_syntax:map_expr(
-                                                        erl_syntax:variable('Request'),
-                                                        [
-                                                            erl_syntax:map_field_assoc(
-                                                                erl_syntax:atom('path_parameters'),
-                                                                erl_syntax:variable(
-                                                                    'PathParameters'
-                                                                )
-                                                            )
-                                                        ]
-                                                    )
-                                                ]
+                                                [erl_syntax:variable('Request')]
                                             )
                                         ]
                                     ),
@@ -323,16 +323,17 @@ handle_ast(API, #{callback := Callback} = Opts) ->
                                         [
                                             erl_syntax:tuple([
                                                 erl_syntax:atom(false),
-                                                erl_syntax:variable('_Reason')
+                                                erl_syntax:variable('Reason')
                                             ])
                                         ],
                                         none,
                                         [
-                                            erl_syntax:tuple(
+                                            erl_syntax:application(
+                                                erl_syntax:atom(erf_util),
+                                                erl_syntax:atom(handle_invalid_request),
                                                 [
-                                                    erl_syntax:integer(400),
-                                                    erl_syntax:list([]),
-                                                    erl_syntax:atom(undefined)
+                                                    erl_syntax:variable('Request'),
+                                                    erl_syntax:variable('Reason')
                                                 ]
                                             )
                                         ]

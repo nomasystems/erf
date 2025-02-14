@@ -166,7 +166,7 @@ foo(_Conf) ->
 
     meck:expect(get_foo_request_body, is_valid, fun(_Value) -> {false, reason} end),
 
-    ?assertEqual({400, [], undefined}, Mod:handle(Req)),
+    ?assertMatch({400, [{<<"content-type">>, _}], _}, Mod:handle(Req)),
 
     NotAllowedReq = #{
         path => [<<"1">>, <<"foo">>],

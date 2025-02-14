@@ -16,7 +16,8 @@
 %%% EXTERNAL EXPORTS
 -export([
     to_pascal_case/1,
-    to_snake_case/1
+    to_snake_case/1,
+    handle_invalid_request/2
 ]).
 
 %%%-----------------------------------------------------------------------------
@@ -86,3 +87,7 @@ to_snake_case([_C | Rest], [$_ | _T] = Acc) ->
     to_snake_case(Rest, Acc);
 to_snake_case([_C | Rest], Acc) ->
     to_snake_case(Rest, [$_ | Acc]).
+
+
+handle_invalid_request(_Request, Reason) ->
+    {400, [{<<"content-type">>, <<"text/plain">>}], [io_lib:print(Reason), "\n"]}.

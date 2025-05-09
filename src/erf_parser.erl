@@ -50,10 +50,12 @@
     ref := ref(),
     name := parameter_name(),
     type := parameter_type(),
-    required := boolean()
+    required := boolean(),
+    schema_type := schema_type()
 }.
 -type parameter_name() :: binary().
 -type parameter_type() :: header | cookie | path | query.
+-type schema_type() :: binary().
 -type path() :: binary().
 -type ref() :: binary().
 -type request() :: #{

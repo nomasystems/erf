@@ -341,6 +341,13 @@ parse_parameter(#{<<"content">> := Content} = RawParameter, #{namespace := Names
             _Type ->
                 false
         end,
+    ParameterSchemaType =
+        case maps:get(<<"schema">>, RawParameter, undefined) of
+            undefined ->
+               undefined;
+            RawSchema ->
+                maps:get(<<"type">>, RawSchema, undefined)
+        end,
     Required = maps:get(<<"required">>, RawParameter, DefaultRequired),
     ParameterName = maps:get(<<"name">>, RawParameter),
     ParameterRef = erf_util:to_snake_case(<<Namespace/binary, "_", ParameterName/binary>>),
@@ -348,6 +355,7 @@ parse_parameter(#{<<"content">> := Content} = RawParameter, #{namespace := Names
         ref => ParameterRef,
         name => ParameterName,
         type => ParameterType,
+        schema_type => ParameterSchemaType,
         required => Required
     },
     {AnyOf, ExtraSchemas, NewCTX} =
@@ -384,6 +392,13 @@ parse_parameter(#{<<"schema">> := RawSchema} = RawParameter, #{namespace := Name
             _Type ->
                 false
         end,
+    ParameterSchemaType =
+        case maps:get(<<"schema">>, RawParameter, undefined) of
+            undefined ->
+               undefined;
+            RawSchema ->
+                maps:get(<<"type">>, RawSchema, undefined)
+        end,
     Required = maps:get(<<"required">>, RawParameter, DefaultRequired),
     ParameterName = maps:get(<<"name">>, RawParameter),
     ParameterRef = erf_util:to_snake_case(<<Namespace/binary, "_", ParameterName/binary>>),
@@ -391,6 +406,7 @@ parse_parameter(#{<<"schema">> := RawSchema} = RawParameter, #{namespace := Name
         ref => ParameterRef,
         name => ParameterName,
         type => ParameterType,
+        schema_type => ParameterSchemaType,
         required => Required
     },
     {ParameterSchema, NewExtraSchemas, NewCTX} = parse_schemas(RawSchema, CTX),

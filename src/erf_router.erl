@@ -580,6 +580,7 @@ is_valid_request(RawParameters, Request) ->
                 ParameterModule = erlang:binary_to_atom(maps:get(ref, Parameter)),
                 ParameterName = maps:get(name, Parameter),
                 ParameterType = maps:get(type, Parameter),
+                ParameterSchemaType = maps:get(schema_type, Parameter),
                 case ParameterType of
                     header ->
                         GetParameter =
@@ -619,21 +620,52 @@ is_valid_request(RawParameters, Request) ->
                             required => true
                         }};
                     query ->
+                        DefaultFalse =
+                            erl_syntax:binary([
+                                erl_syntax:binary_field(
+                                    erl_syntax:string("false")
+                                )
+                            ]),
                         GetParameter =
-                            erl_syntax:application(
-                                erl_syntax:atom(proplists),
-                                erl_syntax:atom(get_value),
-                                [
-                                    erl_syntax:binary([
-                                        erl_syntax:binary_field(
-                                            erl_syntax:string(
-                                                erlang:binary_to_list(ParameterName)
+                            case ParameterSchemaType of
+                                <<"boolean">> ->
+                                    erl_syntax:application(
+                                        erl_syntax:atom(erlang),
+                                        erl_syntax:atom(binary_to_atom),
+                                        [
+                                            erl_syntax:application(
+                                                erl_syntax:atom(proplists),
+                                                erl_syntax:atom(get_value),
+                                                [
+                                                    erl_syntax:binary([
+                                                        erl_syntax:binary_field(
+                                                            erl_syntax:string(
+                                                                erlang:binary_to_list(ParameterName)
+                                                            )
+                                                        )
+                                                    ]),
+                                                    erl_syntax:variable('QueryParameters'),
+                                                    DefaultFalse
+                                                ]
                                             )
-                                        )
-                                    ]),
-                                    erl_syntax:variable('QueryParameters')
-                                ]
-                            ),
+                                        ]
+                                    );
+                                _ ->
+                                    erl_syntax:application(
+                                        erl_syntax:atom(proplists),
+                                        erl_syntax:atom(get_value),
+                                        [
+                                            erl_syntax:binary([
+                                                erl_syntax:binary_field(
+                                                    erl_syntax:string(
+                                                        erlang:binary_to_list(ParameterName)
+                                                    )
+                                                )
+                                            ]),
+                                            erl_syntax:variable('QueryParameters')
+                                        ]
+                                    )
+                            end,
                         ParameterRequired = maps:get(required, Parameter),
                         {true, #{
                             module => ParameterModule,

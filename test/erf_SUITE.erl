@@ -111,6 +111,26 @@ foo(_Conf) ->
     ),
 
     ?assertMatch(
+        {ok, {{"HTTP/1.1", 200, "OK"}, _ResultHeaders4, <<"\"bar\"">>}},
+        httpc:request(
+            get,
+            {"http://localhost:8789/1/foo?enabled=false", []},
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, <<>>}},
+        httpc:request(
+            get,
+            {"http://localhost:8789/1/foo?enabled=2", []},
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
+    ?assertMatch(
         {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, <<>>}},
         httpc:request(
             post,

@@ -626,6 +626,18 @@ is_valid_request(RawParameters, Request) ->
                                     erl_syntax:string("false")
                                 )
                             ]),
+                        DefaultZero =
+                            erl_syntax:binary([
+                                erl_syntax:binary_field(
+                                    erl_syntax:string("0")
+                                )
+                            ]),
+                        DefaultZeroFloat =
+                            erl_syntax:binary([
+                                erl_syntax:binary_field(
+                                    erl_syntax:string("0.0")
+                                )
+                            ]),
                         GetParameter =
                             case ParameterSchemaType of
                                 <<"boolean">> ->
@@ -646,6 +658,50 @@ is_valid_request(RawParameters, Request) ->
                                                     ]),
                                                     erl_syntax:variable('QueryParameters'),
                                                     DefaultFalse
+                                                ]
+                                            )
+                                        ]
+                                    );
+                                <<"integer">> ->
+                                    erl_syntax:application(
+                                        erl_syntax:atom(erf_util),
+                                        erl_syntax:atom(safe_binary_to_integer),
+                                        [
+                                            erl_syntax:application(
+                                                erl_syntax:atom(proplists),
+                                                erl_syntax:atom(get_value),
+                                                [
+                                                    erl_syntax:binary([
+                                                        erl_syntax:binary_field(
+                                                            erl_syntax:string(
+                                                                erlang:binary_to_list(ParameterName)
+                                                            )
+                                                        )
+                                                    ]),
+                                                    erl_syntax:variable('QueryParameters'),
+                                                    DefaultZero
+                                                ]
+                                            )
+                                        ]
+                                    );
+                                <<"number">> ->
+                                    erl_syntax:application(
+                                        erl_syntax:atom(erf_util),
+                                        erl_syntax:atom(binary_to_number),
+                                        [
+                                            erl_syntax:application(
+                                                erl_syntax:atom(proplists),
+                                                erl_syntax:atom(get_value),
+                                                [
+                                                    erl_syntax:binary([
+                                                        erl_syntax:binary_field(
+                                                            erl_syntax:string(
+                                                                erlang:binary_to_list(ParameterName)
+                                                            )
+                                                        )
+                                                    ]),
+                                                    erl_syntax:variable('QueryParameters'),
+                                                    DefaultZeroFloat
                                                 ]
                                             )
                                         ]

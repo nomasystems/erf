@@ -53,6 +53,24 @@
                 },
                 "required": false,
                 "description": "Filter by enabled"
+            },
+            "Page": {
+                "in": "query",
+                "name": "page",
+                "schema": {
+                    "type": "integer"
+                },
+                "required": false,
+                "description": "Page number"
+            },
+            "Price": {
+                "in": "query",
+                "name": "price",
+                "schema": {
+                    "type": "number"
+                },
+                "required": false,
+                "description": "Price"
             }
         },
         "requestBodies": {

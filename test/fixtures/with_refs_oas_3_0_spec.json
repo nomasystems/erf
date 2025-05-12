@@ -16,7 +16,9 @@
                 "summary":"Get foo",
                 "operationId":"getFoo",
                 "parameters": [
-                    {"$ref": "common_oas_3_0_spec.json#/components/parameters/Enabled"}
+                    {"$ref": "common_oas_3_0_spec.json#/components/parameters/Enabled"},
+                    {"$ref": "common_oas_3_0_spec.json#/components/parameters/Page"},
+                    {"$ref": "common_oas_3_0_spec.json#/components/parameters/Price"}
                 ],
                 "responses":{
                     "200":{

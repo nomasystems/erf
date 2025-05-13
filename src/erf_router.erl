@@ -580,7 +580,7 @@ is_valid_request(RawParameters, Request) ->
                 ParameterModule = erlang:binary_to_atom(maps:get(ref, Parameter)),
                 ParameterName = maps:get(name, Parameter),
                 ParameterType = maps:get(type, Parameter),
-                ParameterSchemaType = maps:get(schema_type, Parameter),
+                ParameterSchema = maps:get(schema, Parameter, undefined),
                 case ParameterType of
                     header ->
                         GetParameter =
@@ -638,8 +638,81 @@ is_valid_request(RawParameters, Request) ->
                                     erl_syntax:string("0.0")
                                 )
                             ]),
+                        ParameterSchemaType =
+                            case ParameterSchema of
+                                undefined ->
+                                    <<"string">>;
+                                _ ->
+                                    maps:get(<<"type">>, ParameterSchema, <<"string">>)
+                            end,
                         GetParameter =
                             case ParameterSchemaType of
+                                <<"array">> ->
+                                    ItemsType = maps:get(
+                                        <<"type">>,
+                                        maps:get(<<"items">>, ParameterSchema, #{}),
+                                        <<"string">>
+                                    ),
+                                    RawValues = erl_syntax:application(
+                                        erl_syntax:atom(proplists),
+                                        erl_syntax:atom(get_all_values),
+                                        [
+                                            erl_syntax:binary([
+                                                erl_syntax:binary_field(
+                                                    erl_syntax:string(
+                                                        erlang:binary_to_list(ParameterName)
+                                                    )
+                                                )
+                                            ]),
+                                            erl_syntax:variable('QueryParameters')
+                                        ]
+                                    ),
+                                    case ItemsType of
+                                        <<"boolean">> ->
+                                            erl_syntax:list_comp(
+                                                erl_syntax:application(
+                                                    erl_syntax:atom(erlang),
+                                                    erl_syntax:atom(binary_to_atom),
+                                                    [erl_syntax:variable('X')]
+                                                ),
+                                                [
+                                                    erl_syntax:generator(
+                                                        erl_syntax:variable('X'),
+                                                        RawValues
+                                                    )
+                                                ]
+                                            );
+                                        <<"integer">> ->
+                                            erl_syntax:list_comp(
+                                                erl_syntax:application(
+                                                    erl_syntax:atom(erf_util),
+                                                    erl_syntax:atom(safe_binary_to_integer),
+                                                    [erl_syntax:variable('X')]
+                                                ),
+                                                [
+                                                    erl_syntax:generator(
+                                                        erl_syntax:variable('X'),
+                                                        RawValues
+                                                    )
+                                                ]
+                                            );
+                                        <<"number">> ->
+                                            erl_syntax:list_comp(
+                                                erl_syntax:application(
+                                                    erl_syntax:atom(erf_util),
+                                                    erl_syntax:atom(binary_to_number),
+                                                    [erl_syntax:variable('X')]
+                                                ),
+                                                [
+                                                    erl_syntax:generator(
+                                                        erl_syntax:variable('X'),
+                                                        RawValues
+                                                    )
+                                                ]
+                                            );
+                                        _ ->
+                                            RawValues
+                                    end;
                                 <<"boolean">> ->
                                     erl_syntax:application(
                                         erl_syntax:atom(erlang),

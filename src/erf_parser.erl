@@ -51,11 +51,10 @@
     name := parameter_name(),
     type := parameter_type(),
     required := boolean(),
-    schema_type := schema_type()
+    schema := schema()
 }.
 -type parameter_name() :: binary().
 -type parameter_type() :: header | cookie | path | query.
--type schema_type() :: binary().
 -type path() :: binary().
 -type ref() :: binary().
 -type request() :: #{

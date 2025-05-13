@@ -25,7 +25,9 @@
 all() ->
     [
         to_pascal_case,
-        to_snake_case
+        to_snake_case,
+        safe_binary_to_integer,
+        binary_to_number
     ].
 
 %%%-----------------------------------------------------------------------------
@@ -66,3 +68,17 @@ to_pascal_case(_Conf) ->
 to_snake_case(_Conf) ->
     ?assertEqual(<<"snake_case">>, erf_util:to_snake_case(<<"SnakeCase">>)),
     ?assertEqual(<<"with_symbols">>, erf_util:to_snake_case(<<"WITH#.$Symbols">>)).
+
+safe_binary_to_integer(_Conf) ->
+    ?assertEqual(1, erf_util:safe_binary_to_integer(<<"1">>)),
+    ?assertEqual(-2, erf_util:safe_binary_to_integer(<<"-2">>)),
+    ?assertEqual(null, erf_util:safe_binary_to_integer(<<"a">>)),
+    ?assertEqual(null, erf_util:safe_binary_to_integer(<<"">>)).
+
+binary_to_number(_Conf) ->
+    ?assertEqual(1, erf_util:binary_to_number(<<"1">>)),
+    ?assertEqual(0, erf_util:binary_to_number(<<"0">>)),
+    ?assertEqual(1.5, erf_util:binary_to_number(<<"1.5">>)),
+    ?assertEqual(-0.5, erf_util:binary_to_number(<<"-0.5">>)),
+    ?assertEqual(null, erf_util:binary_to_number(<<"a">>)),
+    ?assertEqual(null, erf_util:binary_to_number(<<"">>)).

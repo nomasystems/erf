@@ -18,7 +18,8 @@
                 "parameters": [
                     {"$ref": "common_oas_3_0_spec.json#/components/parameters/Enabled"},
                     {"$ref": "common_oas_3_0_spec.json#/components/parameters/Page"},
-                    {"$ref": "common_oas_3_0_spec.json#/components/parameters/Price"}
+                    {"$ref": "common_oas_3_0_spec.json#/components/parameters/Price"},
+                    {"$ref": "common_oas_3_0_spec.json#/components/parameters/Color"}
                 ],
                 "responses":{
                     "200":{

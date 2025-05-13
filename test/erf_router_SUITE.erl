@@ -100,8 +100,7 @@ foo(_Conf) ->
                         ref => <<"version_foo_version">>,
                         name => <<"version">>,
                         type => path,
-                        required => true,
-                        schema_type => undefined
+                        required => true
                     }
                 ],
                 operations => [

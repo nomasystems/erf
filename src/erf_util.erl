@@ -21,6 +21,11 @@
     binary_to_number/1
 ]).
 
+-ignore_xref([
+    safe_binary_to_integer/1,
+    binary_to_number/1
+]).
+
 %%%-----------------------------------------------------------------------------
 %%% EXTERNAL EXPORTS
 %%%-----------------------------------------------------------------------------
@@ -88,7 +93,6 @@ to_snake_case([_C | Rest], [$_ | _T] = Acc) ->
     to_snake_case(Rest, Acc);
 to_snake_case([_C | Rest], Acc) ->
     to_snake_case(Rest, [$_ | Acc]).
-
 
 safe_binary_to_integer(Binary) when is_binary(Binary) ->
     try

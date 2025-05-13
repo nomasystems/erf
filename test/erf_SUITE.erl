@@ -211,6 +211,26 @@ foo(_Conf) ->
     ),
 
     ?assertMatch(
+        {ok, {{"HTTP/1.1", 200, "OK"}, _ResultHeaders4, <<"\"bar\"">>}},
+        httpc:request(
+            get,
+            {"http://localhost:8789/1/foo?color=1&color=2&color=3", []},
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, <<>>}},
+        httpc:request(
+            get,
+            {"http://localhost:8789/1/foo?color=true&color=false&color=false", []},
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
+    ?assertMatch(
         {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, <<>>}},
         httpc:request(
             post,

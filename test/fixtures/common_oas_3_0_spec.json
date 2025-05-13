@@ -71,6 +71,18 @@
                 },
                 "required": false,
                 "description": "Price"
+            },
+            "Color": {
+                "in": "query",
+                "name": "color",
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "required": false,
+                "description": "Color array"
             }
         },
         "requestBodies": {

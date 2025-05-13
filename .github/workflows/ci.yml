@@ -21,7 +21,7 @@ jobs:
           otp-version: ${{ env.OTP-VERSION }}
           rebar3-version: ${{ env.REBAR3-VERSION }}
 
-      - uses: actions/cache@v4.2.3
+      - uses: actions/cache@v3.2.6
         id: rebar3-cache
         with:
           path: |

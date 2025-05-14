@@ -72,9 +72,9 @@
                 "required": false,
                 "description": "Price"
             },
-            "Color": {
+            "IntegerArray": {
                 "in": "query",
-                "name": "color",
+                "name": "integerArray",
                 "schema": {
                     "type": "array",
                     "items": {
@@ -82,7 +82,52 @@
                     }
                 },
                 "required": false,
-                "description": "Color array"
+                "description": "Integer array"
+            },
+            "StringArray": {
+                "in": "query",
+                "name": "stringArray",
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "required": false,
+                "description": "String array"
+            },
+            "NumberArray": {
+                "in": "query",
+                "name": "numberArray",
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    }
+                },
+                "required": false,
+                "description": "Number array"
+            },
+            "BoolArray": {
+                "in": "query",
+                "name": "boolArray",
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "type": "boolean"
+                    }
+                },
+                "required": false,
+                "description": "Boolean array"
+            },
+            "String": {
+                "in": "query",
+                "name": "string",
+                "schema": {
+                    "type": "string"
+                },
+                "required": false,
+                "description": "String parameter"
             }
         },
         "requestBodies": {

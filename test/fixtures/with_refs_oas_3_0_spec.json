@@ -19,7 +19,11 @@
                     {"$ref": "common_oas_3_0_spec.json#/components/parameters/Enabled"},
                     {"$ref": "common_oas_3_0_spec.json#/components/parameters/Page"},
                     {"$ref": "common_oas_3_0_spec.json#/components/parameters/Price"},
-                    {"$ref": "common_oas_3_0_spec.json#/components/parameters/Color"}
+                    {"$ref": "common_oas_3_0_spec.json#/components/parameters/String"},
+                    {"$ref": "common_oas_3_0_spec.json#/components/parameters/IntegerArray"},
+                    {"$ref": "common_oas_3_0_spec.json#/components/parameters/StringArray"},
+                    {"$ref": "common_oas_3_0_spec.json#/components/parameters/NumberArray"},
+                    {"$ref": "common_oas_3_0_spec.json#/components/parameters/BoolArray"}
                 ],
                 "responses":{
                     "200":{

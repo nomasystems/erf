@@ -101,6 +101,186 @@ foo(_Conf) ->
     ),
 
     ?assertMatch(
+        {ok, {{"HTTP/1.1", 200, "OK"}, _ResultHeaders4, <<"\"bar\"">>}},
+        httpc:request(
+            get,
+            {"http://localhost:8789/1/foo?string=1", []},
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 200, "OK"}, _ResultHeaders4, <<"\"bar\"">>}},
+        httpc:request(
+            get,
+            {"http://localhost:8789/1/foo?page=1", []},
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, <<>>}},
+        httpc:request(
+            get,
+            {"http://localhost:8789/1/foo?page=2.5", []},
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, <<>>}},
+        httpc:request(
+            get,
+            {"http://localhost:8789/1/foo?page=test", []},
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, <<>>}},
+        httpc:request(
+            get,
+            {"http://localhost:8789/1/foo?page=true", []},
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 200, "OK"}, _ResultHeaders4, <<"\"bar\"">>}},
+        httpc:request(
+            get,
+            {"http://localhost:8789/1/foo?price=1.25", []},
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 200, "OK"}, _ResultHeaders4, <<"\"bar\"">>}},
+        httpc:request(
+            get,
+            {"http://localhost:8789/1/foo?price=2", []},
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, <<>>}},
+        httpc:request(
+            get,
+            {"http://localhost:8789/1/foo?price=test", []},
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, <<>>}},
+        httpc:request(
+            get,
+            {"http://localhost:8789/1/foo?price=true", []},
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 200, "OK"}, _ResultHeaders4, <<"\"bar\"">>}},
+        httpc:request(
+            get,
+            {"http://localhost:8789/1/foo?enabled=true", []},
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 200, "OK"}, _ResultHeaders4, <<"\"bar\"">>}},
+        httpc:request(
+            get,
+            {"http://localhost:8789/1/foo?enabled=false", []},
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, <<>>}},
+        httpc:request(
+            get,
+            {"http://localhost:8789/1/foo?enabled=2", []},
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 200, "OK"}, _ResultHeaders4, <<"\"bar\"">>}},
+        httpc:request(
+            get,
+            {"http://localhost:8789/1/foo?integerArray=1&integerArray=2&integerArray=3", []},
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, <<>>}},
+        httpc:request(
+            get,
+            {"http://localhost:8789/1/foo?integerArray=1&integerArray=2&integerArray=true", []},
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 200, "OK"}, _ResultHeaders4, <<"\"bar\"">>}},
+        httpc:request(
+            get,
+            {"http://localhost:8789/1/foo?numberArray=1.5&numberArray=2&numberArray=-0.85", []},
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, <<>>}},
+        httpc:request(
+            get,
+            {"http://localhost:8789/1/foo?numberArray=1&numberArray=2.0&numberArray=true", []},
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 200, "OK"}, _ResultHeaders4, <<"\"bar\"">>}},
+        httpc:request(
+            get,
+            {"http://localhost:8789/1/foo?boolArray=true&boolArray=false&boolArray=true", []},
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, <<>>}},
+        httpc:request(
+            get,
+            {"http://localhost:8789/1/foo?boolArray=1&boolArray=2&boolArray=true", []},
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
+    ?assertMatch(
         {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, <<>>}},
         httpc:request(
             post,

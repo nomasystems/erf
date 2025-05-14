@@ -53,6 +53,81 @@
                 },
                 "required": false,
                 "description": "Filter by enabled"
+            },
+            "Page": {
+                "in": "query",
+                "name": "page",
+                "schema": {
+                    "type": "integer"
+                },
+                "required": false,
+                "description": "Page number"
+            },
+            "Price": {
+                "in": "query",
+                "name": "price",
+                "schema": {
+                    "type": "number"
+                },
+                "required": false,
+                "description": "Price"
+            },
+            "IntegerArray": {
+                "in": "query",
+                "name": "integerArray",
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "required": false,
+                "description": "Integer array"
+            },
+            "StringArray": {
+                "in": "query",
+                "name": "stringArray",
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "required": false,
+                "description": "String array"
+            },
+            "NumberArray": {
+                "in": "query",
+                "name": "numberArray",
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    }
+                },
+                "required": false,
+                "description": "Number array"
+            },
+            "BoolArray": {
+                "in": "query",
+                "name": "boolArray",
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "type": "boolean"
+                    }
+                },
+                "required": false,
+                "description": "Boolean array"
+            },
+            "String": {
+                "in": "query",
+                "name": "string",
+                "schema": {
+                    "type": "string"
+                },
+                "required": false,
+                "description": "String parameter"
             }
         },
         "requestBodies": {

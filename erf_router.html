@@ -4,35 +4,22 @@
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="generator" content="ExDoc v0.34.2">
+    <meta name="generator" content="ExDoc v0.37.3">
     <meta name="project" content="erf v0.1.2">
 
 
     <title>erf_router — erf v0.1.2</title>
-    <link rel="stylesheet" href="dist/html-erlang-YKQ677RH.css" />
 
+    <link rel="stylesheet" href="dist/html-erlang-FDBURIED.css" />
 
-    <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
-    <script src="dist/handlebars.templates-K7URE6B4.js"></script>
-    <script src="dist/sidebar_items-003BF5D7.js"></script>
-    <script src="docs_config.js"></script>
-    <script async src="dist/html-YIPIRHGU.js"></script>
+    <script defer src="dist/sidebar_items-003BF5D7.js"></script>
+    <script defer src="docs_config.js"></script>
+    <script defer src="dist/html-ALU6OERS.js"></script>
 
   </head>
-  <body data-type="modules" class="page-module">
-    <script>
-
-      try {
-        var settings = JSON.parse(localStorage.getItem('ex_doc:settings') || '{}');
-
-        if (settings.theme === 'dark' ||
-           ((settings.theme === 'system' || settings.theme == null) &&
-             window.matchMedia('(prefers-color-scheme: dark)').matches)
-           ) {
-          document.body.classList.add('dark')
-        }
-      } catch (error) { }
-    </script>
+  <body>
+    <script>(()=>{var t="ex_doc:settings",e="dark";var o="dark",s="light";var E="sidebar_state",n="closed";var r="sidebar_width";var a="sidebar-open";var i=new URLSearchParams(window.location.search),S=i.get("theme")||JSON.parse(localStorage.getItem(t)||"{}").theme;(S===o||S!==s&&window.matchMedia("(prefers-color-scheme: dark)").matches)&&document.body.classList.add(e);var d=sessionStorage.getItem(E),A=d!==n&&!window.matchMedia(`screen and (max-width: ${768}px)`).matches;document.body.classList.toggle(a,A);var c=sessionStorage.getItem(r);c&&document.body.style.setProperty("--sidebarWidth",`${c}px`);var p=/(Macintosh|iPhone|iPad|iPod)/.test(window.navigator.userAgent);document.documentElement.classList.toggle("apple-os",p);})();
+</script>
 
 <div class="body-wrapper">
 
@@ -54,37 +41,13 @@ erf
         </div>
       </div>
     </div>
-    <ul id="sidebar-listNav" class="sidebar-listNav" role="tablist">
-      <li>
-        <button id="extras-list-tab-button" role="tab" data-type="extras" aria-controls="extras-tab-panel" aria-selected="true" tabindex="0">
-Pages
-        </button>
-      </li>
-
-        <li>
-          <button id="modules-list-tab-button" role="tab" data-type="modules" aria-controls="modules-tab-panel" aria-selected="false" tabindex="-1">
-            Modules
-          </button>
-        </li>
-
-
-    </ul>
+    <ul id="sidebar-list-nav" class="sidebar-list-nav" role="tablist" data-extras=""></ul>
   </div>
-
-  <div id="extras-tab-panel" class="sidebar-tabpanel" role="tabpanel" aria-labelledby="extras-list-tab-button">
-    <ul id="extras-full-list" class="full-list"></ul>
-  </div>
-
-    <div id="modules-tab-panel" class="sidebar-tabpanel" role="tabpanel" aria-labelledby="modules-list-tab-button" hidden>
-      <ul id="modules-full-list" class="full-list"></ul>
-    </div>
-
-
 </nav>
 
-<main class="content">
-  <output role="status" id="toast"></output>
+<output role="status" id="toast"></output>
 
+<main class="content page-module" id="main" data-type="modules">
   <div id="content" class="content-inner">
     <div class="top-search">
       <div class="search-settings">
@@ -93,8 +56,8 @@ Pages
             <span class="sr-only">Search documentation of erf</span>
             <input name="q" type="text" class="search-input" placeholder="Press / to search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
           </label>
-          <button type="submit" class="search-button" aria-label="Submit Search">
-            <i class="ri-search-2-line ri-lg" aria-hidden="true" title="Submit search"></i>
+          <button type="submit" class="search-button" aria-label="Submit Search" tabindex="-1">
+            <i class="ri-search-2-line ri-lg" aria-hidden="true"></i>
           </button>
           <button type="button" tabindex="-1" class="search-close-button" aria-hidden="true">
             <i class="ri-close-line ri-lg" title="Cancel search"></i>
@@ -110,17 +73,19 @@ Pages
     </div>
 
 <div id="top-content">
-  <h1>
+  <div class="heading-with-actions top-heading">
+    <h1>
+      <span translate="no">erf_router</span> 
+      <small class="app-vsn" translate="no">(erf v0.1.2)</small>
+
+    </h1>
 
       <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_router.erl#L16" title="View Source" class="icon-action" rel="help">
         <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         <span class="sr-only">View Source</span>
       </a>
 
-    <span translate="no">erf_router</span> 
-    <small class="app-vsn" translate="no">(erf v0.1.2)</small>
-
-  </h1>
+  </div>
 
 
 </div>
@@ -139,7 +104,7 @@ Pages
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#t:callback/0" data-no-tooltip translate="no">callback/0</a>
+        <a href="#t:callback/0" data-no-tooltip="" translate="no">callback/0</a>
 
       </div>
 
@@ -147,7 +112,7 @@ Pages
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#t:generator_opts/0" data-no-tooltip translate="no">generator_opts/0</a>
+        <a href="#t:generator_opts/0" data-no-tooltip="" translate="no">generator_opts/0</a>
 
       </div>
 
@@ -155,7 +120,7 @@ Pages
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#t:t/0" data-no-tooltip translate="no">t/0</a>
+        <a href="#t:t/0" data-no-tooltip="" translate="no">t/0</a>
 
       </div>
 
@@ -169,7 +134,7 @@ Pages
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#generate/2" data-no-tooltip translate="no">generate(API, Opts)</a>
+        <a href="#generate/2" data-no-tooltip="" translate="no">generate(API, Opts)</a>
 
       </div>
 
@@ -179,7 +144,7 @@ Pages
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#handle/2" data-no-tooltip translate="no">handle(Name, Request)</a>
+        <a href="#handle/2" data-no-tooltip="" translate="no">handle(Name, Request)</a>
 
       </div>
 
@@ -189,7 +154,7 @@ Pages
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#load/1" data-no-tooltip translate="no">load(Router)</a>
+        <a href="#load/1" data-no-tooltip="" translate="no">load(Router)</a>
 
       </div>
 
@@ -213,18 +178,18 @@ Pages
 <section class="detail" id="t:callback/0">
 
   <div class="detail-header">
-    <a href="#t:callback/0" class="detail-link" data-no-tooltip title="Link to this type">
+    <a href="#t:callback/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this type</span>
     </a>
-    <h1 class="signature" translate="no">callback/0</h1>
-
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_router.erl#L31" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">callback/0</h1>
 
 
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_router.erl#L31" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
@@ -241,18 +206,18 @@ Pages
 <section class="detail" id="t:generator_opts/0">
 
   <div class="detail-header">
-    <a href="#t:generator_opts/0" class="detail-link" data-no-tooltip title="Link to this type">
+    <a href="#t:generator_opts/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this type</span>
     </a>
-    <h1 class="signature" translate="no">generator_opts/0</h1>
-
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_router.erl#L32" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">generator_opts/0</h1>
 
 
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_router.erl#L32" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
@@ -269,18 +234,18 @@ Pages
 <section class="detail" id="t:t/0">
 
   <div class="detail-header">
-    <a href="#t:t/0" class="detail-link" data-no-tooltip title="Link to this type">
+    <a href="#t:t/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this type</span>
     </a>
-    <h1 class="signature" translate="no">t/0</h1>
-
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_router.erl#L30" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">t/0</h1>
 
 
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_router.erl#L30" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
@@ -309,18 +274,18 @@ Pages
 <section class="detail" id="generate/2">
 
   <div class="detail-header">
-    <a href="#generate/2" class="detail-link" data-no-tooltip title="Link to this function">
+    <a href="#generate/2" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">generate(API, Opts)</h1>
-
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_router.erl#L44" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">generate(API, Opts)</h1>
 
 
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_router.erl#L44" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
@@ -343,18 +308,18 @@ Generates an Erlang Syntax Tree of a router module from an API AST.
 <section class="detail" id="handle/2">
 
   <div class="detail-header">
-    <a href="#handle/2" class="detail-link" data-no-tooltip title="Link to this function">
+    <a href="#handle/2" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">handle(Name, Request)</h1>
-
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_router.erl#L116" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">handle(Name, Request)</h1>
 
 
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_router.erl#L116" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
@@ -372,18 +337,18 @@ Handles an HTTP request.
 <section class="detail" id="load/1">
 
   <div class="detail-header">
-    <a href="#load/1" class="detail-link" data-no-tooltip title="Link to this function">
+    <a href="#load/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">load(Router)</h1>
-
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_router.erl#L88" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">load(Router)</h1>
 
 
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_router.erl#L88" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
@@ -426,7 +391,7 @@ Loads a router module into the Erlang Runtime System.
 
       <p class="built-using">
         Built using
-        <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.34.2) for the
+        <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.37.3) for the
 
           <a href="https://erlang.org" title="Erlang" target="_blank" translate="no">Erlang programming language</a>
 

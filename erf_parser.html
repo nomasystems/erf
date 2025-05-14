@@ -4,35 +4,22 @@
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="generator" content="ExDoc v0.34.2">
+    <meta name="generator" content="ExDoc v0.37.3">
     <meta name="project" content="erf v0.1.2">
 
 
     <title>erf_parser — erf v0.1.2</title>
-    <link rel="stylesheet" href="dist/html-erlang-YKQ677RH.css" />
 
+    <link rel="stylesheet" href="dist/html-erlang-FDBURIED.css" />
 
-    <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
-    <script src="dist/handlebars.templates-K7URE6B4.js"></script>
-    <script src="dist/sidebar_items-003BF5D7.js"></script>
-    <script src="docs_config.js"></script>
-    <script async src="dist/html-YIPIRHGU.js"></script>
+    <script defer src="dist/sidebar_items-003BF5D7.js"></script>
+    <script defer src="docs_config.js"></script>
+    <script defer src="dist/html-ALU6OERS.js"></script>
 
   </head>
-  <body data-type="modules" class="page-behaviour">
-    <script>
-
-      try {
-        var settings = JSON.parse(localStorage.getItem('ex_doc:settings') || '{}');
-
-        if (settings.theme === 'dark' ||
-           ((settings.theme === 'system' || settings.theme == null) &&
-             window.matchMedia('(prefers-color-scheme: dark)').matches)
-           ) {
-          document.body.classList.add('dark')
-        }
-      } catch (error) { }
-    </script>
+  <body>
+    <script>(()=>{var t="ex_doc:settings",e="dark";var o="dark",s="light";var E="sidebar_state",n="closed";var r="sidebar_width";var a="sidebar-open";var i=new URLSearchParams(window.location.search),S=i.get("theme")||JSON.parse(localStorage.getItem(t)||"{}").theme;(S===o||S!==s&&window.matchMedia("(prefers-color-scheme: dark)").matches)&&document.body.classList.add(e);var d=sessionStorage.getItem(E),A=d!==n&&!window.matchMedia(`screen and (max-width: ${768}px)`).matches;document.body.classList.toggle(a,A);var c=sessionStorage.getItem(r);c&&document.body.style.setProperty("--sidebarWidth",`${c}px`);var p=/(Macintosh|iPhone|iPad|iPod)/.test(window.navigator.userAgent);document.documentElement.classList.toggle("apple-os",p);})();
+</script>
 
 <div class="body-wrapper">
 
@@ -54,37 +41,13 @@ erf
         </div>
       </div>
     </div>
-    <ul id="sidebar-listNav" class="sidebar-listNav" role="tablist">
-      <li>
-        <button id="extras-list-tab-button" role="tab" data-type="extras" aria-controls="extras-tab-panel" aria-selected="true" tabindex="0">
-Pages
-        </button>
-      </li>
-
-        <li>
-          <button id="modules-list-tab-button" role="tab" data-type="modules" aria-controls="modules-tab-panel" aria-selected="false" tabindex="-1">
-            Modules
-          </button>
-        </li>
-
-
-    </ul>
+    <ul id="sidebar-list-nav" class="sidebar-list-nav" role="tablist" data-extras=""></ul>
   </div>
-
-  <div id="extras-tab-panel" class="sidebar-tabpanel" role="tabpanel" aria-labelledby="extras-list-tab-button">
-    <ul id="extras-full-list" class="full-list"></ul>
-  </div>
-
-    <div id="modules-tab-panel" class="sidebar-tabpanel" role="tabpanel" aria-labelledby="modules-list-tab-button" hidden>
-      <ul id="modules-full-list" class="full-list"></ul>
-    </div>
-
-
 </nav>
 
-<main class="content">
-  <output role="status" id="toast"></output>
+<output role="status" id="toast"></output>
 
+<main class="content page-behaviour" id="main" data-type="modules">
   <div id="content" class="content-inner">
     <div class="top-search">
       <div class="search-settings">
@@ -93,8 +56,8 @@ Pages
             <span class="sr-only">Search documentation of erf</span>
             <input name="q" type="text" class="search-input" placeholder="Press / to search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
           </label>
-          <button type="submit" class="search-button" aria-label="Submit Search">
-            <i class="ri-search-2-line ri-lg" aria-hidden="true" title="Submit search"></i>
+          <button type="submit" class="search-button" aria-label="Submit Search" tabindex="-1">
+            <i class="ri-search-2-line ri-lg" aria-hidden="true"></i>
           </button>
           <button type="button" tabindex="-1" class="search-close-button" aria-hidden="true">
             <i class="ri-close-line ri-lg" title="Cancel search"></i>
@@ -110,17 +73,19 @@ Pages
     </div>
 
 <div id="top-content">
-  <h1>
+  <div class="heading-with-actions top-heading">
+    <h1>
+      <span translate="no">erf_parser</span> <small>behaviour</small>
+      <small class="app-vsn" translate="no">(erf v0.1.2)</small>
+
+    </h1>
 
       <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L16" title="View Source" class="icon-action" rel="help">
         <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         <span class="sr-only">View Source</span>
       </a>
 
-    <span translate="no">erf_parser</span> <small>behaviour</small>
-    <small class="app-vsn" translate="no">(erf v0.1.2)</small>
-
-  </h1>
+  </div>
 
 
     <section id="moduledoc">
@@ -143,7 +108,7 @@ Module that parses a specification file into an API AST.
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#t:api/0" data-no-tooltip translate="no">api/0</a>
+        <a href="#t:api/0" data-no-tooltip="" translate="no">api/0</a>
 
       </div>
 
@@ -151,7 +116,7 @@ Module that parses a specification file into an API AST.
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#t:body/0" data-no-tooltip translate="no">body/0</a>
+        <a href="#t:body/0" data-no-tooltip="" translate="no">body/0</a>
 
       </div>
 
@@ -159,7 +124,7 @@ Module that parses a specification file into an API AST.
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#t:endpoint/0" data-no-tooltip translate="no">endpoint/0</a>
+        <a href="#t:endpoint/0" data-no-tooltip="" translate="no">endpoint/0</a>
 
       </div>
 
@@ -167,7 +132,7 @@ Module that parses a specification file into an API AST.
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#t:method/0" data-no-tooltip translate="no">method/0</a>
+        <a href="#t:method/0" data-no-tooltip="" translate="no">method/0</a>
 
       </div>
 
@@ -175,7 +140,7 @@ Module that parses a specification file into an API AST.
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#t:operation/0" data-no-tooltip translate="no">operation/0</a>
+        <a href="#t:operation/0" data-no-tooltip="" translate="no">operation/0</a>
 
       </div>
 
@@ -183,7 +148,7 @@ Module that parses a specification file into an API AST.
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#t:parameter/0" data-no-tooltip translate="no">parameter/0</a>
+        <a href="#t:parameter/0" data-no-tooltip="" translate="no">parameter/0</a>
 
       </div>
 
@@ -191,7 +156,7 @@ Module that parses a specification file into an API AST.
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#t:parameter_name/0" data-no-tooltip translate="no">parameter_name/0</a>
+        <a href="#t:parameter_name/0" data-no-tooltip="" translate="no">parameter_name/0</a>
 
       </div>
 
@@ -199,7 +164,7 @@ Module that parses a specification file into an API AST.
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#t:parameter_type/0" data-no-tooltip translate="no">parameter_type/0</a>
+        <a href="#t:parameter_type/0" data-no-tooltip="" translate="no">parameter_type/0</a>
 
       </div>
 
@@ -207,7 +172,7 @@ Module that parses a specification file into an API AST.
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#t:path/0" data-no-tooltip translate="no">path/0</a>
+        <a href="#t:path/0" data-no-tooltip="" translate="no">path/0</a>
 
       </div>
 
@@ -215,7 +180,7 @@ Module that parses a specification file into an API AST.
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#t:ref/0" data-no-tooltip translate="no">ref/0</a>
+        <a href="#t:ref/0" data-no-tooltip="" translate="no">ref/0</a>
 
       </div>
 
@@ -223,7 +188,7 @@ Module that parses a specification file into an API AST.
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#t:request/0" data-no-tooltip translate="no">request/0</a>
+        <a href="#t:request/0" data-no-tooltip="" translate="no">request/0</a>
 
       </div>
 
@@ -231,7 +196,7 @@ Module that parses a specification file into an API AST.
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#t:response/0" data-no-tooltip translate="no">response/0</a>
+        <a href="#t:response/0" data-no-tooltip="" translate="no">response/0</a>
 
       </div>
 
@@ -239,7 +204,7 @@ Module that parses a specification file into an API AST.
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#t:schema/0" data-no-tooltip translate="no">schema/0</a>
+        <a href="#t:schema/0" data-no-tooltip="" translate="no">schema/0</a>
 
       </div>
 
@@ -247,7 +212,7 @@ Module that parses a specification file into an API AST.
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#t:status_code/0" data-no-tooltip translate="no">status_code/0</a>
+        <a href="#t:status_code/0" data-no-tooltip="" translate="no">status_code/0</a>
 
       </div>
 
@@ -261,7 +226,7 @@ Module that parses a specification file into an API AST.
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#c:parse/1" data-no-tooltip translate="no">parse/1</a>
+        <a href="#c:parse/1" data-no-tooltip="" translate="no">parse/1</a>
 
       </div>
 
@@ -275,7 +240,7 @@ Module that parses a specification file into an API AST.
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#parse/2" data-no-tooltip translate="no">parse(SpecPath, SpecParser)</a>
+        <a href="#parse/2" data-no-tooltip="" translate="no">parse(SpecPath, SpecParser)</a>
 
       </div>
 
@@ -299,18 +264,18 @@ Module that parses a specification file into an API AST.
 <section class="detail" id="t:api/0">
 
   <div class="detail-header">
-    <a href="#t:api/0" class="detail-link" data-no-tooltip title="Link to this type">
+    <a href="#t:api/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this type</span>
     </a>
-    <h1 class="signature" translate="no">api/0</h1>
-
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L24" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">api/0</h1>
 
 
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L24" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
@@ -331,18 +296,18 @@ Module that parses a specification file into an API AST.
 <section class="detail" id="t:body/0">
 
   <div class="detail-header">
-    <a href="#t:body/0" class="detail-link" data-no-tooltip title="Link to this type">
+    <a href="#t:body/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this type</span>
     </a>
-    <h1 class="signature" translate="no">body/0</h1>
-
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L30" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">body/0</h1>
 
 
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L30" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
@@ -359,18 +324,18 @@ Module that parses a specification file into an API AST.
 <section class="detail" id="t:endpoint/0">
 
   <div class="detail-header">
-    <a href="#t:endpoint/0" class="detail-link" data-no-tooltip title="Link to this type">
+    <a href="#t:endpoint/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this type</span>
     </a>
-    <h1 class="signature" translate="no">endpoint/0</h1>
-
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L34" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">endpoint/0</h1>
 
 
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L34" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
@@ -387,18 +352,18 @@ Module that parses a specification file into an API AST.
 <section class="detail" id="t:method/0">
 
   <div class="detail-header">
-    <a href="#t:method/0" class="detail-link" data-no-tooltip title="Link to this type">
+    <a href="#t:method/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this type</span>
     </a>
-    <h1 class="signature" translate="no">method/0</h1>
-
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L39" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">method/0</h1>
 
 
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L39" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
@@ -415,18 +380,18 @@ Module that parses a specification file into an API AST.
 <section class="detail" id="t:operation/0">
 
   <div class="detail-header">
-    <a href="#t:operation/0" class="detail-link" data-no-tooltip title="Link to this type">
+    <a href="#t:operation/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this type</span>
     </a>
-    <h1 class="signature" translate="no">operation/0</h1>
-
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L40" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">operation/0</h1>
 
 
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L40" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
@@ -448,18 +413,18 @@ Module that parses a specification file into an API AST.
 <section class="detail" id="t:parameter/0">
 
   <div class="detail-header">
-    <a href="#t:parameter/0" class="detail-link" data-no-tooltip title="Link to this type">
+    <a href="#t:parameter/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this type</span>
     </a>
-    <h1 class="signature" translate="no">parameter/0</h1>
-
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L49" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">parameter/0</h1>
 
 
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L49" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
@@ -477,18 +442,18 @@ Module that parses a specification file into an API AST.
 <section class="detail" id="t:parameter_name/0">
 
   <div class="detail-header">
-    <a href="#t:parameter_name/0" class="detail-link" data-no-tooltip title="Link to this type">
+    <a href="#t:parameter_name/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this type</span>
     </a>
-    <h1 class="signature" translate="no">parameter_name/0</h1>
-
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L55" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">parameter_name/0</h1>
 
 
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L55" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
@@ -505,18 +470,18 @@ Module that parses a specification file into an API AST.
 <section class="detail" id="t:parameter_type/0">
 
   <div class="detail-header">
-    <a href="#t:parameter_type/0" class="detail-link" data-no-tooltip title="Link to this type">
+    <a href="#t:parameter_type/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this type</span>
     </a>
-    <h1 class="signature" translate="no">parameter_type/0</h1>
-
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L56" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">parameter_type/0</h1>
 
 
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L56" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
@@ -533,18 +498,18 @@ Module that parses a specification file into an API AST.
 <section class="detail" id="t:path/0">
 
   <div class="detail-header">
-    <a href="#t:path/0" class="detail-link" data-no-tooltip title="Link to this type">
+    <a href="#t:path/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this type</span>
     </a>
-    <h1 class="signature" translate="no">path/0</h1>
-
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L57" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">path/0</h1>
 
 
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L57" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
@@ -561,18 +526,18 @@ Module that parses a specification file into an API AST.
 <section class="detail" id="t:ref/0">
 
   <div class="detail-header">
-    <a href="#t:ref/0" class="detail-link" data-no-tooltip title="Link to this type">
+    <a href="#t:ref/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this type</span>
     </a>
-    <h1 class="signature" translate="no">ref/0</h1>
-
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L58" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">ref/0</h1>
 
 
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L58" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
@@ -589,18 +554,18 @@ Module that parses a specification file into an API AST.
 <section class="detail" id="t:request/0">
 
   <div class="detail-header">
-    <a href="#t:request/0" class="detail-link" data-no-tooltip title="Link to this type">
+    <a href="#t:request/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this type</span>
     </a>
-    <h1 class="signature" translate="no">request/0</h1>
-
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L59" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">request/0</h1>
 
 
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L59" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
@@ -617,18 +582,18 @@ Module that parses a specification file into an API AST.
 <section class="detail" id="t:response/0">
 
   <div class="detail-header">
-    <a href="#t:response/0" class="detail-link" data-no-tooltip title="Link to this type">
+    <a href="#t:response/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this type</span>
     </a>
-    <h1 class="signature" translate="no">response/0</h1>
-
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L62" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">response/0</h1>
 
 
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L62" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
@@ -645,18 +610,18 @@ Module that parses a specification file into an API AST.
 <section class="detail" id="t:schema/0">
 
   <div class="detail-header">
-    <a href="#t:schema/0" class="detail-link" data-no-tooltip title="Link to this type">
+    <a href="#t:schema/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this type</span>
     </a>
-    <h1 class="signature" translate="no">schema/0</h1>
-
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L65" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">schema/0</h1>
 
 
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L65" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
@@ -673,18 +638,18 @@ Module that parses a specification file into an API AST.
 <section class="detail" id="t:status_code/0">
 
   <div class="detail-header">
-    <a href="#t:status_code/0" class="detail-link" data-no-tooltip title="Link to this type">
+    <a href="#t:status_code/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this type</span>
     </a>
-    <h1 class="signature" translate="no">status_code/0</h1>
-
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L66" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">status_code/0</h1>
 
 
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L66" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
@@ -713,18 +678,18 @@ Module that parses a specification file into an API AST.
 <section class="detail" id="c:parse/1">
 
   <div class="detail-header">
-    <a href="#c:parse/1" class="detail-link" data-no-tooltip title="Link to this callback">
+    <a href="#c:parse/1" class="detail-link" data-no-tooltip="" aria-label="Link to this callback">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this callback</span>
     </a>
-    <h1 class="signature" translate="no">parse/1</h1>
-
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L89" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">parse/1</h1>
 
 
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L89" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
@@ -758,18 +723,18 @@ Module that parses a specification file into an API AST.
 <section class="detail" id="parse/2">
 
   <div class="detail-header">
-    <a href="#parse/2" class="detail-link" data-no-tooltip title="Link to this function">
+    <a href="#parse/2" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">parse(SpecPath, SpecParser)</h1>
-
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L105" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">parse(SpecPath, SpecParser)</h1>
 
 
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf_parser.erl#L105" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
@@ -813,7 +778,7 @@ Parses an specification file into an API AST given a specification format.
 
       <p class="built-using">
         Built using
-        <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.34.2) for the
+        <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.37.3) for the
 
           <a href="https://erlang.org" title="Erlang" target="_blank" translate="no">Erlang programming language</a>
 

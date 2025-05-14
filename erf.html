@@ -4,35 +4,22 @@
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="generator" content="ExDoc v0.34.2">
+    <meta name="generator" content="ExDoc v0.37.3">
     <meta name="project" content="erf v0.1.2">
 
 
     <title>erf — erf v0.1.2</title>
-    <link rel="stylesheet" href="dist/html-erlang-YKQ677RH.css" />
 
+    <link rel="stylesheet" href="dist/html-erlang-FDBURIED.css" />
 
-    <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
-    <script src="dist/handlebars.templates-K7URE6B4.js"></script>
-    <script src="dist/sidebar_items-003BF5D7.js"></script>
-    <script src="docs_config.js"></script>
-    <script async src="dist/html-YIPIRHGU.js"></script>
+    <script defer src="dist/sidebar_items-003BF5D7.js"></script>
+    <script defer src="docs_config.js"></script>
+    <script defer src="dist/html-ALU6OERS.js"></script>
 
   </head>
-  <body data-type="modules" class="page-module">
-    <script>
-
-      try {
-        var settings = JSON.parse(localStorage.getItem('ex_doc:settings') || '{}');
-
-        if (settings.theme === 'dark' ||
-           ((settings.theme === 'system' || settings.theme == null) &&
-             window.matchMedia('(prefers-color-scheme: dark)').matches)
-           ) {
-          document.body.classList.add('dark')
-        }
-      } catch (error) { }
-    </script>
+  <body>
+    <script>(()=>{var t="ex_doc:settings",e="dark";var o="dark",s="light";var E="sidebar_state",n="closed";var r="sidebar_width";var a="sidebar-open";var i=new URLSearchParams(window.location.search),S=i.get("theme")||JSON.parse(localStorage.getItem(t)||"{}").theme;(S===o||S!==s&&window.matchMedia("(prefers-color-scheme: dark)").matches)&&document.body.classList.add(e);var d=sessionStorage.getItem(E),A=d!==n&&!window.matchMedia(`screen and (max-width: ${768}px)`).matches;document.body.classList.toggle(a,A);var c=sessionStorage.getItem(r);c&&document.body.style.setProperty("--sidebarWidth",`${c}px`);var p=/(Macintosh|iPhone|iPad|iPod)/.test(window.navigator.userAgent);document.documentElement.classList.toggle("apple-os",p);})();
+</script>
 
 <div class="body-wrapper">
 
@@ -54,37 +41,13 @@ erf
         </div>
       </div>
     </div>
-    <ul id="sidebar-listNav" class="sidebar-listNav" role="tablist">
-      <li>
-        <button id="extras-list-tab-button" role="tab" data-type="extras" aria-controls="extras-tab-panel" aria-selected="true" tabindex="0">
-Pages
-        </button>
-      </li>
-
-        <li>
-          <button id="modules-list-tab-button" role="tab" data-type="modules" aria-controls="modules-tab-panel" aria-selected="false" tabindex="-1">
-            Modules
-          </button>
-        </li>
-
-
-    </ul>
+    <ul id="sidebar-list-nav" class="sidebar-list-nav" role="tablist" data-extras=""></ul>
   </div>
-
-  <div id="extras-tab-panel" class="sidebar-tabpanel" role="tabpanel" aria-labelledby="extras-list-tab-button">
-    <ul id="extras-full-list" class="full-list"></ul>
-  </div>
-
-    <div id="modules-tab-panel" class="sidebar-tabpanel" role="tabpanel" aria-labelledby="modules-list-tab-button" hidden>
-      <ul id="modules-full-list" class="full-list"></ul>
-    </div>
-
-
 </nav>
 
-<main class="content">
-  <output role="status" id="toast"></output>
+<output role="status" id="toast"></output>
 
+<main class="content page-module" id="main" data-type="modules">
   <div id="content" class="content-inner">
     <div class="top-search">
       <div class="search-settings">
@@ -93,8 +56,8 @@ Pages
             <span class="sr-only">Search documentation of erf</span>
             <input name="q" type="text" class="search-input" placeholder="Press / to search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
           </label>
-          <button type="submit" class="search-button" aria-label="Submit Search">
-            <i class="ri-search-2-line ri-lg" aria-hidden="true" title="Submit search"></i>
+          <button type="submit" class="search-button" aria-label="Submit Search" tabindex="-1">
+            <i class="ri-search-2-line ri-lg" aria-hidden="true"></i>
           </button>
           <button type="button" tabindex="-1" class="search-close-button" aria-hidden="true">
             <i class="ri-close-line ri-lg" title="Cancel search"></i>
@@ -110,17 +73,19 @@ Pages
     </div>
 
 <div id="top-content">
-  <h1>
+  <div class="heading-with-actions top-heading">
+    <h1>
+      <span translate="no">erf</span> 
+      <small class="app-vsn" translate="no">(erf v0.1.2)</small>
+
+    </h1>
 
       <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L17" title="View Source" class="icon-action" rel="help">
         <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         <span class="sr-only">View Source</span>
       </a>
 
-    <span translate="no">erf</span> 
-    <small class="app-vsn" translate="no">(erf v0.1.2)</small>
-
-  </h1>
+  </div>
 
 
     <section id="moduledoc">
@@ -143,7 +108,7 @@ Pages
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#t:api/0" data-no-tooltip translate="no">api/0</a>
+        <a href="#t:api/0" data-no-tooltip="" translate="no">api/0</a>
 
       </div>
 
@@ -151,7 +116,7 @@ Pages
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#t:body/0" data-no-tooltip translate="no">body/0</a>
+        <a href="#t:body/0" data-no-tooltip="" translate="no">body/0</a>
 
       </div>
 
@@ -159,7 +124,7 @@ Pages
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#t:conf/0" data-no-tooltip translate="no">conf/0</a>
+        <a href="#t:conf/0" data-no-tooltip="" translate="no">conf/0</a>
 
       </div>
 
@@ -167,7 +132,7 @@ Pages
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#t:header/0" data-no-tooltip translate="no">header/0</a>
+        <a href="#t:header/0" data-no-tooltip="" translate="no">header/0</a>
 
       </div>
 
@@ -175,7 +140,7 @@ Pages
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#t:method/0" data-no-tooltip translate="no">method/0</a>
+        <a href="#t:method/0" data-no-tooltip="" translate="no">method/0</a>
 
       </div>
 
@@ -183,7 +148,7 @@ Pages
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#t:path_parameter/0" data-no-tooltip translate="no">path_parameter/0</a>
+        <a href="#t:path_parameter/0" data-no-tooltip="" translate="no">path_parameter/0</a>
 
       </div>
 
@@ -191,7 +156,7 @@ Pages
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#t:query_parameter/0" data-no-tooltip translate="no">query_parameter/0</a>
+        <a href="#t:query_parameter/0" data-no-tooltip="" translate="no">query_parameter/0</a>
 
       </div>
 
@@ -199,7 +164,7 @@ Pages
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#t:request/0" data-no-tooltip translate="no">request/0</a>
+        <a href="#t:request/0" data-no-tooltip="" translate="no">request/0</a>
 
       </div>
 
@@ -207,7 +172,7 @@ Pages
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#t:response/0" data-no-tooltip translate="no">response/0</a>
+        <a href="#t:response/0" data-no-tooltip="" translate="no">response/0</a>
 
       </div>
 
@@ -215,7 +180,7 @@ Pages
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#t:route_patterns/0" data-no-tooltip translate="no">route_patterns/0</a>
+        <a href="#t:route_patterns/0" data-no-tooltip="" translate="no">route_patterns/0</a>
 
       </div>
 
@@ -223,7 +188,7 @@ Pages
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#t:static_dir/0" data-no-tooltip translate="no">static_dir/0</a>
+        <a href="#t:static_dir/0" data-no-tooltip="" translate="no">static_dir/0</a>
 
       </div>
 
@@ -231,7 +196,7 @@ Pages
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#t:static_file/0" data-no-tooltip translate="no">static_file/0</a>
+        <a href="#t:static_file/0" data-no-tooltip="" translate="no">static_file/0</a>
 
       </div>
 
@@ -239,7 +204,7 @@ Pages
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#t:static_route/0" data-no-tooltip translate="no">static_route/0</a>
+        <a href="#t:static_route/0" data-no-tooltip="" translate="no">static_route/0</a>
 
       </div>
 
@@ -253,7 +218,7 @@ Pages
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#get_router/1" data-no-tooltip translate="no">get_router(Name)</a>
+        <a href="#get_router/1" data-no-tooltip="" translate="no">get_router(Name)</a>
 
       </div>
 
@@ -263,7 +228,7 @@ Pages
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#init/1" data-no-tooltip translate="no">init(_)</a>
+        <a href="#init/1" data-no-tooltip="" translate="no">init(_)</a>
 
       </div>
 
@@ -271,7 +236,7 @@ Pages
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#match_route/2" data-no-tooltip translate="no">match_route(Name, RawPath)</a>
+        <a href="#match_route/2" data-no-tooltip="" translate="no">match_route(Name, RawPath)</a>
 
       </div>
 
@@ -279,7 +244,7 @@ Pages
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#reload_conf/2" data-no-tooltip translate="no">reload_conf(Name, Conf)</a>
+        <a href="#reload_conf/2" data-no-tooltip="" translate="no">reload_conf(Name, Conf)</a>
 
       </div>
 
@@ -289,7 +254,7 @@ Pages
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#start_link/1" data-no-tooltip translate="no">start_link(Conf)</a>
+        <a href="#start_link/1" data-no-tooltip="" translate="no">start_link(Conf)</a>
 
       </div>
 
@@ -299,7 +264,7 @@ Pages
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#stop/1" data-no-tooltip translate="no">stop(Name)</a>
+        <a href="#stop/1" data-no-tooltip="" translate="no">stop(Name)</a>
 
       </div>
 
@@ -323,18 +288,18 @@ Pages
 <section class="detail" id="t:api/0">
 
   <div class="detail-header">
-    <a href="#t:api/0" class="detail-link" data-no-tooltip title="Link to this type">
+    <a href="#t:api/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this type</span>
     </a>
-    <h1 class="signature" translate="no">api/0</h1>
-
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L44" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">api/0</h1>
 
 
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L44" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
@@ -351,18 +316,18 @@ Pages
 <section class="detail" id="t:body/0">
 
   <div class="detail-header">
-    <a href="#t:body/0" class="detail-link" data-no-tooltip title="Link to this type">
+    <a href="#t:body/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this type</span>
     </a>
-    <h1 class="signature" translate="no">body/0</h1>
-
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L45" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">body/0</h1>
 
 
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L45" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
@@ -379,18 +344,18 @@ Pages
 <section class="detail" id="t:conf/0">
 
   <div class="detail-header">
-    <a href="#t:conf/0" class="detail-link" data-no-tooltip title="Link to this type">
+    <a href="#t:conf/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this type</span>
     </a>
-    <h1 class="signature" translate="no">conf/0</h1>
-
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L46" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">conf/0</h1>
 
 
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L46" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
@@ -420,18 +385,18 @@ Pages
 <section class="detail" id="t:header/0">
 
   <div class="detail-header">
-    <a href="#t:header/0" class="detail-link" data-no-tooltip title="Link to this type">
+    <a href="#t:header/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this type</span>
     </a>
-    <h1 class="signature" translate="no">header/0</h1>
-
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L61" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">header/0</h1>
 
 
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L61" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
@@ -448,18 +413,18 @@ Pages
 <section class="detail" id="t:method/0">
 
   <div class="detail-header">
-    <a href="#t:method/0" class="detail-link" data-no-tooltip title="Link to this type">
+    <a href="#t:method/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this type</span>
     </a>
-    <h1 class="signature" translate="no">method/0</h1>
-
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L62" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">method/0</h1>
 
 
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L62" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
@@ -476,18 +441,18 @@ Pages
 <section class="detail" id="t:path_parameter/0">
 
   <div class="detail-header">
-    <a href="#t:path_parameter/0" class="detail-link" data-no-tooltip title="Link to this type">
+    <a href="#t:path_parameter/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this type</span>
     </a>
-    <h1 class="signature" translate="no">path_parameter/0</h1>
-
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L72" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">path_parameter/0</h1>
 
 
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L72" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
@@ -504,18 +469,18 @@ Pages
 <section class="detail" id="t:query_parameter/0">
 
   <div class="detail-header">
-    <a href="#t:query_parameter/0" class="detail-link" data-no-tooltip title="Link to this type">
+    <a href="#t:query_parameter/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this type</span>
     </a>
-    <h1 class="signature" translate="no">query_parameter/0</h1>
-
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L73" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">query_parameter/0</h1>
 
 
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L73" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
@@ -532,18 +497,18 @@ Pages
 <section class="detail" id="t:request/0">
 
   <div class="detail-header">
-    <a href="#t:request/0" class="detail-link" data-no-tooltip title="Link to this type">
+    <a href="#t:request/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this type</span>
     </a>
-    <h1 class="signature" translate="no">request/0</h1>
-
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L74" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">request/0</h1>
 
 
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L74" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
@@ -572,18 +537,18 @@ Pages
 <section class="detail" id="t:response/0">
 
   <div class="detail-header">
-    <a href="#t:response/0" class="detail-link" data-no-tooltip title="Link to this type">
+    <a href="#t:response/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this type</span>
     </a>
-    <h1 class="signature" translate="no">response/0</h1>
-
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L88" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">response/0</h1>
 
 
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L88" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
@@ -601,18 +566,18 @@ Pages
 <section class="detail" id="t:route_patterns/0">
 
   <div class="detail-header">
-    <a href="#t:route_patterns/0" class="detail-link" data-no-tooltip title="Link to this type">
+    <a href="#t:route_patterns/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this type</span>
     </a>
-    <h1 class="signature" translate="no">route_patterns/0</h1>
-
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L93" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">route_patterns/0</h1>
 
 
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L93" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
@@ -629,18 +594,18 @@ Pages
 <section class="detail" id="t:static_dir/0">
 
   <div class="detail-header">
-    <a href="#t:static_dir/0" class="detail-link" data-no-tooltip title="Link to this type">
+    <a href="#t:static_dir/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this type</span>
     </a>
-    <h1 class="signature" translate="no">static_dir/0</h1>
-
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L94" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">static_dir/0</h1>
 
 
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L94" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
@@ -657,18 +622,18 @@ Pages
 <section class="detail" id="t:static_file/0">
 
   <div class="detail-header">
-    <a href="#t:static_file/0" class="detail-link" data-no-tooltip title="Link to this type">
+    <a href="#t:static_file/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this type</span>
     </a>
-    <h1 class="signature" translate="no">static_file/0</h1>
-
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L95" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">static_file/0</h1>
 
 
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L95" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
@@ -685,18 +650,18 @@ Pages
 <section class="detail" id="t:static_route/0">
 
   <div class="detail-header">
-    <a href="#t:static_route/0" class="detail-link" data-no-tooltip title="Link to this type">
+    <a href="#t:static_route/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this type</span>
     </a>
-    <h1 class="signature" translate="no">static_route/0</h1>
-
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L96" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">static_route/0</h1>
 
 
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L96" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
@@ -725,18 +690,18 @@ Pages
 <section class="detail" id="get_router/1">
 
   <div class="detail-header">
-    <a href="#get_router/1" class="detail-link" data-no-tooltip title="Link to this function">
+    <a href="#get_router/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">get_router(Name)</h1>
-
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L158" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">get_router(Name)</h1>
 
 
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L158" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
@@ -758,18 +723,18 @@ Returns the router for an instance of the server.
 <section class="detail" id="init/1">
 
   <div class="detail-header">
-    <a href="#init/1" class="detail-link" data-no-tooltip title="Link to this function">
+    <a href="#init/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">init(_)</h1>
-
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L226" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">init(_)</h1>
 
 
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L226" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
@@ -780,18 +745,18 @@ Returns the router for an instance of the server.
 <section class="detail" id="match_route/2">
 
   <div class="detail-header">
-    <a href="#match_route/2" class="detail-link" data-no-tooltip title="Link to this function">
+    <a href="#match_route/2" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">match_route(Name, RawPath)</h1>
-
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L179" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">match_route(Name, RawPath)</h1>
 
 
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L179" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
@@ -814,18 +779,18 @@ Returns the router for an instance of the server.
 <section class="detail" id="reload_conf/2">
 
   <div class="detail-header">
-    <a href="#reload_conf/2" class="detail-link" data-no-tooltip title="Link to this function">
+    <a href="#reload_conf/2" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">reload_conf(Name, Conf)</h1>
-
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L193" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">reload_conf(Name, Conf)</h1>
 
 
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L193" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
@@ -847,18 +812,18 @@ Reloads the configuration for an instance of the server.
 <section class="detail" id="start_link/1">
 
   <div class="detail-header">
-    <a href="#start_link/1" class="detail-link" data-no-tooltip title="Link to this function">
+    <a href="#start_link/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">start_link(Conf)</h1>
-
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L126" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">start_link(Conf)</h1>
 
 
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L126" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
@@ -880,18 +845,18 @@ Starts the supervision tree for an instance of the server.
 <section class="detail" id="stop/1">
 
   <div class="detail-header">
-    <a href="#stop/1" class="detail-link" data-no-tooltip title="Link to this function">
+    <a href="#stop/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">stop(Name)</h1>
-
-      <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L139" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">stop(Name)</h1>
 
 
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L139" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
   </div>
 
   <section class="docstring">
@@ -929,7 +894,7 @@ Stops the supervision tree for an instance of the server.
 
       <p class="built-using">
         Built using
-        <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.34.2) for the
+        <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.37.3) for the
 
           <a href="https://erlang.org" title="Erlang" target="_blank" translate="no">Erlang programming language</a>
 

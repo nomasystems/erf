@@ -242,6 +242,7 @@ Diagnosing the cause of a `400 Bad Request error` for a specific request can bec
 
 ### OAS 3.0
 - Path parameters MUST be of type `string`. You can use the `pattern` keyword to refine your type spec.
+- Query parameters MAY be of type `string`, `integer`, `number`, or `array`. If the type is `array`, it MUST use `style:form` and `explode:true`.
 
 ## Contributing
 

@@ -249,10 +249,13 @@ handle_ast(API, #{callback := Callback} = Opts) ->
                         Request
                     ),
 
+                    Responses = maps:get(responses, Operation, undefined),
+                    ValidateResponseAST = validate_response(Responses),
+
                     erl_syntax:clause(
                         [
                             erl_syntax:match_expr(
-                                erl_syntax:variable('Request'),
+                                erl_syntax:variable('Request0'),
                                 erl_syntax:map_expr(
                                     none,
                                     [
@@ -286,6 +289,18 @@ handle_ast(API, #{callback := Callback} = Opts) ->
                                 erl_syntax:variable('IsValidRequest'),
                                 IsValidRequestAST
                             ),
+                            erl_syntax:match_expr(
+                                erl_syntax:variable('Request'),
+                                erl_syntax:map_expr(
+                                    erl_syntax:variable('Request0'),
+                                    [
+                                        erl_syntax:map_field_assoc(
+                                            erl_syntax:atom('path_parameters'),
+                                            erl_syntax:variable('PathParameters')
+                                        )
+                                    ]
+                                )
+                            ),
                             erl_syntax:case_expr(
                                 erl_syntax:variable('IsValidRequest'),
                                 [
@@ -293,7 +308,7 @@ handle_ast(API, #{callback := Callback} = Opts) ->
                                         [erl_syntax:atom(true)],
                                         none,
                                         [
-                                            erl_syntax:application(
+                                            erl_syntax:match_expr(erl_syntax:variable('Response'), erl_syntax:application(
                                                 erl_syntax:atom(Callback),
                                                 erl_syntax:atom(
                                                     erlang:binary_to_atom(
@@ -303,36 +318,26 @@ handle_ast(API, #{callback := Callback} = Opts) ->
                                                         utf8
                                                     )
                                                 ),
-                                                [
-                                                    erl_syntax:map_expr(
-                                                        erl_syntax:variable('Request'),
-                                                        [
-                                                            erl_syntax:map_field_assoc(
-                                                                erl_syntax:atom('path_parameters'),
-                                                                erl_syntax:variable(
-                                                                    'PathParameters'
-                                                                )
-                                                            )
-                                                        ]
-                                                    )
-                                                ]
-                                            )
+                                                [erl_syntax:variable('Request')]
+                                            )),
+                                            ValidateResponseAST
                                         ]
                                     ),
                                     erl_syntax:clause(
                                         [
                                             erl_syntax:tuple([
                                                 erl_syntax:atom(false),
-                                                erl_syntax:variable('_Reason')
+                                                erl_syntax:variable('Reason')
                                             ])
                                         ],
                                         none,
                                         [
-                                            erl_syntax:tuple(
+                                            erl_syntax:application(
+                                                erl_syntax:atom(erf_util),
+                                                erl_syntax:atom(handle_invalid_request),
                                                 [
-                                                    erl_syntax:integer(400),
-                                                    erl_syntax:list([]),
-                                                    erl_syntax:atom(undefined)
+                                                    erl_syntax:variable('Request'),
+                                                    erl_syntax:variable('Reason')
                                                 ]
                                             )
                                         ]
@@ -690,6 +695,33 @@ is_valid_request(RawParameters, Request) ->
             ])
         ]
     ).
+
+-spec validate_response(Responses) -> Result when
+    Responses :: undefined | #{ '*' | erf_parser:status_code() := erf_parser:response() },
+    Result :: erl_syntax:syntaxTree().
+validate_response(undefined) ->
+    erl_syntax:atom('ok');
+validate_response(#{} = Responses) ->
+    Validators = erl_syntax:map_expr(
+        none,
+        [response_validation_map_assoc(R) || R <- maps:to_list(Responses)]
+    ),
+    erl_syntax:application(
+        erl_syntax:atom(erf_util),
+        erl_syntax:atom(validate_response),
+        [erl_syntax:variable('Request'), erl_syntax:variable('Response'), Validators]
+    ).
+
+response_validation_map_assoc({Status, #{body := #{ref := ResponseBodyRef}}}) ->
+    StatusAST = case Status of
+        '*' -> erl_syntax:atom('*');
+        _ when is_integer(Status) -> erl_syntax:integer(Status)
+    end,
+    ResponseBodyModule =
+        erlang:binary_to_atom(erf_util:to_snake_case(ResponseBodyRef)),
+    erl_syntax:map_field_assoc(StatusAST, erl_syntax:atom(ResponseBodyModule)).
+
+
 
 -spec load_binary(ModuleName, Bin) -> Result when
     ModuleName :: atom(),

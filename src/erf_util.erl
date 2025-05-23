@@ -13,10 +13,14 @@
 %% limitations under the License
 -module(erf_util).
 
+-include_lib("kernel/include/logger.hrl").
+
 %%% EXTERNAL EXPORTS
 -export([
     to_pascal_case/1,
-    to_snake_case/1
+    to_snake_case/1,
+    handle_invalid_request/2,
+    validate_response/3
 ]).
 
 %%%-----------------------------------------------------------------------------
@@ -86,3 +90,26 @@ to_snake_case([_C | Rest], [$_ | _T] = Acc) ->
     to_snake_case(Rest, Acc);
 to_snake_case([_C | Rest], Acc) ->
     to_snake_case(Rest, [$_ | Acc]).
+
+
+handle_invalid_request(_Request, Reason) ->
+    {400, [{<<"content-type">>, <<"text/plain">>}], [io_lib:print(Reason), "\n"]}.
+
+validate_response(Request, {Status, _, #{} = RespBody} = Response, Validators) ->
+    IsValid = case Validators of
+        #{Status := ValidatorMod} ->
+            ValidatorMod:is_valid(RespBody);
+        #{'*' := ValidatorMod} ->
+            ValidatorMod:is_valid(RespBody);
+        #{} ->
+            unknown_status
+    end,
+    case IsValid of
+        true ->
+            Response;
+        Other ->
+            ?LOG(error, "[erf] Bad response (~0p)~n  ~120p~n  for request ~120p", [Other, Response, Request]),
+            {500, [{<<"content-type">>, <<"text/plain">>}], <<"Internal server error">>}
+    end;
+validate_response(_Request, {_, _, _} = Response, _) ->
+    Response.

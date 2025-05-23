@@ -9,6 +9,24 @@
                     "baz"
                 ]
             },
+            "FooObject": {
+                "type": "object",
+                "properties": {
+                    "type": {
+                        "type": "string"
+                    },
+                    "foo": {
+                        "type": "string"
+                    },
+                    "bar": {
+                        "type": "string"
+                    }
+                },
+                "anyOf": [
+                    { "required": ["foo"] },
+                    { "required": ["bar"] }
+                ]
+            },
             "Error": {
                 "type": "object",
                 "properties": {
@@ -61,6 +79,15 @@
                     "application/json": {
                         "schema": {
                             "$ref": "#/components/schemas/Foo"
+                        }
+                    }
+                }
+            },
+            "PostFooObject": {
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/FooObject"
                         }
                     }
                 }

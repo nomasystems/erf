@@ -54,6 +54,27 @@
                 }
             }
         },
+        "/{version}/foo-object": {
+            "post": {
+                "summary": "Create foo object",
+                "operationId": "createFooObject",
+                "requestBody": {
+                    "$ref": "common_oas_3_0_spec.json#/components/requestBodies/PostFooObject"
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "common_oas_3_0_spec.json#/components/schemas/Foo"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/{version}/foo/{id}": {
             "parameters": [
                 {"$ref": "common_oas_3_0_spec.json#/components/parameters/Version"},

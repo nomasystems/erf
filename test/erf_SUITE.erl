@@ -25,7 +25,8 @@
 all() ->
     [
         foo,
-        foo_object,
+        any_of_object,
+        one_of_object,
         middlewares,
         statics,
         swagger_ui,
@@ -137,12 +138,12 @@ foo(_Conf) ->
 
     ok.
 
-foo_object(_Conf) ->
+any_of_object(_Conf) ->
     meck:new([erf_callback], [non_strict, no_link]),
 
     meck:expect(
         erf_callback,
-        create_foo_object,
+        create_any_of_object,
         fun(_Request) ->
             {201, [], <<"bar">>}
         end
@@ -162,7 +163,7 @@ foo_object(_Conf) ->
         httpc:request(
             post,
             {
-                "http://localhost:8789/1/foo-object",
+                "http://localhost:8789/1/any-of-object",
                 [],
                 "application/json",
                 <<"{\"foo\": \"foo\", \"bar\": \"bar\"}">>
@@ -177,7 +178,7 @@ foo_object(_Conf) ->
         httpc:request(
             post,
             {
-                "http://localhost:8789/1/foo-object",
+                "http://localhost:8789/1/any-of-object",
                 [],
                 "application/json",
                 <<"{\"foo\": \"foo\"}">>
@@ -192,7 +193,7 @@ foo_object(_Conf) ->
         httpc:request(
             post,
             {
-                "http://localhost:8789/1/foo-object",
+                "http://localhost:8789/1/any-of-object",
                 [],
                 "application/json",
                 <<"{\"bar\": \"bar\"}">>
@@ -207,10 +208,96 @@ foo_object(_Conf) ->
         httpc:request(
             post,
             {
-                "http://localhost:8789/1/foo-object",
+                "http://localhost:8789/1/any-of-object",
                 [],
                 "application/json",
-                <<"{\"baz\": \"baz\"}">>
+                <<"{\"type\": \"type\"}">>
+            },
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
+    ok = erf:stop(erf_server),
+
+    meck:unload(erf_callback),
+
+    ok.
+
+one_of_object(_Conf) ->
+    meck:new([erf_callback], [non_strict, no_link]),
+
+    meck:expect(
+        erf_callback,
+        create_one_of_object,
+        fun(_Request) ->
+            {201, [], <<"bar">>}
+        end
+    ),
+
+    {ok, _Pid} = erf:start_link(#{
+        spec_path => filename:join(
+            code:lib_dir(erf, test), <<"fixtures/with_refs_oas_3_0_spec.json">>
+        ),
+        callback => erf_callback,
+        port => 8789,
+        name => erf_server
+    }),
+
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _, <<>>}},
+        httpc:request(
+            post,
+            {
+                "http://localhost:8789/1/one-of-object",
+                [],
+                "application/json",
+                <<"{\"foo\": \"foo\", \"bar\": \"bar\"}">>
+            },
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 201, "Created"}, _, <<"\"bar\"">>}},
+        httpc:request(
+            post,
+            {
+                "http://localhost:8789/1/one-of-object",
+                [],
+                "application/json",
+                <<"{\"foo\": \"foo\"}">>
+            },
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 201, "Created"}, _, <<"\"bar\"">>}},
+        httpc:request(
+            post,
+            {
+                "http://localhost:8789/1/one-of-object",
+                [],
+                "application/json",
+                <<"{\"bar\": \"bar\"}">>
+            },
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _, <<>>}},
+        httpc:request(
+            post,
+            {
+                "http://localhost:8789/1/one-of-object",
+                [],
+                "application/json",
+                <<"{\"type\": \"type\"}">>
             },
             [],
             [{body_format, binary}]

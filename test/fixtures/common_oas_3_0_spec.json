@@ -9,7 +9,7 @@
                     "baz"
                 ]
             },
-            "FooObject": {
+            "AnyOfObject": {
                 "type": "object",
                 "properties": {
                     "type": {
@@ -23,6 +23,24 @@
                     }
                 },
                 "anyOf": [
+                    { "required": ["foo"] },
+                    { "required": ["bar"] }
+                ]
+            },
+            "OneOfObject": {
+                "type": "object",
+                "properties": {
+                    "type": {
+                        "type": "string"
+                    },
+                    "foo": {
+                        "type": "string"
+                    },
+                    "bar": {
+                        "type": "string"
+                    }
+                },
+                "oneOf": [
                     { "required": ["foo"] },
                     { "required": ["bar"] }
                 ]
@@ -83,11 +101,20 @@
                     }
                 }
             },
-            "PostFooObject": {
+            "AnyOfBody": {
                 "content": {
                     "application/json": {
                         "schema": {
-                            "$ref": "#/components/schemas/FooObject"
+                            "$ref": "#/components/schemas/AnyOfObject"
+                        }
+                    }
+                }
+            },
+            "OneOfBody": {
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/OneOfObject"
                         }
                     }
                 }

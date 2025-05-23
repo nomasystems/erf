@@ -54,12 +54,33 @@
                 }
             }
         },
-        "/{version}/foo-object": {
+        "/{version}/any-of-object": {
             "post": {
-                "summary": "Create foo object",
-                "operationId": "createFooObject",
+                "summary": "Create anyOf object",
+                "operationId": "createAnyOfObject",
                 "requestBody": {
-                    "$ref": "common_oas_3_0_spec.json#/components/requestBodies/PostFooObject"
+                    "$ref": "common_oas_3_0_spec.json#/components/requestBodies/AnyOfBody"
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "common_oas_3_0_spec.json#/components/schemas/Foo"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/{version}/one-of-object": {
+            "post": {
+                "summary": "Create oneOf object",
+                "operationId": "createOneOfObject",
+                "requestBody": {
+                    "$ref": "common_oas_3_0_spec.json#/components/requestBodies/OneOfBody"
                 },
                 "responses": {
                     "201": {

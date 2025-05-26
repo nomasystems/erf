@@ -700,7 +700,7 @@ is_valid_request(RawParameters, Request) ->
                                             erl_syntax:list_comp(
                                                 erl_syntax:application(
                                                     erl_syntax:atom(erf_util),
-                                                    erl_syntax:atom(binary_to_number),
+                                                    erl_syntax:atom(safe_binary_to_number),
                                                     [erl_syntax:variable('X')]
                                                 ),
                                                 [
@@ -760,7 +760,7 @@ is_valid_request(RawParameters, Request) ->
                                 <<"number">> ->
                                     erl_syntax:application(
                                         erl_syntax:atom(erf_util),
-                                        erl_syntax:atom(binary_to_number),
+                                        erl_syntax:atom(safe_binary_to_number),
                                         [
                                             erl_syntax:application(
                                                 erl_syntax:atom(proplists),

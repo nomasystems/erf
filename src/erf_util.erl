@@ -96,7 +96,7 @@ to_snake_case([_C | Rest], Acc) ->
 
 safe_binary_to_integer(Binary) when is_binary(Binary) ->
     try
-        binary_to_integer(Binary)
+        erlang:binary_to_integer(Binary)
     catch
         error:badarg -> null
     end;

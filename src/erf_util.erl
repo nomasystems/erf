@@ -23,7 +23,7 @@
 
 -ignore_xref([
     safe_binary_to_integer/1,
-    binary_to_number/1
+    safe_binary_to_number/1
 ]).
 
 %%%-----------------------------------------------------------------------------

@@ -103,10 +103,10 @@ safe_binary_to_integer(Binary) when is_binary(Binary) ->
 safe_binary_to_integer(_) ->
     null.
 
-binary_to_number(Bin) when is_binary(Bin) ->
-    case catch binary_to_float(Bin) of
+safe_binary_to_number(Bin) when is_binary(Bin) ->
+    case catch erlang:binary_to_float(Bin) of
         F when is_float(F) -> F;
         _ -> safe_binary_to_integer(Bin)
     end;
-binary_to_number(_) ->
+safe_binary_to_number(_) ->
     null.

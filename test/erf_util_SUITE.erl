@@ -27,7 +27,7 @@ all() ->
         to_pascal_case,
         to_snake_case,
         safe_binary_to_integer,
-        binary_to_number
+        safe_binary_to_number
     ].
 
 %%%-----------------------------------------------------------------------------

@@ -76,11 +76,11 @@ safe_binary_to_integer(_Conf) ->
     ?assertEqual(null, erf_util:safe_binary_to_integer(<<"">>)),
     ?assertEqual(null, erf_util:safe_binary_to_integer(true)).
 
-binary_to_number(_Conf) ->
-    ?assertEqual(1, erf_util:binary_to_number(<<"1">>)),
-    ?assertEqual(0, erf_util:binary_to_number(<<"0">>)),
-    ?assertEqual(1.5, erf_util:binary_to_number(<<"1.5">>)),
-    ?assertEqual(-0.5, erf_util:binary_to_number(<<"-0.5">>)),
-    ?assertEqual(null, erf_util:binary_to_number(<<"a">>)),
-    ?assertEqual(null, erf_util:binary_to_number(<<"">>)),
-    ?assertEqual(null, erf_util:binary_to_number("test")).
+safe_binary_to_number(_Conf) ->
+    ?assertEqual(1, erf_util:safe_binary_to_number(<<"1">>)),
+    ?assertEqual(0, erf_util:safe_binary_to_number(<<"0">>)),
+    ?assertEqual(1.5, erf_util:safe_binary_to_number(<<"1.5">>)),
+    ?assertEqual(-0.5, erf_util:safe_binary_to_number(<<"-0.5">>)),
+    ?assertEqual(null, erf_util:safe_binary_to_number(<<"a">>)),
+    ?assertEqual(null, erf_util:safe_binary_to_number(<<"">>)),
+    ?assertEqual(null, erf_util:safe_binary_to_number("test")).

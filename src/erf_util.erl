@@ -16,7 +16,14 @@
 %%% EXTERNAL EXPORTS
 -export([
     to_pascal_case/1,
-    to_snake_case/1
+    to_snake_case/1,
+    safe_binary_to_integer/1,
+    safe_binary_to_number/1
+]).
+
+-ignore_xref([
+    safe_binary_to_integer/1,
+    safe_binary_to_number/1
 ]).
 
 %%%-----------------------------------------------------------------------------
@@ -86,3 +93,20 @@ to_snake_case([_C | Rest], [$_ | _T] = Acc) ->
     to_snake_case(Rest, Acc);
 to_snake_case([_C | Rest], Acc) ->
     to_snake_case(Rest, [$_ | Acc]).
+
+safe_binary_to_integer(Binary) when is_binary(Binary) ->
+    try
+        erlang:binary_to_integer(Binary)
+    catch
+        error:badarg -> null
+    end;
+safe_binary_to_integer(_) ->
+    null.
+
+safe_binary_to_number(Bin) when is_binary(Bin) ->
+    case catch erlang:binary_to_float(Bin) of
+        F when is_float(F) -> F;
+        _ -> safe_binary_to_integer(Bin)
+    end;
+safe_binary_to_number(_) ->
+    null.

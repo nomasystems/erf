@@ -348,6 +348,7 @@ parse_parameter(#{<<"content">> := Content} = RawParameter, #{namespace := Names
         ref => ParameterRef,
         name => ParameterName,
         type => ParameterType,
+        schema => undefined,
         required => Required
     },
     {AnyOf, ExtraSchemas, NewCTX} =
@@ -391,6 +392,7 @@ parse_parameter(#{<<"schema">> := RawSchema} = RawParameter, #{namespace := Name
         ref => ParameterRef,
         name => ParameterName,
         type => ParameterType,
+        schema => RawSchema,
         required => Required
     },
     {ParameterSchema, NewExtraSchemas, NewCTX} = parse_schemas(RawSchema, CTX),

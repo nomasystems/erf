@@ -15,8 +15,6 @@
 %% <code>erf</code>'s telemetry module.
 -module(erf_telemetry).
 
--dialyzer({nowarn_function, execute/3}).
-
 %%% EXTERNAL EXPORTS
 -export([
     event/4
@@ -62,8 +60,8 @@
 event({request_exception, ExceptionData} = Event, Name, Req, Resp) ->
     case code:is_loaded(telemetry) of
         {file, _TelemetryBeam} ->
-            execute(
-                Event,
+            telemetry:execute(
+                metric(Event),
                 [],
                 metadata(Name, Req, Resp, ExceptionData)
             );
@@ -73,8 +71,8 @@ event({request_exception, ExceptionData} = Event, Name, Req, Resp) ->
 event({_EventName, Measurements} = Event, Name, Req, Resp) ->
     case code:is_loaded(telemetry) of
         {file, _TelemetryBeam} ->
-            execute(
-                Event,
+            telemetry:execute(
+                metric(Event),
                 Measurements,
                 metadata(Name, Req, Resp, #{})
             );
@@ -85,13 +83,6 @@ event({_EventName, Measurements} = Event, Name, Req, Resp) ->
 %%%-----------------------------------------------------------------------------
 %%% INTERNAL FUNCTIONS
 %%%-----------------------------------------------------------------------------
-execute(Event, Measurements, Metadata) ->
-    telemetry:execute(
-        metric(Event),
-        Measurements,
-        Metadata
-    ).
-
 metadata(Name, Req, undefined, RawMetadata) ->
     RawMetadata#{
         name => Name,

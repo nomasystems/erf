@@ -239,7 +239,7 @@ petstore(_Conf) ->
 
 with_refs(_Conf) ->
     WithRefsOAS = unicode:characters_to_binary(
-        code:lib_dir(erf, test) ++ "/fixtures/with_refs_oas_3_0_spec.json"
+        code:lib_dir(erf) ++ "/test" ++ "/fixtures/with_refs_oas_3_0_spec.json"
     ),
 
     {ok, WithRefsAPI} = erf_parser:parse(WithRefsOAS, erf_parser_oas_3_0),
@@ -271,7 +271,7 @@ with_refs(_Conf) ->
 
 invalid(_Conf) ->
     Invalid = unicode:characters_to_binary(
-        code:lib_dir(erf, test) ++ "/fixtures/invalid_oas_3_0_spec.json"
+        code:lib_dir(erf) ++ "/test" ++ "/fixtures/invalid_oas_3_0_spec.json"
     ),
 
     ?assertMatch(

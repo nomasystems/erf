@@ -83,7 +83,7 @@ foo(_Conf) ->
 
     {ok, _Pid} = erf:start_link(#{
         spec_path => filename:join(
-            code:lib_dir(erf, test), <<"fixtures/with_refs_oas_3_0_spec.json">>
+            [code:lib_dir(erf), "test", <<"fixtures/with_refs_oas_3_0_spec.json">>]
         ),
         callback => erf_callback,
         port => 8789,
@@ -363,7 +363,7 @@ middlewares(_Conf) ->
 
     {ok, _Pid} = erf:start_link(#{
         spec_path => filename:join(
-            code:lib_dir(erf, test), <<"fixtures/with_refs_oas_3_0_spec.json">>
+            [code:lib_dir(erf), "test", <<"fixtures/with_refs_oas_3_0_spec.json">>]
         ),
         preprocess_middlewares => [erf_preprocess_middleware, erf_preprocess_stop_middleware],
         callback => erf_callback,
@@ -412,16 +412,16 @@ middlewares(_Conf) ->
 statics(_Conf) ->
     {ok, _Pid} = erf:start_link(#{
         spec_path => filename:join(
-            code:lib_dir(erf, test), <<"fixtures/with_refs_oas_3_0_spec.json">>
+            [code:lib_dir(erf), "test", <<"fixtures/with_refs_oas_3_0_spec.json">>]
         ),
         callback => erf_callback,
         port => 8789,
         static_routes => [
-            {<<"/static">>, {dir, filename:join(code:lib_dir(erf, test), <<"fixtures">>)}},
+            {<<"/static">>, {dir, filename:join([code:lib_dir(erf), "test", <<"fixtures">>])}},
             {<<"/common">>,
                 {file,
                     filename:join(
-                        code:lib_dir(erf, test), <<"fixtures/common_oas_3_0_spec.json">>
+                        [code:lib_dir(erf), "test", <<"fixtures/common_oas_3_0_spec.json">>]
                     )}}
         ],
         name => erf_server
@@ -429,7 +429,7 @@ statics(_Conf) ->
 
     {ok, Common} = file:read_file(
         filename:join(
-            code:lib_dir(erf, test), <<"fixtures/common_oas_3_0_spec.json">>
+            [code:lib_dir(erf), "test", <<"fixtures/common_oas_3_0_spec.json">>]
         )
     ),
 
@@ -499,7 +499,7 @@ swagger_ui(_Conf) ->
 start_stop(_Conf) ->
     {ok, Pid} = erf:start_link(#{
         spec_path => filename:join(
-            code:lib_dir(erf, test), <<"fixtures/with_refs_oas_3_0_spec.json">>
+            [code:lib_dir(erf), "test", <<"fixtures/with_refs_oas_3_0_spec.json">>]
         ),
         callback => erf_callback,
         port => 8789,
@@ -542,7 +542,7 @@ reload_conf(_Conf) ->
 
     {ok, _Pid} = erf:start_link(#{
         spec_path => filename:join(
-            code:lib_dir(erf, test), <<"fixtures/with_refs_oas_3_0_spec.json">>
+            [code:lib_dir(erf), "test", <<"fixtures/with_refs_oas_3_0_spec.json">>]
         ),
         callback => erf_callback,
         port => 8789,

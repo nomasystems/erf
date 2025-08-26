@@ -90,7 +90,13 @@
     Headers :: [header()],
     Body :: body() | {file, binary()}
 }.
+%% Conditional type definition for OTP 26 compatibility issue
+%% https://github.com/erlang/otp/issues/5280
+-if(?OTP_RELEASE == 26).
+-type route_patterns() :: [{Route :: binary(), RouteRegEx :: term()}].
+-else.
 -type route_patterns() :: [{Route :: binary(), RouteRegEx :: re:mp()}].
+-endif.
 -type static_dir() :: {dir, binary()}.
 -type static_file() :: {file, binary()}.
 -type static_route() :: {Path :: binary(), Resource :: static_file() | static_dir()}.
@@ -405,18 +411,22 @@ route_patterns(API, StaticRoutes, SwaggerUI) ->
         lists:map(
             fun
                 ({Path, {file, _ResourcePath}}) ->
-                    {Path, <<"^", Path/binary, "$">>};
+                    {ok, RegEx} = re:compile(<<"^", Path/binary, "$">>),
+                    {Path, RegEx};
                 ({Path, {dir, _ResourcePath}}) ->
-                    {Path, <<"^", Path/binary>>}
+                    {ok, RegEx} = re:compile(<<"^", Path/binary>>),
+                    {Path, RegEx}
             end,
             StaticRoutes
         ),
     Acc1 =
         case SwaggerUI of
             true ->
+                {ok, SwaggerRegEx} = re:compile(<<"^/swagger$">>),
+                {ok, SpecRegEx} = re:compile(<<"^/swagger/spec.json$">>),
                 [
-                    {<<"/swagger">>, <<"^/swagger$">>},
-                    {<<"/swagger/spec.json">>, <<"^/swagger/spec.json$">>}
+                    {<<"/swagger">>, SwaggerRegEx},
+                    {<<"/swagger/spec.json">>, SpecRegEx}
                     | Acc
                 ];
             _false ->
@@ -427,7 +437,7 @@ route_patterns(API, StaticRoutes, SwaggerUI) ->
 
 -spec route_patterns(RawRoutes, Acc) -> RoutePatterns when
     RawRoutes :: [binary()],
-    Acc :: list(),
+    Acc :: route_patterns(),
     RoutePatterns :: route_patterns().
 route_patterns([], Acc) ->
     Acc;
@@ -441,9 +451,10 @@ route_patterns([Route | Routes], Acc) ->
         end,
         erlang:tl(string:split(Route, <<"/">>, all))
     ),
-    RegEx =
+    RegExBinary =
         <<"^",
             (erlang:list_to_binary([
                 <<"/">> | lists:join(<<"/">>, RegExParts)
             ]))/binary, "$">>,
+    {ok, RegEx} = re:compile(RegExBinary),
     route_patterns(Routes, [{Route, RegEx} | Acc]).

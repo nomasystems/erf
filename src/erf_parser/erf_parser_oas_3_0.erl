@@ -15,6 +15,8 @@
 %% @doc An OpenAPI Specification 3.0 <code>erf_parser</code>.
 -module(erf_parser_oas_3_0).
 
+-dialyzer({nowarn_function, oas_3_is_valid/1}).
+
 %%% BEHAVIOURS
 -behaviour(erf_parser).
 
@@ -57,7 +59,7 @@
 parse(SpecPath) ->
     case parse_spec(SpecPath) of
         {ok, OAS} ->
-            case oas_3_0:is_valid(OAS) of
+            case oas_3_is_valid(OAS) of
                 true ->
                     BasePath = filename:dirname(SpecPath),
                     BaseName = filename:rootname(filename:basename(SpecPath)),
@@ -80,6 +82,9 @@ parse(SpecPath) ->
 %%%-----------------------------------------------------------------------------
 %%% INTERNAL FUNCTIONS
 %%%-----------------------------------------------------------------------------
+oas_3_is_valid(OAS) ->
+    oas_3_0:is_valid(OAS).
+
 -spec parse_api(OAS, CTX) -> Result when
     OAS :: spec(),
     CTX :: ctx(),

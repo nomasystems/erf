@@ -90,7 +90,7 @@
     Headers :: [header()],
     Body :: body() | {file, binary()}
 }.
--type route_patterns() :: [{Route :: binary(), RouteRegEx :: re:mp()}].
+-type route_patterns() :: [{Route :: binary(), RouteRegEx :: binary()}].
 -type static_dir() :: {dir, binary()}.
 -type static_file() :: {file, binary()}.
 -type static_route() :: {Path :: binary(), Resource :: static_file() | static_dir()}.
@@ -427,7 +427,7 @@ route_patterns(API, StaticRoutes, SwaggerUI) ->
 
 -spec route_patterns(RawRoutes, Acc) -> RoutePatterns when
     RawRoutes :: [binary()],
-    Acc :: list(),
+    Acc :: route_patterns(),
     RoutePatterns :: route_patterns().
 route_patterns([], Acc) ->
     Acc;

@@ -483,12 +483,10 @@ parse_response(_Response, CTX) ->
     Reason :: term().
 parse_spec(SpecPath) ->
     case file:read_file(SpecPath) of
-        {ok, BinSpec} ->
+        {ok, BinSpec} when is_binary(BinSpec), byte_size(BinSpec) > 0 ->
             case filename:extension(SpecPath) of
                 JSON when JSON =:= <<".json">> orelse JSON =:= ".json" ->
                     case njson:decode(BinSpec) of
-                        {ok, undefined} ->
-                            {error, {invalid_spec, BinSpec}};
                         {ok, Spec} ->
                             {ok, Spec};
                         {error, Reason} ->
@@ -497,6 +495,8 @@ parse_spec(SpecPath) ->
                 Extension ->
                     {error, {unsupported_extension, Extension}}
             end;
+        {ok, EmptyBinSpec} ->
+            {error, {invalid_spec, EmptyBinSpec}};
         {error, Reason} ->
             {error, {invalid_spec, Reason}}
     end.

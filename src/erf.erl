@@ -91,7 +91,6 @@
     Body :: body() | {file, binary()}
 }.
 -type route_patterns() :: [{Route :: binary(), RouteRegEx :: binary()}].
-
 -type static_dir() :: {dir, binary()}.
 -type static_file() :: {file, binary()}.
 -type static_route() :: {Path :: binary(), Resource :: static_file() | static_dir()}.

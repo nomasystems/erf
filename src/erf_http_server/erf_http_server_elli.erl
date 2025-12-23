@@ -17,7 +17,7 @@
 
 %%% BEHAVIOURS
 -behaviour(erf_http_server).
--behaviour(elli_handler).
+%% -behaviour(elli_handler).
 
 %%% INCLUDE FILES
 -include_lib("kernel/include/logger.hrl").

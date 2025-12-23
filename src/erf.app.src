@@ -2,8 +2,10 @@
     {description, "A design-first Erlang REST Framework"},
     {vsn, "0.1.2"},
     {registered, []},
-    {applications, [kernel, stdlib, compiler, syntax_tools, elli, ndto, njson]},
+    {applications, [kernel, stdlib, compiler, syntax_tools, ndto, njson]},
     {optional_applications, [
+        elli,
+        cowboy,
         telemetry
     ]},
     {env, []}

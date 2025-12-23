@@ -2,7 +2,11 @@
 [![erf ci](https://github.com/nomasystems/erf/actions/workflows/ci.yml/badge.svg)](https://github.com/nomasystems/erf/actions/workflows/ci.yml)
 [![erf docs](https://github.com/nomasystems/erf/actions/workflows/docs.yml/badge.svg)](https://nomasystems.github.io/erf)
 
-`erf` is a design-first Erlang REST framework. It provides an interface to spawn specification-driven HTTP servers with several automated features that aim to ease the development, operation and maintenance of design-first RESTful services. Its HTTP protocol features are provided as a wrapper of the [elli](https://github.com/elli-lib/elli) HTTP 1.1 server.
+`erf` is a design-first Erlang REST framework. It provides an interface to spawn specification-driven HTTP servers with several automated features that aim to ease the development, operation and maintenance of design-first RESTful services.
+
+`erf` supports multiple HTTP server backends:
+- [elli](https://github.com/elli-lib/elli) - HTTP/1.1 server
+- [cowboy](https://github.com/ninenines/cowboy) - HTTP/1.1 and HTTP/2 server
 
 ## What is design-first?
 
@@ -18,10 +22,18 @@ Design-first is an approach to API development that prioritises the design of th
 
 1. Design your API using OpenAPI 3.0. For example: [users.openapi.json](examples/users/priv/users.openapi.json).
 
-2. Add `erf` as a dependency in your `rebar3` project.
+2. Add `erf` and your chosen HTTP server backend as dependencies in your `rebar3` project.
 ```erl
+%% With elli (HTTP/1.1)
 {deps, [
-    {erf, {git, "git@github.com:nomasystems/erf.git", {branch, "main"}}}
+    {erf, {git, "git@github.com:nomasystems/erf.git", {branch, "main"}}},
+    {elli, {git, "https://github.com/elli-lib/elli.git", {branch, "main"}}}
+]}.
+
+%% Or with cowboy (HTTP/1.1 and HTTP/2)
+{deps, [
+    {erf, {git, "git@github.com:nomasystems/erf.git", {branch, "main"}}},
+    {cowboy, {git, "git@github.com:ninenines/cowboy.git", {tag, "2.13.0"}}}
 ]}.
 ```
 
@@ -102,6 +114,9 @@ init([]) ->
         preprocess_middlewares => [users_preprocess],
         postprocess_middlewares => [users_postprocess],
         port => 8080
+        %% Optionally specify the HTTP server backend:
+        %% http_server => {erf_http_server_elli, #{}}      % default
+        %% http_server => {erf_http_server_cowboy, #{}}    % for HTTP/2 support
     },
     UsersChildSpec = {
         public_api_server,
@@ -156,12 +171,7 @@ The configuration is provided as map with the following type spec:
     keyfile => binary(),
     static_routes => [static_route()],
     swagger_ui => boolean(),
-    min_acceptors => pos_integer(),
-    accept_timeout => pos_integer(),
-    request_timeout => pos_integer(),
-    header_timeout => pos_integer(),
-    body_timeout => pos_integer(),
-    max_body_size => pos_integer(),
+    http_server => {module(), map()},
     log_level => logger:level()
 }.
 ```
@@ -179,13 +189,34 @@ A detailed description of each parameter can be found in the following list:
 - `keyfile`: Path to the SSL key file. Defaults to `undefined`.
 - `static_routes`: List of routes that serve static files. Defaults to `[]`.
 - `swagger_ui`: Boolean flag that enables/disables the Swagger UI. Defaults to `false`.
-- `min_acceptors`: Minimum number of acceptor processes. Defaults to `20`.
-- `accept_timeout`: Timeout in ms for accepting an incoming request. Defaults to `10000`.
-- `request_timeout`: Timeout in ms for receiving more packets when waiting for the request line. Defaults to `60000`.
-- `header_timeout`: Timeout in ms for receiving more packets when waiting for the headers. Defaults to `10000`.
-- `body_timeout`: Timeout in ms for receiving more packets when waiting for the body. Defaults to `30000`.
-- `max_body_size`: Maximum size in bytes for the body of allowed received messages. Defaults to `1024000`.
+- `http_server`: HTTP server backend and its configuration. Defaults to `{erf_http_server_elli, #{}}`.
 - `log_level`: Severity associated to logged messages. Defaults to `error`.
+
+### HTTP Server Backends
+
+#### elli (default)
+
+```erl
+http_server => {erf_http_server_elli, #{
+    min_acceptors => 20,        % Minimum number of acceptor processes
+    accept_timeout => 10000,    % Timeout in ms for accepting requests
+    request_timeout => 60000,   % Timeout in ms for the request line
+    header_timeout => 10000,    % Timeout in ms for headers
+    body_timeout => 30000,      % Timeout in ms for body
+    max_body_size => 1024000    % Maximum body size in bytes
+}}
+```
+
+#### cowboy
+
+```erl
+http_server => {erf_http_server_cowboy, #{
+    num_acceptors => 100,       % Number of acceptor processes
+    max_connections => infinity % Maximum number of connections
+}}
+```
+
+Cowboy supports both HTTP/1.1 and HTTP/2 protocols.
 
 ## Callback modules & middlewares
 

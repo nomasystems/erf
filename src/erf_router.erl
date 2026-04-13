@@ -271,6 +271,10 @@ handle_ast(API, #{callback := Callback} = Opts) ->
                                         erl_syntax:map_field_exact(
                                             erl_syntax:atom(body),
                                             erl_syntax:variable('Body')
+                                        ),
+                                        erl_syntax:map_field_exact(
+                                            erl_syntax:atom(headers),
+                                            erl_syntax:variable('Headers')
                                         )
                                     ]
                                 )

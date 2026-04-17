@@ -88,12 +88,16 @@
 -type response() :: {
     StatusCode :: pos_integer(),
     Headers :: [header()],
-    Body :: body() | {file, binary()}
+    Body :: body() | {file, binary()} | stream_body()
 }.
 -type route_patterns() :: [{Route :: binary(), RouteRegEx :: binary()}].
+-type send_chunk_fun() :: fun((iodata()) -> ok | {error, closed | timeout}).
 -type static_dir() :: {dir, binary()}.
 -type static_file() :: {file, binary()}.
 -type static_route() :: {Path :: binary(), Resource :: static_file() | static_dir()}.
+-type stream_body() :: {stream, stream_producer()}.
+%% Push-style streaming body.
+-type stream_producer() :: fun((send_chunk_fun()) -> any()).
 
 %%% TYPE EXPORTS
 -export_type([
@@ -107,7 +111,10 @@
     request/0,
     response/0,
     route_patterns/0,
-    static_route/0
+    send_chunk_fun/0,
+    static_route/0,
+    stream_body/0,
+    stream_producer/0
 ]).
 
 %%% MACROS

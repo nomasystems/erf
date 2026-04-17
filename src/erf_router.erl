@@ -879,6 +879,8 @@ load_binary(ModuleName, Bin) ->
     Response :: erf:response().
 postprocess(_Request, {_Status, _Headers, {file, _Path}} = Response) ->
     Response;
+postprocess(_Request, {_Status, _Headers, {stream, _Producer}} = Response) ->
+    Response;
 postprocess(_Request, {Status, RawHeaders, RawBody}) ->
     ContentTypeHeader = string:casefold(<<"content-type">>),
     case proplists:get_value(ContentTypeHeader, RawHeaders, undefined) of

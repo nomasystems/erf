@@ -91,7 +91,12 @@ init(Req, [Name]) ->
 handle(ElliRequest, [Name]) ->
     ErfRequest = preprocess(Name, ElliRequest),
     ErfResponse = erf_router:handle(Name, ErfRequest),
-    postprocess(ErfRequest, ErfResponse).
+    case ErfResponse of
+        {Status, Headers, {stream, Producer}} ->
+            handle_stream(Name, ElliRequest, Status, Headers, Producer);
+        _ ->
+            postprocess(ErfRequest, ErfResponse)
+    end.
 
 -spec handle_event(Event, Args, CallbackArgs) -> ok when
     Event :: elli_handler:event(),
@@ -131,6 +136,61 @@ handle_event(_Event, _Args, _CallbackArgs) ->
 %%%-----------------------------------------------------------------------------
 %%% INTERNAL FUNCTIONS
 %%%-----------------------------------------------------------------------------
+-spec handle_stream(Name, ElliRequest, Status, Headers, Producer) -> Result when
+    Name :: atom(),
+    ElliRequest :: elli:req(),
+    Status :: pos_integer(),
+    Headers :: [erf:header()],
+    Producer :: erf:stream_producer(),
+    Result :: elli_handler:result().
+handle_stream(Name, ElliRequest, Status, Headers, Producer) ->
+    case elli_request:chunk_ref(ElliRequest) of
+        {error, not_supported} ->
+            {ok, LogLevel} = erf_conf:log_level(Name),
+            ?LOG(
+                LogLevel,
+                "[erf] Streaming response requested on HTTP/1.0; returning 505"
+            ),
+            {505, [], <<>>};
+        ChunkRef ->
+            case Status of
+                200 ->
+                    ok;
+                _ ->
+                    {ok, LogLevel} = erf_conf:log_level(Name),
+                    ?LOG(
+                        LogLevel,
+                        "[erf] elli backend forces chunked responses to HTTP 200; "
+                        "status ~p from callback ignored",
+                        [Status]
+                    )
+            end,
+            _ = erlang:spawn(fun() -> drive_stream(Name, ChunkRef, Producer) end),
+            {chunk, Headers}
+    end.
+
+-spec drive_stream(Name, ChunkRef, Producer) -> ok when
+    Name :: atom(),
+    ChunkRef :: pid(),
+    Producer :: erf:stream_producer().
+drive_stream(Name, ChunkRef, Producer) ->
+    Send = fun(Data) -> elli_request:send_chunk(ChunkRef, Data) end,
+    try
+        _ = Producer(Send),
+        ok
+    catch
+        Class:Reason:Stack ->
+            {ok, LogLevel} = erf_conf:log_level(Name),
+            ?LOG(
+                LogLevel,
+                "[erf] Stream producer crashed ~p:~p~nStacktrace:~n~p",
+                [Class, Reason, Stack]
+            ),
+            ok
+    after
+        _ = elli_request:close_chunk(ChunkRef)
+    end.
+
 -spec build_elli_conf(Name, HTTPServerConf, ExtraElliConf) -> ElliConf when
     Name :: atom(),
     HTTPServerConf :: erf_http_server:conf(),

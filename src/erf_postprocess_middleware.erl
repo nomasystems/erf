@@ -12,6 +12,7 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License
 
+%% @doc Behaviour for <code>erf</code>'s postprocessing middlewares.
 -module(erf_postprocess_middleware).
 
 %%% TYPES

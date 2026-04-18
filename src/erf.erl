@@ -96,7 +96,6 @@
 -type static_file() :: {file, binary()}.
 -type static_route() :: {Path :: binary(), Resource :: static_file() | static_dir()}.
 -type stream_body() :: {stream, stream_producer()}.
-%% Push-style streaming body.
 -type stream_producer() :: fun((send_chunk_fun()) -> any()).
 
 %%% TYPE EXPORTS

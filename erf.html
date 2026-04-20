@@ -12,7 +12,7 @@
 
     <link rel="stylesheet" href="dist/html-erlang-7YNYEB7F.css" />
 
-    <script defer src="dist/sidebar_items-44BB1AFC.js"></script>
+    <script defer src="dist/sidebar_items-92A0B619.js"></script>
     <script defer src="docs_config.js"></script>
     <script defer src="dist/html-HBZYRXZS.js"></script>
 
@@ -206,6 +206,14 @@ erf
 
     <div class="summary-row">
       <div class="summary-signature">
+        <a href="#t:send_chunk_fun/0" data-no-tooltip="" translate="no">send_chunk_fun/0</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
         <a href="#t:static_dir/0" data-no-tooltip="" translate="no">static_dir/0</a>
 
       </div>
@@ -223,6 +231,22 @@ erf
     <div class="summary-row">
       <div class="summary-signature">
         <a href="#t:static_route/0" data-no-tooltip="" translate="no">static_route/0</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:stream_body/0" data-no-tooltip="" translate="no">stream_body/0</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:stream_producer/0" data-no-tooltip="" translate="no">stream_producer/0</a>
 
       </div>
 
@@ -575,7 +599,9 @@ erf
       <div class="specs">
 
           <pre translate="no"><span class="attribute">-type</span> response() ::
-          {StatusCode :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:pos_integer/0">pos_integer</a>(), Headers :: [<a href="#t:header/0">header</a>()], Body :: <a href="#t:body/0">body</a>() | {file, <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:binary/0">binary</a>()}}.</pre>
+          {StatusCode :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:pos_integer/0">pos_integer</a>(),
+           Headers :: [<a href="#t:header/0">header</a>()],
+           Body :: <a href="#t:body/0">body</a>() | {file, <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:binary/0">binary</a>()} | <a href="#t:stream_body/0">stream_body</a>()}.</pre>
 
       </div>
 
@@ -610,6 +636,34 @@ erf
 
   </section>
 </section>
+<section class="detail" id="t:send_chunk_fun/0">
+
+  <div class="detail-header">
+    <a href="#t:send_chunk_fun/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">send_chunk_fun/0</h1>
+
+
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L94" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">-type</span> send_chunk_fun() :: fun((<a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:iodata/0">iodata</a>()) -> ok | {error, closed | timeout}).</pre>
+
+      </div>
+
+
+  </section>
+</section>
 <section class="detail" id="t:static_dir/0">
 
   <div class="detail-header">
@@ -620,7 +674,7 @@ erf
       <h1 class="signature" translate="no">static_dir/0</h1>
 
 
-        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L94" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L95" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -648,7 +702,7 @@ erf
       <h1 class="signature" translate="no">static_file/0</h1>
 
 
-        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L95" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L96" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -676,7 +730,7 @@ erf
       <h1 class="signature" translate="no">static_route/0</h1>
 
 
-        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L96" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L97" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -688,6 +742,62 @@ erf
       <div class="specs">
 
           <pre translate="no"><span class="attribute">-type</span> static_route() :: {Path :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:binary/0">binary</a>(), Resource :: <a href="#t:static_file/0">static_file</a>() | <a href="#t:static_dir/0">static_dir</a>()}.</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="t:stream_body/0">
+
+  <div class="detail-header">
+    <a href="#t:stream_body/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">stream_body/0</h1>
+
+
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L98" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">-type</span> stream_body() :: {stream, <a href="#t:stream_producer/0">stream_producer</a>()}.</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="t:stream_producer/0">
+
+  <div class="detail-header">
+    <a href="#t:stream_producer/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">stream_producer/0</h1>
+
+
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L99" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">-type</span> stream_producer() :: fun((<a href="#t:send_chunk_fun/0">send_chunk_fun</a>()) -> <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:any/0">any</a>()).</pre>
 
       </div>
 
@@ -717,7 +827,7 @@ erf
       <h1 class="signature" translate="no">get_router(Name)</h1>
 
 
-        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L158" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L164" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -750,7 +860,7 @@ Returns the router for an instance of the server.
       <h1 class="signature" translate="no">init(_)</h1>
 
 
-        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L226" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L232" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -772,7 +882,7 @@ Returns the router for an instance of the server.
       <h1 class="signature" translate="no">match_route(Name, RawPath)</h1>
 
 
-        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L179" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L185" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -806,7 +916,7 @@ Returns the router for an instance of the server.
       <h1 class="signature" translate="no">reload_conf(Name, Conf)</h1>
 
 
-        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L193" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L199" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -839,7 +949,7 @@ Reloads the configuration for an instance of the server.
       <h1 class="signature" translate="no">start_link(Conf)</h1>
 
 
-        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L126" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L132" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -872,7 +982,7 @@ Starts the supervision tree for an instance of the server.
       <h1 class="signature" translate="no">stop(Name)</h1>
 
 
-        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L139" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/nomasystems/erf/blob/0.1.2/src/erf.erl#L145" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 

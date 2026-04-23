@@ -42,7 +42,7 @@
 
 %%% TYPES
 -type api() :: erf_parser:api().
--type body() :: undefined | njson:t().
+-type body() :: undefined | json:decode_value().
 -type conf() :: #{
     spec_path := binary(),
     callback := module(),

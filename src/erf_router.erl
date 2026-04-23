@@ -132,11 +132,13 @@ handle(Name, RawRequest) ->
             postprocess(InitialRequest, Response);
         {error, _Reason} ->
             ContentTypeHeader = string:casefold(<<"content-type">>),
-            {ok, ErrorBody} = njson:encode(#{
-                <<"title">> => <<"Bad Request">>,
-                <<"status">> => 400,
-                <<"detail">> => <<"Failed to read request">>
-            }),
+            ErrorBody = iolist_to_binary(
+                json:encode(#{
+                    <<"title">> => <<"Bad Request">>,
+                    <<"status">> => 400,
+                    <<"detail">> => <<"Failed to read request">>
+                })
+            ),
             {400, [{ContentTypeHeader, <<"application/json">>}], ErrorBody}
     end.
 
@@ -889,19 +891,21 @@ postprocess(_Request, {Status, RawHeaders, RawBody}) ->
                 undefined ->
                     {Status, RawHeaders, []};
                 _RawBody ->
-                    case njson:encode(RawBody) of
-                        {ok, EncodedBody} ->
+                    try iolist_to_binary(json:encode(RawBody)) of
+                        EncodedBody ->
                             Headers = [{ContentTypeHeader, <<"application/json">>} | RawHeaders],
-                            {Status, Headers, EncodedBody};
-                        {error, _Reason} ->
+                            {Status, Headers, EncodedBody}
+                    catch
+                        error:_ ->
                             {Status, [{ContentTypeHeader, <<"text/plain">>} | RawHeaders], RawBody}
                     end
             end;
         <<"application/json">> ->
-            case njson:encode(RawBody) of
-                {ok, EncodedBody} ->
-                    {Status, RawHeaders, EncodedBody};
-                {error, _Reason} ->
+            try iolist_to_binary(json:encode(RawBody)) of
+                EncodedBody ->
+                    {Status, RawHeaders, EncodedBody}
+            catch
+                error:_ ->
                     % TODO: handle error
                     {500, [{ContentTypeHeader, <<"text/plain">>}], <<"Internal Server Error">>}
             end;
@@ -922,10 +926,11 @@ preprocess(RawRequest) ->
         <<"application/json">> ->
             case RawBody of
                 NonEmptyBinary when is_binary(NonEmptyBinary), byte_size(NonEmptyBinary) > 0 ->
-                    case njson:decode(RawBody) of
-                        {ok, Body} ->
-                            {ok, RawRequest#{body => Body}};
-                        {error, Reason} ->
+                    try json:decode(RawBody) of
+                        Body ->
+                            {ok, RawRequest#{body => Body}}
+                    catch
+                        error:Reason ->
                             {error, {cannot_decode_body, Reason}}
                     end;
                 _RawBody ->

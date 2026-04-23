@@ -31,7 +31,7 @@
     resolved := [binary()],
     spec := spec()
 }.
--type spec() :: njson:t().
+-type spec() :: json:decode_value().
 
 %%% MACROS
 -define(METHODS, [
@@ -486,10 +486,11 @@ parse_spec(SpecPath) ->
         {ok, BinSpec} when is_binary(BinSpec), byte_size(BinSpec) > 0 ->
             case filename:extension(SpecPath) of
                 JSON when JSON =:= <<".json">> orelse JSON =:= ".json" ->
-                    case njson:decode(BinSpec) of
-                        {ok, Spec} ->
-                            {ok, Spec};
-                        {error, Reason} ->
+                    try json:decode(BinSpec) of
+                        Spec ->
+                            {ok, Spec}
+                    catch
+                        error:Reason ->
                             {error, {invalid_json, Reason}}
                     end;
                 Extension ->

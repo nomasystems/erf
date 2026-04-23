@@ -4,6 +4,8 @@
 
 `erf` is a design-first Erlang REST framework. It provides an interface to spawn specification-driven HTTP servers with several automated features that aim to ease the development, operation and maintenance of design-first RESTful services. Its HTTP protocol features are provided as a wrapper of the [elli](https://github.com/elli-lib/elli) HTTP 1.1 server.
 
+Requires Erlang/OTP 27 or later.
+
 ## What is design-first?
 
 When following a code-first approach to develop APIs, the interface is produced as a result of the implementation and, therefore, client-side code, integration tests and other parts of the system that depend on the API behaviour, need to wait until the server-side work is done.

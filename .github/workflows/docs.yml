@@ -5,8 +5,8 @@ on:
       - main
 
 env:
-  OTP-VERSION: 25.2.3
-  REBAR3-VERSION: 3.20.0
+  OTP-VERSION: 28.4
+  REBAR3-VERSION: 3.25.0
 
 jobs:
   docs:

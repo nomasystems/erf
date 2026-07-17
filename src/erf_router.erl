@@ -117,30 +117,31 @@ handle(Name, RawRequest) ->
     {ok, PreProcessMiddlewares} = erf_conf:preprocess_middlewares(Name),
     {ok, RouterMod} = erf_conf:router_mod(Name),
     {ok, PostProcessMiddlewares} = erf_conf:postprocess_middlewares(Name),
-    case preprocess(RawRequest) of
-        {ok, Request} ->
-            {InitialResponse, InitialRequest} =
+    {InitialResponse, InitialRequest} =
+        case preprocess(RawRequest) of
+            {ok, Request} ->
                 case apply_preprocess_middlewares(Request, PreProcessMiddlewares) of
                     {stop, PreprocessResponse, PreprocessRequest} ->
                         {PreprocessResponse, PreprocessRequest};
                     PreprocessRequest ->
                         {RouterMod:handle(PreprocessRequest), PreprocessRequest}
-                end,
-            Response = apply_postprocess_middlewares(
-                InitialRequest, InitialResponse, PostProcessMiddlewares
-            ),
-            postprocess(InitialRequest, Response);
-        {error, _Reason} ->
-            ContentTypeHeader = string:casefold(<<"content-type">>),
-            ErrorBody = iolist_to_binary(
-                json:encode(#{
-                    <<"title">> => <<"Bad Request">>,
-                    <<"status">> => 400,
-                    <<"detail">> => <<"Failed to read request">>
-                })
-            ),
-            {400, [{ContentTypeHeader, <<"application/json">>}], ErrorBody}
-    end.
+                end;
+            {error, _Reason} ->
+                ContentTypeHeader = string:casefold(<<"content-type">>),
+                ErrorBody = iolist_to_binary(
+                    json:encode(#{
+                        <<"title">> => <<"Bad Request">>,
+                        <<"status">> => 400,
+                        <<"detail">> => <<"Failed to read request">>
+                    })
+                ),
+                ResponseError = {400, [{ContentTypeHeader, <<"application/json">>}], ErrorBody},
+                {ResponseError, RawRequest}
+        end,
+    Response = apply_postprocess_middlewares(
+        InitialRequest, InitialResponse, PostProcessMiddlewares
+    ),
+    postprocess(InitialRequest, Response).
 
 %%%-----------------------------------------------------------------------------
 %%% INTERNAL FUNCTIONS

@@ -293,6 +293,8 @@ postprocess(
             <<>>, erlang:self(), undefined, {undefined, []}}
     ),
     {Status, Headers, {file, File, Range}};
+postprocess(_Request, {Status, RawHeaders, undefined}) ->
+    {Status, RawHeaders, []};
 postprocess(_Request, {Status, RawHeaders, RawBody}) ->
     {Status, RawHeaders, RawBody}.
 

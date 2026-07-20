@@ -890,7 +890,7 @@ postprocess(_Request, {Status, RawHeaders, RawBody}) ->
         undefined ->
             case RawBody of
                 undefined ->
-                    {Status, RawHeaders, []};
+                    {Status, RawHeaders, undefined};
                 _RawBody ->
                     try iolist_to_binary(json:encode(RawBody)) of
                         EncodedBody ->

@@ -44,11 +44,12 @@
 -type api() :: erf_parser:api().
 -type body() :: undefined | json:decode_value().
 -type conf() :: #{
-    spec_path := binary(),
+    spec_path := binary() | #{version() => binary()},
     callback := module(),
     port => inet:port_number(),
     name => atom(),
     spec_parser => module(),
+    default_version => version(),
     preprocess_middlewares => [module()],
     postprocess_middlewares => [module()],
     ssl => boolean(),
@@ -83,7 +84,8 @@
     body := body(),
     peer := undefined | binary(),
     route := binary(),
-    context => any()
+    context => any(),
+    version => version()
 }.
 -type response() :: {
     StatusCode :: pos_integer(),
@@ -97,6 +99,7 @@
 -type static_route() :: {Path :: binary(), Resource :: static_file() | static_dir()}.
 -type stream_body() :: {stream, stream_producer()}.
 -type stream_producer() :: fun((send_chunk_fun()) -> any()).
+-type version() :: binary().
 
 %%% TYPE EXPORTS
 -export_type([
@@ -113,7 +116,8 @@
     send_chunk_fun/0,
     static_route/0,
     stream_body/0,
-    stream_producer/0
+    stream_producer/0,
+    version/0
 ]).
 
 %%% MACROS
@@ -212,8 +216,9 @@ reload_conf(Name, NewConf) ->
     Callback = maps:get(callback, Conf),
     StaticRoutes = maps:get(static_routes, Conf),
     SwaggerUI = maps:get(swagger_ui, Conf),
+    DefaultVersion = maps:get(default_version, Conf, undefined),
 
-    case build_router(SpecPath, SpecParser, Callback, StaticRoutes, SwaggerUI) of
+    case build_router(SpecPath, SpecParser, Callback, StaticRoutes, SwaggerUI, DefaultVersion) of
         {ok, RouterMod, Router, API} ->
             RoutePatterns = route_patterns(API, StaticRoutes, SwaggerUI),
             erf_conf:set(Name, Conf#{
@@ -234,6 +239,7 @@ init([Name, RawConf]) ->
         spec_path => maps:get(spec_path, RawConf),
         spec_parser => maps:get(spec_parser, RawConf, erf_parser_oas_3_0),
         callback => maps:get(callback, RawConf),
+        default_version => maps:get(default_version, RawConf, undefined),
         static_routes => maps:get(static_routes, RawConf, []),
         swagger_ui => maps:get(swagger_ui, RawConf, false),
         preprocess_middlewares => maps:get(preprocess_middlewares, RawConf, []),
@@ -246,8 +252,9 @@ init([Name, RawConf]) ->
     Callback = maps:get(callback, RawErfConf),
     StaticRoutes = maps:get(static_routes, RawErfConf),
     SwaggerUI = maps:get(swagger_ui, RawErfConf),
+    DefaultVersion = maps:get(default_version, RawErfConf),
 
-    case build_router(SpecPath, SpecParser, Callback, StaticRoutes, SwaggerUI) of
+    case build_router(SpecPath, SpecParser, Callback, StaticRoutes, SwaggerUI, DefaultVersion) of
         {ok, RouterMod, Router, API} ->
             RoutePatterns = route_patterns(API, StaticRoutes, SwaggerUI),
             ErfConf = RawErfConf#{
@@ -317,19 +324,22 @@ build_http_server_conf(ErfConf) ->
         keyfile => maps:get(keyfile, ErfConf, undefined)
     }.
 
--spec build_router(SpecPath, SpecParser, Callback, StaticRoutes, SwaggerUI) -> Result when
-    SpecPath :: binary(),
+-spec build_router(SpecPath, SpecParser, Callback, StaticRoutes, SwaggerUI, DefaultVersion) ->
+    Result
+when
+    SpecPath :: binary() | #{version() => binary()},
     SpecParser :: module(),
     Callback :: module(),
     StaticRoutes :: [static_route()],
     SwaggerUI :: boolean(),
+    DefaultVersion :: version() | undefined,
     Result :: {ok, RouterMod, Router, API} | {error, Reason},
     RouterMod :: module(),
     Router :: erl_syntax:syntaxTree(),
     API :: api(),
     Reason :: term().
-build_router(SpecPath, SpecParser, Callback, RawStaticRoutes, SwaggerUI) ->
-    case erf_parser:parse(SpecPath, SpecParser) of
+build_router(SpecPath, SpecParser, Callback, RawStaticRoutes, SwaggerUI, DefaultVersion) ->
+    case parse_api(SpecPath, SpecParser, DefaultVersion) of
         {ok, API} ->
             Schemas = maps:to_list(maps:get(schemas, API)),
             case build_dtos(Schemas) of
@@ -345,9 +355,9 @@ build_router(SpecPath, SpecParser, Callback, RawStaticRoutes, SwaggerUI) ->
                                             filename:join([Priv, <<"swagger-ui">>, <<"index.html">>])
                                     end,
                                 [
-                                    {<<"/swagger">>, {file, IndexHTML}},
-                                    {<<"/swagger/spec.json">>, {file, SpecPath}}
-                                    | RawStaticRoutes
+                                    {<<"/swagger">>, {file, IndexHTML}}
+                                    | swagger_spec_routes(SpecPath, DefaultVersion) ++
+                                        RawStaticRoutes
                                 ];
                             _False ->
                                 RawStaticRoutes
@@ -373,6 +383,145 @@ build_router(SpecPath, SpecParser, Callback, RawStaticRoutes, SwaggerUI) ->
             end;
         {error, Reason} ->
             {error, Reason}
+    end.
+
+-spec parse_api(SpecPath, SpecParser, DefaultVersion) -> Result when
+    SpecPath :: binary() | #{version() => binary()},
+    SpecParser :: module(),
+    DefaultVersion :: version() | undefined,
+    Result :: {ok, API} | {error, Reason},
+    API :: api(),
+    Reason :: term().
+%% @doc Parses a single spec file or, in versioned mode, one spec file per version, merging
+%% them into a single API AST whose endpoints are namespaced by version.
+parse_api(SpecPath, SpecParser, _DefaultVersion) when is_binary(SpecPath) ->
+    erf_parser:parse(SpecPath, SpecParser);
+parse_api(SpecPathsByVersion, SpecParser, DefaultVersion) when is_map(SpecPathsByVersion) ->
+    case parse_versions(maps:to_list(SpecPathsByVersion), SpecParser, []) of
+        {ok, VersionedAPIs} ->
+            {ok, merge_apis(VersionedAPIs, DefaultVersion)};
+        {error, Reason} ->
+            {error, Reason}
+    end.
+
+-spec parse_versions(VersionedSpecPaths, SpecParser, Acc) -> Result when
+    VersionedSpecPaths :: [{version(), binary()}],
+    SpecParser :: module(),
+    Acc :: [{version(), api()}],
+    Result :: {ok, [{version(), api()}]} | {error, Reason},
+    Reason :: term().
+parse_versions([], _SpecParser, Acc) ->
+    {ok, lists:reverse(Acc)};
+parse_versions([{Version, SpecPath} | Rest], SpecParser, Acc) ->
+    case erf_parser:parse(SpecPath, SpecParser) of
+        {ok, API} ->
+            parse_versions(Rest, SpecParser, [{Version, API} | Acc]);
+        {error, Reason} ->
+            {error, Reason}
+    end.
+
+-spec merge_apis(VersionedAPIs, DefaultVersion) -> API when
+    VersionedAPIs :: [{version(), api()}, ...],
+    DefaultVersion :: version() | undefined,
+    API :: api().
+%% @doc Merges the APIs parsed from every version's spec file into a single API AST: each
+%% version's endpoints are prefixed with a `/<version>` path segment and tagged with their
+%% version, and every schema/parameter/body reference is namespaced by version to avoid
+%% collisions between, e.g., a `User` schema in v1 and a differently-shaped `User` in v2.
+%% When `DefaultVersion` is set, that version's endpoints are additionally exposed without the
+%% version prefix, so existing clients relying on the unprefixed routes keep working.
+merge_apis([{_Version, FirstAPI} | _] = VersionedAPIs, DefaultVersion) ->
+    Endpoints = lists:flatmap(
+        fun({Version, VersionAPI}) ->
+            VersionEndpoints = [
+                version_endpoint(Version, Endpoint)
+             || Endpoint <- maps:get(endpoints, VersionAPI)
+            ],
+            case Version of
+                DefaultVersion ->
+                    AliasEndpoints = [
+                        (rewrite_refs(Version, Endpoint))#{version => Version}
+                     || Endpoint <- maps:get(endpoints, VersionAPI)
+                    ],
+                    VersionEndpoints ++ AliasEndpoints;
+                _OtherVersion ->
+                    VersionEndpoints
+            end
+        end,
+        VersionedAPIs
+    ),
+    Schemas = lists:foldl(
+        fun({Version, VersionAPI}, Acc) ->
+            maps:fold(
+                fun(Ref, Schema, InnerAcc) ->
+                    InnerAcc#{prefix_ref(Version, Ref) => rewrite_refs(Version, Schema)}
+                end,
+                Acc,
+                maps:get(schemas, VersionAPI)
+            )
+        end,
+        #{},
+        VersionedAPIs
+    ),
+    FirstAPI#{endpoints => Endpoints, schemas => Schemas}.
+
+-spec version_endpoint(Version, Endpoint) -> VersionedEndpoint when
+    Version :: version(),
+    Endpoint :: erf_parser:endpoint(),
+    VersionedEndpoint :: erf_parser:endpoint().
+version_endpoint(Version, Endpoint) ->
+    Path = maps:get(path, Endpoint),
+    (rewrite_refs(Version, Endpoint))#{
+        path => <<"/", Version/binary, Path/binary>>,
+        version => Version
+    }.
+
+-spec rewrite_refs(Version, Term) -> NewTerm when
+    Version :: version(),
+    Term :: term(),
+    NewTerm :: term().
+%% @doc Recursively walks an arbitrary API AST fragment, namespacing every `ref` field it
+%% finds (schema/parameter/body references) with the given version, regardless of how deeply
+%% nested it is (inside object properties, array items, oneOf/anyOf branches, etc.).
+rewrite_refs(Version, Term) when is_map(Term) ->
+    maps:fold(
+        fun
+            (ref, Ref, Acc) when is_binary(Ref) ->
+                Acc#{ref => prefix_ref(Version, Ref)};
+            (Key, Value, Acc) ->
+                Acc#{Key => rewrite_refs(Version, Value)}
+        end,
+        #{},
+        Term
+    );
+rewrite_refs(Version, Term) when is_list(Term) ->
+    [rewrite_refs(Version, Item) || Item <- Term];
+rewrite_refs(_Version, Term) ->
+    Term.
+
+-spec prefix_ref(Version, Ref) -> NewRef when
+    Version :: version(),
+    Ref :: erf_parser:ref(),
+    NewRef :: erf_parser:ref().
+prefix_ref(Version, Ref) ->
+    <<Version/binary, "_", Ref/binary>>.
+
+-spec swagger_spec_routes(SpecPath, DefaultVersion) -> StaticRoutes when
+    SpecPath :: binary() | #{version() => binary()},
+    DefaultVersion :: version() | undefined,
+    StaticRoutes :: [static_route()].
+swagger_spec_routes(SpecPath, _DefaultVersion) when is_binary(SpecPath) ->
+    [{<<"/swagger/spec.json">>, {file, SpecPath}}];
+swagger_spec_routes(SpecPathsByVersion, DefaultVersion) when is_map(SpecPathsByVersion) ->
+    PerVersionRoutes = [
+        {<<"/swagger/", Version/binary, "/spec.json">>, {file, Path}}
+     || {Version, Path} <- maps:to_list(SpecPathsByVersion)
+    ],
+    case maps:find(DefaultVersion, SpecPathsByVersion) of
+        {ok, DefaultPath} ->
+            [{<<"/swagger/spec.json">>, {file, DefaultPath}} | PerVersionRoutes];
+        error ->
+            PerVersionRoutes
     end.
 
 -spec log_warnings(Warnings, Step) -> ok when

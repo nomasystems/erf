@@ -37,8 +37,9 @@
     route_patterns => erf:route_patterns(),
     router => erl_syntax:syntaxTree(),
     router_mod => module(),
-    spec_path => binary(),
+    spec_path => binary() | #{erf:version() => binary()},
     spec_parser => module(),
+    default_version => erf:version(),
     static_routes => [erf:static_route()],
     swagger_ui => boolean()
 }.

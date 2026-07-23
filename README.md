@@ -146,11 +146,12 @@ The configuration is provided as map with the following type spec:
 ```erl
 %%% erf.erl
 -type conf() :: #{
-    spec_path := binary(),
+    spec_path := binary() | #{version() => binary()},
     callback := module(),
     port => inet:port_number(),
     name => atom(),
     spec_parser => module(),
+    default_version => version(),
     preprocess_middlewares => [module()],
     postprocess_middlewares => [module()],
     ssl => boolean(),
@@ -169,11 +170,12 @@ The configuration is provided as map with the following type spec:
 ```
 
 A detailed description of each parameter can be found in the following list:
-- `spec_path` : Path to API specification file.
+- `spec_path` : Path to API specification file. To serve several versions of the same API from a single instance, provide a map from version to specification file path instead -- see [API versioning](#api-versioning).
 - `callback`: Name of the callback module.
 - `port`: Port the server will listen to. Defaults to `8080`.
 - `name`: Name under which the server is registered. Defaults to `erf`.
 - `spec_parser`: Name of the specification parser module. Defaults to `erf_parser_oas_3_0`.
+- `default_version`: Only meaningful when `spec_path` is a map. See [API versioning](#api-versioning). Defaults to `undefined`.
 - `preprocess_middlewares`: List of names of middlewares to be invoked before the request is forwarded to the callback. Defaults to `[]`.
 - `postprocess_middlewares`: List of names of middlewares to be invoked after the response is returned by the callback. Defaults to `[]`.
 - `ssl`: Boolean flag that enables/disables SSL. Defaults to `false`.
@@ -196,11 +198,118 @@ A detailed description of each parameter can be found in the following list:
 - **Preprocess middlewares** receive a request, do something with it (such as adding an entry to an access log) and return it for the next middleware or callback module to process it. This allows each preprocess middleware to modify the content of the request, updating any of its fields such as the `context` field, specifically dedicated to store contextual information middlewares might want to provide. Preprocess middlewares can short-circuit the processing flow, returning `{stop, Response}` or `{stop, Response, Request}` instead of just `Request`. The first of those alternatives prevents the following preprocess middlewares to execute, as well as the callback module, skipping directly to the postprocess middlewares. The second alternative response format does the same but allows to modify the request information.
 
 - **Callback module**.
-The router expects your callback module to export one function per operation defined in your API specification. It also expects each operation to include an `operationId` that, after being transformed to _snake_case_, will identify the function that is going to be called. Such function receives an `erf:request()` and must return an `erf:response()`.
+The router expects your callback module to export one function per operation defined in your API specification. It also expects each operation to include an `operationId` that, after being transformed to _snake_case_, will identify the function that is going to be called. Such function receives an `erf:request()` and must return an `erf:response()`. When `spec_path` is configured with several versions (see [API versioning](#api-versioning)), the same function handles every version that defines that `operationId`, and `erf:request()`'s `version` field tells it which one is being served.
 
 - **Postprocess middlewares** can also update the request, like the preprocess middlewares, by returning a `{erf:response(), erf:request()}` tuple or just return a `erf:response()` and leave the received request intact. This middlewares cannot short-circuit the processing flow.
 
 An example of an API specification and a supported callback can be seen in [Quickstart](#quickstart). Files `users_preprocess.erl` and `users_postprocess.erl` under `examples/users` exemplify how to use `erf` middlewares. Try out the example by running `rebar3 as examples shell` from the root of this project.
+
+## API versioning
+
+A design-first API is defined by its specification file, but that specification is not static: it evolves. `erf` lets a single running instance serve **several versions of the same API specification at once**, so that a new version can be rolled out without cutting off clients that are still using an older one.
+
+A runnable example lives in [`examples/products`](examples/products): a `Product`'s `price` used to be a plain number (v1) and, to support multiple currencies, became a `{amount, currency}` object (v2) -- a realistic, backwards-incompatible change. Run it with `rebar3 as examples_versioning shell` and try it out:
+```sh
+# v1 clients keep sending a plain number...
+$ curl -X POST localhost:8081/v1/products -d '{"name":"Widget","price":19.99}'
+{"id":"...","name":"Widget","price":{"amount":19.99,"currency":"USD"}}
+
+# ...while v2 clients use the new shape. Same `createProduct` operationId, same callback
+# function (`products_callback:create_product/1`), one function clause per shape.
+$ curl -X POST localhost:8081/v2/products -d '{"name":"Gizmo","price":{"amount":29.99,"currency":"EUR"}}'
+{"id":"...","name":"Gizmo","price":{"amount":29.99,"currency":"EUR"}}
+
+# `listProducts` never changed: `products_callback:list_products/1` doesn't even
+# mention `version`, and both versions -- and the unprefixed, `default_version`-aliased
+# route -- share the exact same function.
+$ curl localhost:8081/products
+
+# `discontinueProduct` only exists in v2's specification.
+$ curl -X DELETE localhost:8081/v2/products/<id>   # 204
+$ curl -X DELETE localhost:8081/v1/products/<id>   # 404: v1 never had this operation
+```
+(Note: unlike `examples/users`, this example doesn't require an `X-API-KEY` header.)
+
+### Configuring more than one version
+
+Instead of a single path, set `spec_path` to a map from version identifier to specification file:
+```erl
+UsersAPIConf = #{
+    spec_path => #{
+        <<"v1">> => <<"priv/users_v1.openapi.json">>,
+        <<"v2">> => <<"priv/users_v2.openapi.json">>
+    },
+    callback => users_callback,
+    port => 8080
+}.
+```
+
+When `spec_path` is a single binary (as in [Quickstart](#quickstart)), nothing changes: this is the exact same behaviour `erf` has always had. Versioning is an opt-in, additive feature -- a `binary()` `spec_path` never triggers any of what follows.
+
+Each version identifier (`<<"v1">>`, `<<"v2">>`, ... any `binary()` works, though it must be safe to use as a single URL path segment, i.e. it must not contain `/`) is prepended as the first path segment of every route defined by that version's specification. With the configuration above, `POST /users` as defined in `users_v1.openapi.json` is served at `POST /v1/users`, and the same operation as (possibly differently) defined in `users_v2.openapi.json` is served at `POST /v2/users`.
+
+Each version is parsed, type-checked and validated completely independently -- two versions can define the very same schema name with an incompatible shape (e.g. `v2`'s `User` requiring a field `v1`'s didn't have) with no risk of collision, because `erf` namespaces every generated validation module by version internally.
+
+### Sharing a callback function across versions, or not
+
+`erf` still expects **one callback module**, with one function per `operationId` -- that part of the contract does not change. What changes is how much code two versions of the same operation share, and that is entirely up to you, not something `erf` decides on your behalf:
+
+- If an operation is identical (or near-identical) across versions, just implement its callback function once. It will be called for every version that defines that `operationId`.
+- If a version needs different behaviour, pattern-match on the `version` field that `erf` adds to `erf:request()` for every request that was routed through a versioned `spec_path`:
+```erl
+%% Same callback function, small divergence handled inline.
+create_user(#{version := <<"v2">>} = Request) ->
+    %% v2-specific behaviour
+    ...;
+create_user(Request) ->
+    %% shared behaviour (also used by v1)
+    ...
+```
+- If the divergence is large enough that sharing code would hurt more than help, delegate to a separate module from within the matched clause -- plain Erlang, no framework mechanism involved:
+```erl
+create_user(#{version := <<"v2">>} = Request) ->
+    users_callback_v2:create_user(Request);
+create_user(Request) ->
+    legacy_create_user(Request).
+```
+
+Middlewares are unaffected: `preprocess_middlewares` and `postprocess_middlewares` keep receiving/returning `erf:request()`/`erf:response()` as before, and can read the same `version` field if they need to behave differently per version (e.g. to add a deprecation header to responses for a version that is being phased out).
+
+### Migrating an existing, single-spec API without breaking its clients
+
+Turning on versioning changes the URL of every route (a version prefix is added), which would break any client of an API that used to be served unprefixed. To adopt versioning without that disruption, set `default_version` to one of the configured versions: `erf` will then **also** expose that version's routes without the prefix, alongside the prefixed ones.
+```erl
+UsersAPIConf = #{
+    spec_path => #{
+        <<"v1">> => <<"priv/users_v1.openapi.json">>,
+        <<"v2">> => <<"priv/users_v2.openapi.json">>
+    },
+    default_version => <<"v1">>,
+    callback => users_callback,
+    port => 8080
+}.
+```
+With this configuration, `POST /users` (the original, unprefixed route) and `POST /v1/users` both reach v1, while `POST /v2/users` reaches v2. Once every client has migrated to the prefixed routes, `default_version` can be dropped in a later `reload_conf/2`.
+
+### Swagger UI
+
+With several versions configured, `swagger_ui => true` serves each version's raw specification under its own path -- `/swagger/v1/spec.json`, `/swagger/v2/spec.json`, etc. -- instead of the single `/swagger/spec.json` route used in single-spec mode. If `default_version` is set, `/swagger/spec.json` is additionally served as an alias for that version's specification. The bundled `/swagger` UI page itself is not currently version-aware (it renders whichever specification `/swagger/spec.json` resolves to, if any).
+
+### A note on hot-reloading a versioned `spec_path`
+
+As described in [Hot-configuration reloading](#hot-configuration-reloading), `reload_conf/2` merges the map you pass with the running configuration **one level deep only**: whatever value you provide for a key replaces the previous value for that key entirely, it is not merged recursively. This applies to `spec_path` exactly as it applies to every other key. This means adding a new version requires resending the *entire* map, including the versions that were already there:
+```erl
+%% Adds `v3` to a running instance that was serving `v1` and `v2`.
+%% Omitting `v1`/`v2` here would remove them, not just leave them untouched.
+erf:reload_conf(users, #{
+    spec_path => #{
+        <<"v1">> => <<"priv/users_v1.openapi.json">>,
+        <<"v2">> => <<"priv/users_v2.openapi.json">>,
+        <<"v3">> => <<"priv/users_v3.openapi.json">>
+    }
+}).
+```
+Retiring a version is the same operation in reverse: resend the map without that version's key.
 
 ## Hot-configuration reloading
 
@@ -216,13 +325,16 @@ The following type spec corresponds to the runtime configuration of an `erf` ins
     postprocess_middlewares => [module()],
     router => erl_syntax:syntaxTree(), % not manually updatable
     router_mod => module(), % not manually updatable
-    spec_path => binary(),
+    spec_path => binary() | #{erf:version() => binary()},
     spec_parser => module(),
+    default_version => erf:version(),
     static_routes => [erf:static_route()],
     swagger_ui => boolean()
 }.
 ```
 > __NOTE:__ the `router` and `router_mod` keys are not updatable as they are automatically computed when new configuration is provided.
+>
+> __NOTE:__ `reload_conf/2` merges its argument with the running configuration one level deep only, so a map-valued `spec_path` is replaced wholesale, not merged version by version. See [API versioning](#api-versioning) for the practical implications of this.
 
 ## Static routes
 

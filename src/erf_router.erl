@@ -212,6 +212,7 @@ handle_ast(API, #{callback := Callback} = Opts) ->
                 )
             ),
             EndpointParameters = maps:get(parameters, Endpoint),
+            Version = maps:get(version, Endpoint, undefined),
             AllowedMethods = lists:map(
                 fun(Operation) ->
                     Method = erl_syntax:atom(
@@ -313,14 +314,7 @@ handle_ast(API, #{callback := Callback} = Opts) ->
                                                 [
                                                     erl_syntax:map_expr(
                                                         erl_syntax:variable('Request'),
-                                                        [
-                                                            erl_syntax:map_field_assoc(
-                                                                erl_syntax:atom('path_parameters'),
-                                                                erl_syntax:variable(
-                                                                    'PathParameters'
-                                                                )
-                                                            )
-                                                        ]
+                                                        request_extra_fields(Version)
                                                     )
                                                 ]
                                             )
@@ -550,6 +544,35 @@ handle_ast(API, #{callback := Callback} = Opts) ->
         erl_syntax:atom(handle),
         RESTClauses ++ StaticClauses ++ [NotFoundClause]
     ).
+
+-spec request_extra_fields(Version) -> Fields when
+    Version :: erf:version() | undefined,
+    Fields :: [erl_syntax:syntaxTree()].
+%% @doc Builds the extra fields spliced into the `Request` map handed to the callback: the
+%% resolved path parameters and, for endpoints belonging to a versioned API, the version they
+%% were matched under (so a shared callback function can branch on it if it needs to).
+request_extra_fields(undefined) ->
+    [
+        erl_syntax:map_field_assoc(
+            erl_syntax:atom('path_parameters'),
+            erl_syntax:variable('PathParameters')
+        )
+    ];
+request_extra_fields(Version) ->
+    [
+        erl_syntax:map_field_assoc(
+            erl_syntax:atom('path_parameters'),
+            erl_syntax:variable('PathParameters')
+        ),
+        erl_syntax:map_field_assoc(
+            erl_syntax:atom(version),
+            erl_syntax:binary([
+                erl_syntax:binary_field(
+                    erl_syntax:string(erlang:binary_to_list(Version))
+                )
+            ])
+        )
+    ].
 
 -spec is_valid_request(Parameters, Request) -> Result when
     Parameters :: [erf_parser:parameter()],

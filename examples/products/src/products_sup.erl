@@ -31,7 +31,10 @@ init([]) ->
         % v1 is also served unprefixed, so pre-existing clients of a single-spec `/products`
         % API are unaffected by the switch to versioning.
         default_version => <<"v1">>,
-        callback => products_callback,
+        callback => #{
+            <<"v1">> => products_v1_callback,
+            <<"v2">> => products_v2_callback
+        },
         port => 8081
     },
     ProductsChildSpec = {

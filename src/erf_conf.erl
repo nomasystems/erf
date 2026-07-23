@@ -30,7 +30,7 @@
 
 %%% TYPES
 -type t() :: #{
-    callback => module(),
+    callback => module() | #{erf:version() => module()},
     log_level => logger:level(),
     preprocess_middlewares => [module()],
     postprocess_middlewares => [module()],

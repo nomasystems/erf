@@ -29,7 +29,8 @@
 %%% TYPES
 -type t() :: erl_syntax:syntaxTree().
 -type callback() :: module().
--type generator_opts() :: #{callback := callback(), static_routes := [erf:static_route()]}.
+-type callback_spec() :: callback() | #{erf:version() => callback()}.
+-type generator_opts() :: #{callback := callback_spec(), static_routes := [erf:static_route()]}.
 
 %%%-----------------------------------------------------------------------------
 %%% EXTERNAL EXPORTS
@@ -213,6 +214,7 @@ handle_ast(API, #{callback := Callback} = Opts) ->
             ),
             EndpointParameters = maps:get(parameters, Endpoint),
             Version = maps:get(version, Endpoint, undefined),
+            EndpointCallback = resolve_callback(Callback, Version),
             AllowedMethods = lists:map(
                 fun(Operation) ->
                     Method = erl_syntax:atom(
@@ -302,7 +304,7 @@ handle_ast(API, #{callback := Callback} = Opts) ->
                                         none,
                                         [
                                             erl_syntax:application(
-                                                erl_syntax:atom(Callback),
+                                                erl_syntax:atom(EndpointCallback),
                                                 erl_syntax:atom(
                                                     erlang:binary_to_atom(
                                                         erf_util:to_snake_case(
@@ -544,6 +546,18 @@ handle_ast(API, #{callback := Callback} = Opts) ->
         erl_syntax:atom(handle),
         RESTClauses ++ StaticClauses ++ [NotFoundClause]
     ).
+
+-spec resolve_callback(CallbackSpec, Version) -> Callback when
+    CallbackSpec :: callback_spec(),
+    Version :: erf:version() | undefined,
+    Callback :: callback().
+%% @doc Resolves which callback module handles a given endpoint: a single callback module
+%% (the only shape `erf` has ever supported) is shared by every endpoint, while a per-version
+%% map gives each version's endpoints their own dedicated module.
+resolve_callback(Callback, _Version) when is_atom(Callback) ->
+    Callback;
+resolve_callback(CallbacksByVersion, Version) when is_map(CallbacksByVersion) ->
+    maps:get(Version, CallbacksByVersion).
 
 -spec request_extra_fields(Version) -> Fields when
     Version :: erf:version() | undefined,

@@ -45,7 +45,7 @@
 -type body() :: undefined | json:decode_value().
 -type conf() :: #{
     spec_path := binary() | #{version() => binary()},
-    callback := module(),
+    callback := module() | #{version() => module()},
     port => inet:port_number(),
     name => atom(),
     spec_parser => module(),
@@ -329,7 +329,7 @@ build_http_server_conf(ErfConf) ->
 when
     SpecPath :: binary() | #{version() => binary()},
     SpecParser :: module(),
-    Callback :: module(),
+    Callback :: module() | #{version() => module()},
     StaticRoutes :: [static_route()],
     SwaggerUI :: boolean(),
     DefaultVersion :: version() | undefined,

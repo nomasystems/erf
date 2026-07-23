@@ -27,7 +27,8 @@ all() ->
         single_spec_path_is_unaffected,
         multi_version_routing_and_isolated_validation,
         default_version_alias_routes,
-        swagger_ui_multi_version
+        swagger_ui_multi_version,
+        per_version_callback_modules
     ].
 
 %%%-----------------------------------------------------------------------------
@@ -310,4 +311,70 @@ swagger_ui_multi_version(_Conf) ->
 
     ok = erf:stop(erf_server),
     meck:unload(erf_versioning_callback),
+    ok.
+
+per_version_callback_modules(_Conf) ->
+    %% `callback` can also be a per-version map, giving each version its own dedicated
+    %% controller module instead of sharing one -- useful when versions diverge enough that a
+    %% single module branching on `version` would hurt more than it helps.
+    meck:new([erf_versioning_callback_v1, erf_versioning_callback_v2], [non_strict, no_link]),
+
+    meck:expect(
+        erf_versioning_callback_v1,
+        list_items,
+        fun(_Request) -> {200, [], <<"from v1 module">>} end
+    ),
+    meck:expect(
+        erf_versioning_callback_v2,
+        list_items,
+        fun(_Request) -> {200, [], <<"from v2 module">>} end
+    ),
+    meck:expect(
+        erf_versioning_callback_v2,
+        delete_item,
+        fun(_Request) -> {204, [], undefined} end
+    ),
+
+    V1Path = filename:join(
+        [code:lib_dir(erf), "test", <<"fixtures/versioning_v1_oas_3_0_spec.json">>]
+    ),
+    V2Path = filename:join(
+        [code:lib_dir(erf), "test", <<"fixtures/versioning_v2_oas_3_0_spec.json">>]
+    ),
+
+    {ok, _Pid} = erf:start_link(#{
+        spec_path => #{<<"v1">> => V1Path, <<"v2">> => V2Path},
+        callback => #{
+            <<"v1">> => erf_versioning_callback_v1,
+            <<"v2">> => erf_versioning_callback_v2
+        },
+        port => 8789,
+        name => erf_server
+    }),
+
+    %% Same operationId (`listItems`), but each version's route reaches its own module.
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 200, "OK"}, _H1, <<"\"from v1 module\"">>}},
+        httpc:request(
+            get, {"http://localhost:8789/v1/items", []}, [], [{body_format, binary}]
+        )
+    ),
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 200, "OK"}, _H2, <<"\"from v2 module\"">>}},
+        httpc:request(
+            get, {"http://localhost:8789/v2/items", []}, [], [{body_format, binary}]
+        )
+    ),
+
+    %% `deleteItem` only exists in v2's spec, so only the v2 module needs to implement it.
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 204, "No Content"}, _H3, _Body3}},
+        httpc:request(
+            delete, {"http://localhost:8789/v2/items/abc", []}, [], [{body_format, binary}]
+        )
+    ),
+
+    ok = erf:stop(erf_server),
+    meck:unload(erf_versioning_callback_v1),
+    meck:unload(erf_versioning_callback_v2),
     ok.

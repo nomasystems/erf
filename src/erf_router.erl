@@ -664,24 +664,6 @@ is_valid_request(RawParameters, Request) ->
                             required => true
                         }};
                     query ->
-                        DefaultFalse =
-                            erl_syntax:binary([
-                                erl_syntax:binary_field(
-                                    erl_syntax:string("false")
-                                )
-                            ]),
-                        DefaultZero =
-                            erl_syntax:binary([
-                                erl_syntax:binary_field(
-                                    erl_syntax:string("0")
-                                )
-                            ]),
-                        DefaultZeroFloat =
-                            erl_syntax:binary([
-                                erl_syntax:binary_field(
-                                    erl_syntax:string("0.0")
-                                )
-                            ]),
                         ParameterSchemaType =
                             case ParameterSchema of
                                 undefined ->
@@ -759,8 +741,8 @@ is_valid_request(RawParameters, Request) ->
                                     end;
                                 <<"boolean">> ->
                                     erl_syntax:application(
-                                        erl_syntax:atom(erlang),
-                                        erl_syntax:atom(binary_to_atom),
+                                        erl_syntax:atom(erf_util),
+                                        erl_syntax:atom(maybe_binary_to_atom),
                                         [
                                             erl_syntax:application(
                                                 erl_syntax:atom(proplists),
@@ -773,8 +755,7 @@ is_valid_request(RawParameters, Request) ->
                                                             )
                                                         )
                                                     ]),
-                                                    erl_syntax:variable('QueryParameters'),
-                                                    DefaultFalse
+                                                    erl_syntax:variable('QueryParameters')
                                                 ]
                                             )
                                         ]
@@ -782,7 +763,7 @@ is_valid_request(RawParameters, Request) ->
                                 <<"integer">> ->
                                     erl_syntax:application(
                                         erl_syntax:atom(erf_util),
-                                        erl_syntax:atom(safe_binary_to_integer),
+                                        erl_syntax:atom(maybe_safe_binary_to_integer),
                                         [
                                             erl_syntax:application(
                                                 erl_syntax:atom(proplists),
@@ -795,8 +776,7 @@ is_valid_request(RawParameters, Request) ->
                                                             )
                                                         )
                                                     ]),
-                                                    erl_syntax:variable('QueryParameters'),
-                                                    DefaultZero
+                                                    erl_syntax:variable('QueryParameters')
                                                 ]
                                             )
                                         ]
@@ -804,7 +784,7 @@ is_valid_request(RawParameters, Request) ->
                                 <<"number">> ->
                                     erl_syntax:application(
                                         erl_syntax:atom(erf_util),
-                                        erl_syntax:atom(safe_binary_to_number),
+                                        erl_syntax:atom(maybe_safe_binary_to_number),
                                         [
                                             erl_syntax:application(
                                                 erl_syntax:atom(proplists),
@@ -817,8 +797,7 @@ is_valid_request(RawParameters, Request) ->
                                                             )
                                                         )
                                                     ]),
-                                                    erl_syntax:variable('QueryParameters'),
-                                                    DefaultZeroFloat
+                                                    erl_syntax:variable('QueryParameters')
                                                 ]
                                             )
                                         ]

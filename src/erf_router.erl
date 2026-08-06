@@ -950,8 +950,9 @@ preprocess(RawRequest) ->
                         error:Reason ->
                             {error, {cannot_decode_body, Reason}}
                     end;
-                _RawBody ->
-                    {error, {cannot_decode_body, invalid_json}}
+                _EmptyBody ->
+                    % Content-Type describes content that is not there, so it says nothing.
+                    {ok, RawRequest#{body => undefined}}
             end;
         _ContentType ->
             {ok, RawRequest}

@@ -307,6 +307,26 @@ foo(_Conf) ->
     ),
 
     ?assertMatch(
+        {ok, {{"HTTP/1.1", 201, "Created"}, _Result3Headers, <<"\"bar\"">>}},
+        httpc:request(
+            post,
+            {"http://localhost:8789/1/foo", [], "application/json", <<>>},
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 200, "OK"}, _ResultHeaders, <<"\"bar\"">>}},
+        httpc:request(
+            get,
+            {"http://localhost:8789/1/foo", [{"content-type", "application/json"}]},
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
+    ?assertMatch(
         {ok, {{"HTTP/1.1", 404, "Not Found"}, _Result3Headers, <<>>}},
         httpc:request(
             get,

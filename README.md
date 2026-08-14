@@ -394,6 +394,27 @@ Each entry in `errors` names one failure:
 
 The response never holds a value that the caller sent. It names constraints from the specification, which the server already publishes through Swagger UI.
 
+## Unsupported methods
+
+A request that names a path in the specification with a method that the path does not define gets a `405` response. The response carries the `Allow` header that [RFC 9110](https://www.rfc-editor.org/rfc/rfc9110#section-15.5.6) section 15.5.6 requires, and a problem document with the same content type:
+
+```
+HTTP/1.1 405 Method Not Allowed
+allow: GET, POST
+content-type: application/problem+json
+```
+
+```json
+{
+  "type": "about:blank",
+  "title": "Method Not Allowed",
+  "status": 405,
+  "detail": "The target resource does not support the request method. Supported methods: GET, POST."
+}
+```
+
+The header names the methods that the specification defines for the path, and nothing else. `HEAD` and `OPTIONS` appear only when the path defines them.
+
 ## Troubleshooting
 
 Diagnosing the cause of a `400 Bad Request error` for a specific request can become challenging due to the automated generation of the router's source code. To simplify the process of analyzing this generated code, `erf` provides the `get_router/1` function. This function offers the router's source code in binary form, allowing you to conveniently manipulate it using the most suitable handler for your particular use case, whether it's printing the code to a file or using `io` operations.

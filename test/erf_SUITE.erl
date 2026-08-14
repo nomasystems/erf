@@ -27,6 +27,7 @@ all() ->
         foo,
         validation_detail,
         malformed_body,
+        method_not_allowed,
         middlewares,
         statics,
         swagger_ui,
@@ -544,6 +545,53 @@ malformed_body(_Conf) ->
     ok = erf:stop(erf_malformed_server),
 
     meck:unload(erf_malformed_callback),
+
+    ok.
+
+method_not_allowed(_Conf) ->
+    meck:new([erf_not_allowed_callback], [non_strict, no_link]),
+    meck:expect(erf_not_allowed_callback, list_users, fun(_Request) -> {200, [], <<"ok">>} end),
+    meck:expect(erf_not_allowed_callback, get_user, fun(_Request) -> {200, [], <<"ok">>} end),
+    meck:expect(erf_not_allowed_callback, create_user, fun(_Request) -> {201, [], <<"ok">>} end),
+
+    {ok, _Pid} = erf:start_link(#{
+        spec_path => filename:join(
+            [code:lib_dir(erf), "test", <<"fixtures/validation_oas_3_0_spec.json">>]
+        ),
+        callback => erf_not_allowed_callback,
+        port => 8792,
+        name => erf_not_allowed_server
+    }),
+
+    {ok, {{"HTTP/1.1", 405, _Reason}, Headers, Body}} = httpc:request(
+        delete, {"http://localhost:8792/users", []}, [], [{body_format, binary}]
+    ),
+
+    ?assertEqual("GET, POST", proplists:get_value("allow", Headers)),
+    ?assertEqual("application/problem+json", proplists:get_value("content-type", Headers)),
+    ?assertMatch(
+        #{
+            <<"type">> := <<"about:blank">>,
+            <<"title">> := <<"Method Not Allowed">>,
+            <<"status">> := 405,
+            <<"detail">> :=
+                <<
+                    "The target resource does not support the request method. "
+                    "Supported methods: GET, POST."
+                >>
+        },
+        json:decode(Body)
+    ),
+
+    {ok, {{"HTTP/1.1", 405, _SingleReason}, SingleHeaders, _SingleBody}} = httpc:request(
+        delete, {"http://localhost:8792/users/1", []}, [], [{body_format, binary}]
+    ),
+
+    ?assertEqual("GET", proplists:get_value("allow", SingleHeaders)),
+
+    ok = erf:stop(erf_not_allowed_server),
+
+    meck:unload(erf_not_allowed_callback),
 
     ok.
 

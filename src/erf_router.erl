@@ -214,6 +214,7 @@ handle_ast(API, #{callback := Callback} = Opts) ->
             EndpointParameters = maps:get(parameters, Endpoint),
             Version = maps:get(version, Endpoint, undefined),
             EndpointCallback = resolve_callback(Callback, Version),
+            Operations = maps:get(operations, Endpoint, []),
             AllowedMethods = lists:map(
                 fun(Operation) ->
                     Method = erl_syntax:atom(
@@ -350,39 +351,9 @@ handle_ast(API, #{callback := Callback} = Opts) ->
                             ]
                     )
                 end,
-                maps:get(operations, Endpoint, [])
+                Operations
             ),
-            NotAllowedMethod =
-                erl_syntax:clause(
-                    [
-                        erl_syntax:match_expr(
-                            erl_syntax:variable('Request'),
-                            erl_syntax:map_expr(
-                                none,
-                                [
-                                    erl_syntax:map_field_exact(
-                                        erl_syntax:atom(path),
-                                        Path
-                                    ),
-                                    erl_syntax:map_field_exact(
-                                        erl_syntax:atom(method),
-                                        erl_syntax:variable('_Method')
-                                    )
-                                ]
-                            )
-                        )
-                    ],
-                    none,
-                    [
-                        erl_syntax:tuple(
-                            [
-                                erl_syntax:integer(405),
-                                erl_syntax:list([]),
-                                erl_syntax:atom(undefined)
-                            ]
-                        )
-                    ]
-                ),
+            NotAllowedMethod = method_not_allowed_clause(Path, Operations),
 
             AllowedMethods ++ [NotAllowedMethod]
         end,
@@ -551,6 +522,123 @@ handle_ast(API, #{callback := Callback} = Opts) ->
         erl_syntax:atom(handle),
         RESTClauses ++ StaticClauses ++ [NotFoundClause]
     ).
+
+-spec method_not_allowed_clause(Path, Operations) -> Clause when
+    Path :: erl_syntax:syntaxTree(),
+    Operations :: [erf_parser:operation()],
+    Clause :: erl_syntax:syntaxTree().
+-doc """
+Builds the clause that answers a method the endpoint does not define.
+
+The spec fixes the set of supported methods, so the `Allow` header of RFC 9110
+section 15.5.6 and the problem document are literals that the compiler lifts
+into the module constant pool. A 405 costs no work at runtime.
+""".
+method_not_allowed_clause(Path, Operations) ->
+    Allow = allow(Operations),
+    erl_syntax:clause(
+        [
+            erl_syntax:match_expr(
+                erl_syntax:variable('Request'),
+                erl_syntax:map_expr(
+                    none,
+                    [
+                        erl_syntax:map_field_exact(
+                            erl_syntax:atom(path),
+                            Path
+                        ),
+                        erl_syntax:map_field_exact(
+                            erl_syntax:atom(method),
+                            erl_syntax:variable('_Method')
+                        )
+                    ]
+                )
+            )
+        ],
+        none,
+        [
+            erl_syntax:tuple(
+                [
+                    erl_syntax:integer(405),
+                    erl_syntax:list([
+                        header(<<"allow">>, Allow),
+                        header(<<"content-type">>, <<"application/problem+json">>)
+                    ]),
+                    binary_ast(method_not_allowed_body(Allow))
+                ]
+            )
+        ]
+    ).
+
+-spec allow(Operations) -> Allow when
+    Operations :: [erf_parser:operation()],
+    Allow :: binary().
+-doc """
+Builds the value of the `Allow` header from the operations of an endpoint.
+
+The router answers exactly the methods that the spec defines, so the header
+names those and nothing else. `HEAD` and `OPTIONS` appear only when the spec
+defines them, because the router has no implicit clause for either.
+""".
+allow(Operations) ->
+    Methods = lists:usort([method_label(maps:get(method, Operation)) || Operation <- Operations]),
+    erlang:iolist_to_binary(lists:join(<<", ">>, [Name || {_Rank, Name} <- Methods])).
+
+-spec method_label(Method) -> Label when
+    Method :: erf:method(),
+    Label :: {Rank :: pos_integer(), Name :: binary()}.
+%% The rank makes the header order stable across builds, whatever order the
+%% parser hands the operations in. The name is the case-sensitive token of
+%% RFC 9110 section 9.
+method_label(get) -> {1, <<"GET">>};
+method_label(head) -> {2, <<"HEAD">>};
+method_label(post) -> {3, <<"POST">>};
+method_label(put) -> {4, <<"PUT">>};
+method_label(patch) -> {5, <<"PATCH">>};
+method_label(delete) -> {6, <<"DELETE">>};
+method_label(options) -> {7, <<"OPTIONS">>};
+method_label(trace) -> {8, <<"TRACE">>};
+method_label(connect) -> {9, <<"CONNECT">>}.
+
+-spec method_not_allowed_body(Allow) -> Body when
+    Allow :: binary(),
+    Body :: binary().
+-doc "Builds the RFC 9457 problem document of a 405 response.".
+method_not_allowed_body(<<>>) ->
+    method_not_allowed_problem(<<"The target resource does not support the request method.">>);
+method_not_allowed_body(Allow) ->
+    method_not_allowed_problem(
+        <<"The target resource does not support the request method. Supported methods: ",
+            Allow/binary, ".">>
+    ).
+
+-spec method_not_allowed_problem(Detail) -> Body when
+    Detail :: binary(),
+    Body :: binary().
+method_not_allowed_problem(Detail) ->
+    erlang:iolist_to_binary(
+        json:encode(#{
+            <<"type">> => <<"about:blank">>,
+            <<"title">> => <<"Method Not Allowed">>,
+            <<"status">> => 405,
+            <<"detail">> => Detail
+        })
+    ).
+
+-spec header(Name, Value) -> Header when
+    Name :: binary(),
+    Value :: binary(),
+    Header :: erl_syntax:syntaxTree().
+header(Name, Value) ->
+    erl_syntax:tuple([binary_ast(Name), binary_ast(Value)]).
+
+-spec binary_ast(Value) -> AST when
+    Value :: binary(),
+    AST :: erl_syntax:syntaxTree().
+binary_ast(Value) ->
+    erl_syntax:binary([
+        erl_syntax:binary_field(erl_syntax:string(erlang:binary_to_list(Value)))
+    ]).
 
 -spec resolve_callback(CallbackSpec, Version) -> Callback when
     CallbackSpec :: callback_spec(),

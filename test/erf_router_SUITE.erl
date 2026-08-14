@@ -30,7 +30,8 @@ all() ->
 groups() ->
     [
         {route, [parallel], [
-            foo
+            foo,
+            method_not_allowed
         ]}
     ].
 
@@ -223,7 +224,26 @@ foo(_Conf) ->
         peer => <<"localhost">>
     },
 
-    ?assertEqual({405, [], undefined}, Mod:handle(NotAllowedReq)),
+    {405, NotAllowedHeaders, NotAllowedBody} = Mod:handle(NotAllowedReq),
+
+    ?assertEqual(<<"GET">>, proplists:get_value(<<"allow">>, NotAllowedHeaders)),
+    ?assertEqual(
+        <<"application/problem+json">>,
+        proplists:get_value(<<"content-type">>, NotAllowedHeaders)
+    ),
+    ?assertMatch(
+        #{
+            <<"type">> := <<"about:blank">>,
+            <<"title">> := <<"Method Not Allowed">>,
+            <<"status">> := 405,
+            <<"detail">> :=
+                <<
+                    "The target resource does not support the request method. "
+                    "Supported methods: GET."
+                >>
+        },
+        json:decode(NotAllowedBody)
+    ),
 
     meck:unload([
         foo_callback,
@@ -232,3 +252,83 @@ foo(_Conf) ->
     ]),
 
     ok.
+
+method_not_allowed(_Conf) ->
+    API = #{
+        name => <<"Things">>,
+        version => <<"1.0.0">>,
+        schemas => #{},
+        endpoints => [
+            #{
+                path => <<"/things">>,
+                parameters => [],
+                operations => [
+                    thing_operation(<<"delete_things">>, delete),
+                    thing_operation(<<"get_things">>, get),
+                    thing_operation(<<"post_things">>, post)
+                ]
+            },
+            #{
+                path => <<"/things/health">>,
+                parameters => [],
+                operations => [
+                    thing_operation(<<"get_things_health">>, get)
+                ]
+            }
+        ]
+    },
+
+    {Mod, Router} = erf_router:generate(API, #{callback => things_callback}),
+    ok = erf_router:load(Router),
+
+    {405, Headers, Body} = Mod:handle(request([<<"things">>], put)),
+
+    ?assertEqual(<<"GET, POST, DELETE">>, proplists:get_value(<<"allow">>, Headers)),
+    ?assertMatch(
+        #{
+            <<"status">> := 405,
+            <<"detail">> :=
+                <<
+                    "The target resource does not support the request method. "
+                    "Supported methods: GET, POST, DELETE."
+                >>
+        },
+        json:decode(Body)
+    ),
+
+    {405, HeadHeaders, _HeadBody} = Mod:handle(request([<<"things">>], head)),
+
+    ?assertEqual(<<"GET, POST, DELETE">>, proplists:get_value(<<"allow">>, HeadHeaders)),
+
+    {405, HealthHeaders, _HealthBody} = Mod:handle(request([<<"things">>, <<"health">>], options)),
+
+    ?assertEqual(<<"GET">>, proplists:get_value(<<"allow">>, HealthHeaders)),
+
+    ok.
+
+%%%-----------------------------------------------------------------------------
+%%% HELPER FUNCTIONS
+%%%-----------------------------------------------------------------------------
+thing_operation(Id, Method) ->
+    #{
+        id => Id,
+        method => Method,
+        parameters => [],
+        request => #{
+            body => #{
+                ref => <<Id/binary, "_request_body">>,
+                required => false
+            }
+        },
+        responses => #{}
+    }.
+
+request(Path, Method) ->
+    #{
+        path => Path,
+        method => Method,
+        query_parameters => [],
+        headers => [],
+        body => undefined,
+        peer => <<"localhost">>
+    }.

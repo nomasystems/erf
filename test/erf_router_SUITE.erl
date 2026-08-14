@@ -164,9 +164,55 @@ foo(_Conf) ->
 
     ?assertEqual({200, [], <<"bar">>}, Mod:handle(Req)),
 
-    meck:expect(get_foo_request_body, is_valid, fun(_Value) -> {false, reason} end),
+    meck:expect(get_foo_request_body, is_valid, fun(_Value) ->
+        {false, {'$.type', <<"Value is not an object">>}}
+    end),
 
-    ?assertEqual({400, [], undefined}, Mod:handle(Req)),
+    {400, BadRequestHeaders, BadRequestBody} = Mod:handle(Req),
+
+    ?assertEqual(
+        <<"application/problem+json">>,
+        proplists:get_value(<<"content-type">>, BadRequestHeaders)
+    ),
+    ?assertMatch(
+        #{
+            <<"status">> := 400,
+            <<"title">> := <<"Bad Request">>,
+            <<"detail">> := <<"Request body failed schema validation">>,
+            <<"errors">> := [
+                #{
+                    <<"in">> := <<"body">>,
+                    <<"pointer">> := <<>>,
+                    <<"keyword">> := <<"type">>,
+                    <<"detail">> := <<"Value is not an object">>
+                }
+            ]
+        },
+        json:decode(BadRequestBody)
+    ),
+
+    meck:expect(version_foo_version, is_valid, fun(_Value) ->
+        {false, {'$.pattern', <<"String does not match pattern ^[0-9]+$">>}}
+    end),
+    meck:expect(get_foo_request_body, is_valid, fun(_Value) -> true end),
+
+    {400, _PathHeaders, PathBody} = Mod:handle(Req),
+
+    ?assertMatch(
+        #{
+            <<"detail">> := <<"Path parameter \"version\" failed schema validation">>,
+            <<"errors">> := [
+                #{
+                    <<"in">> := <<"path">>,
+                    <<"pointer">> := <<"/version">>,
+                    <<"keyword">> := <<"pattern">>
+                }
+            ]
+        },
+        json:decode(PathBody)
+    ),
+
+    meck:expect(version_foo_version, is_valid, fun(_Value) -> true end),
 
     NotAllowedReq = #{
         path => [<<"1">>, <<"foo">>],

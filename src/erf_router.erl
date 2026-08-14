@@ -250,10 +250,12 @@ handle_ast(API, #{callback := Callback} = Opts) ->
                             PathParameters
                         )
                     ),
-                    IsValidRequestAST = is_valid_request(
-                        Parameters,
-                        Request
-                    ),
+                    #{
+                        bindings := ParameterBindings,
+                        is_valid_request := IsValidRequestAST,
+                        sources := SourcesAST,
+                        presence := PresenceAST
+                    } = request_validation(Parameters, Request),
 
                     erl_syntax:clause(
                         [
@@ -291,58 +293,62 @@ handle_ast(API, #{callback := Callback} = Opts) ->
                             erl_syntax:match_expr(
                                 erl_syntax:variable('PathParameters'),
                                 PathParametersAST
-                            ),
-                            erl_syntax:match_expr(
-                                erl_syntax:variable('IsValidRequest'),
-                                IsValidRequestAST
-                            ),
-                            erl_syntax:case_expr(
-                                erl_syntax:variable('IsValidRequest'),
-                                [
-                                    erl_syntax:clause(
-                                        [erl_syntax:atom(true)],
-                                        none,
-                                        [
-                                            erl_syntax:application(
-                                                erl_syntax:atom(EndpointCallback),
-                                                erl_syntax:atom(
-                                                    erlang:binary_to_atom(
-                                                        erf_util:to_snake_case(
-                                                            maps:get(id, Operation)
-                                                        ),
-                                                        utf8
-                                                    )
-                                                ),
-                                                [
-                                                    erl_syntax:map_expr(
-                                                        erl_syntax:variable('Request'),
-                                                        request_extra_fields(Version)
-                                                    )
-                                                ]
-                                            )
-                                        ]
-                                    ),
-                                    erl_syntax:clause(
-                                        [
-                                            erl_syntax:tuple([
-                                                erl_syntax:atom(false),
-                                                erl_syntax:variable('_Reason')
-                                            ])
-                                        ],
-                                        none,
-                                        [
-                                            erl_syntax:tuple(
-                                                [
-                                                    erl_syntax:integer(400),
-                                                    erl_syntax:list([]),
-                                                    erl_syntax:atom(undefined)
-                                                ]
-                                            )
-                                        ]
-                                    )
-                                ]
                             )
-                        ]
+                        ] ++ ParameterBindings ++
+                            [
+                                erl_syntax:match_expr(
+                                    erl_syntax:variable('IsValidRequest'),
+                                    IsValidRequestAST
+                                ),
+                                erl_syntax:case_expr(
+                                    erl_syntax:variable('IsValidRequest'),
+                                    [
+                                        erl_syntax:clause(
+                                            [erl_syntax:atom(true)],
+                                            none,
+                                            [
+                                                erl_syntax:application(
+                                                    erl_syntax:atom(EndpointCallback),
+                                                    erl_syntax:atom(
+                                                        erlang:binary_to_atom(
+                                                            erf_util:to_snake_case(
+                                                                maps:get(id, Operation)
+                                                            ),
+                                                            utf8
+                                                        )
+                                                    ),
+                                                    [
+                                                        erl_syntax:map_expr(
+                                                            erl_syntax:variable('Request'),
+                                                            request_extra_fields(Version)
+                                                        )
+                                                    ]
+                                                )
+                                            ]
+                                        ),
+                                        erl_syntax:clause(
+                                            [
+                                                erl_syntax:tuple([
+                                                    erl_syntax:atom(false),
+                                                    erl_syntax:variable('Erf_Reason')
+                                                ])
+                                            ],
+                                            none,
+                                            [
+                                                erl_syntax:application(
+                                                    erl_syntax:atom(erf_validation),
+                                                    erl_syntax:atom(bad_request),
+                                                    [
+                                                        erl_syntax:variable('Erf_Reason'),
+                                                        SourcesAST,
+                                                        PresenceAST
+                                                    ]
+                                                )
+                                            ]
+                                        )
+                                    ]
+                                )
+                            ]
                     )
                 end,
                 maps:get(operations, Endpoint, [])
@@ -588,13 +594,26 @@ request_extra_fields(Version) ->
         )
     ].
 
--spec is_valid_request(Parameters, Request) -> Result when
+-spec request_validation(Parameters, Request) -> Result when
     Parameters :: [erf_parser:parameter()],
     Request :: erf_parser:request(),
-    Result :: erl_syntax:syntaxTree().
-is_valid_request(RawParameters, Request) ->
+    Result :: #{
+        bindings := [erl_syntax:syntaxTree()],
+        is_valid_request := erl_syntax:syntaxTree(),
+        sources := erl_syntax:syntaxTree(),
+        presence := erl_syntax:syntaxTree()
+    }.
+%% @doc Builds the validation section of an operation clause.
+%%
+%% `bindings' hoists every parameter value into its own variable so the failure
+%% branch can tell an absent value from an invalid one without repeating the
+%% lookup. `sources' and `presence' are the two tuples `erf_validation' needs to
+%% turn an `ndto' reason into a problem document: the first is a literal that
+%% names each condition, the second is evaluated only when validation fails.
+request_validation(RawParameters, Request) ->
     RawRequestBody = maps:get(body, Request),
     RequestBodyRef = maps:get(ref, RawRequestBody),
+    RequestBodyRequired = maps:get(required, RawRequestBody),
     RequestBodyModule =
         erlang:binary_to_atom(erf_util:to_snake_case(RequestBodyRef)),
     RequestBodyIsValid =
@@ -604,7 +623,7 @@ is_valid_request(RawParameters, Request) ->
             [erl_syntax:variable('Body')]
         ),
     RequestBody =
-        case maps:get(required, RawRequestBody) of
+        case RequestBodyRequired of
             true ->
                 RequestBodyIsValid;
             false ->
@@ -646,7 +665,10 @@ is_valid_request(RawParameters, Request) ->
                         {true, #{
                             module => ParameterModule,
                             get => GetParameter,
-                            required => ParameterRequired
+                            required => ParameterRequired,
+                            name => ParameterName,
+                            type => header,
+                            absent => erl_syntax:atom(undefined)
                         }};
                     cookie ->
                         %% TODO: implement
@@ -661,7 +683,10 @@ is_valid_request(RawParameters, Request) ->
                         {true, #{
                             module => ParameterModule,
                             get => GetParameter,
-                            required => true
+                            required => true,
+                            name => ParameterName,
+                            type => path,
+                            absent => undefined
                         }};
                     query ->
                         ParameterSchemaType =
@@ -819,61 +844,150 @@ is_valid_request(RawParameters, Request) ->
                                     )
                             end,
                         ParameterRequired = maps:get(required, Parameter),
+                        Absent =
+                            case ParameterSchemaType of
+                                <<"array">> -> erl_syntax:list([]);
+                                _Otherwise -> erl_syntax:atom(undefined)
+                            end,
                         {true, #{
                             module => ParameterModule,
                             get => GetParameter,
-                            required => ParameterRequired
+                            required => ParameterRequired,
+                            name => ParameterName,
+                            type => query,
+                            absent => Absent
                         }}
                 end
             end,
             RawParameters
         ),
+    IndexedParameters = lists:zip(
+        lists:seq(1, erlang:length(FilteredParameters)), FilteredParameters
+    ),
+    Bindings =
+        [
+            erl_syntax:match_expr(parameter_variable(Index), GetParameter)
+         || {Index, #{get := GetParameter}} <- IndexedParameters
+        ],
     Parameters =
         lists:map(
-            fun(#{module := ParameterModule, get := GetParameter, required := ParameterRequired}) ->
+            fun({Index, #{module := ParameterModule, required := ParameterRequired}}) ->
+                ParameterVariable = parameter_variable(Index),
                 IsValidParameter =
                     erl_syntax:application(
                         erl_syntax:atom(ParameterModule),
                         erl_syntax:atom(is_valid),
-                        [GetParameter]
-                    ),
-                OptionalParameter =
-                    erl_syntax:infix_expr(
-                        GetParameter,
-                        erl_syntax:operator('=:='),
-                        erl_syntax:atom(undefined)
+                        [ParameterVariable]
                     ),
                 case ParameterRequired of
                     true ->
                         IsValidParameter;
                     false ->
                         erl_syntax:infix_expr(
-                            OptionalParameter,
+                            erl_syntax:infix_expr(
+                                ParameterVariable,
+                                erl_syntax:operator('=:='),
+                                erl_syntax:atom(undefined)
+                            ),
                             erl_syntax:operator('orelse'),
                             IsValidParameter
                         )
                 end
             end,
-            FilteredParameters
+            IndexedParameters
         ),
-    erl_syntax:application(
-        erl_syntax:atom('ndto_validation'),
-        erl_syntax:atom('andalso'),
-        [
-            erl_syntax:list([
-                erl_syntax:tuple([
-                    erl_syntax:fun_expr([
-                        erl_syntax:clause(
-                            none,
-                            [Condition]
-                        )
-                    ]),
-                    erl_syntax:list([])
+    Sources =
+        erl_syntax:tuple(
+            [source(body, undefined, RequestBodyRequired)] ++
+                [
+                    source(ParameterType, ParameterName, ParameterRequired)
+                 || #{
+                        type := ParameterType,
+                        name := ParameterName,
+                        required := ParameterRequired
+                    } <- FilteredParameters
+                ]
+        ),
+    Presence =
+        erl_syntax:tuple(
+            [
+                erl_syntax:infix_expr(
+                    erl_syntax:variable('Body'),
+                    erl_syntax:operator('=/='),
+                    erl_syntax:atom(undefined)
+                )
+            ] ++
+                [
+                    presence(parameter_variable(Index), Absent)
+                 || {Index, #{absent := Absent}} <- IndexedParameters
+                ]
+        ),
+    IsValidRequest =
+        erl_syntax:application(
+            erl_syntax:atom('ndto_validation'),
+            erl_syntax:atom('andalso'),
+            [
+                erl_syntax:list([
+                    erl_syntax:tuple([
+                        erl_syntax:fun_expr([
+                            erl_syntax:clause(
+                                none,
+                                [Condition]
+                            )
+                        ]),
+                        erl_syntax:list([])
+                    ])
+                 || Condition <- [RequestBody | Parameters]
                 ])
-             || Condition <- [RequestBody | Parameters]
-            ])
-        ]
+            ]
+        ),
+    #{
+        bindings => Bindings,
+        is_valid_request => IsValidRequest,
+        sources => Sources,
+        presence => Presence
+    }.
+
+-spec parameter_variable(Index) -> Variable when
+    Index :: pos_integer(),
+    Variable :: erl_syntax:syntaxTree().
+%% The underscore keeps these apart from path parameter variables, which come
+%% from `erf_util:to_pascal_case/1' and therefore never hold one.
+parameter_variable(Index) ->
+    erl_syntax:variable(
+        erlang:list_to_atom("Erf_Param" ++ erlang:integer_to_list(Index))
     ).
+
+-spec source(Type, Name, Required) -> Source when
+    Type :: erf_validation:in(),
+    Name :: erf_parser:parameter_name() | undefined,
+    Required :: boolean(),
+    Source :: erl_syntax:syntaxTree().
+%% A literal the compiler lifts into the module's constant pool, so it costs
+%% nothing until the failure branch reads it.
+source(Type, Name, Required) ->
+    NameAST =
+        case Name of
+            undefined ->
+                erl_syntax:atom(undefined);
+            _Name ->
+                erl_syntax:binary([
+                    erl_syntax:binary_field(
+                        erl_syntax:string(erlang:binary_to_list(Name))
+                    )
+                ])
+        end,
+    erl_syntax:tuple([erl_syntax:atom(Type), NameAST, erl_syntax:atom(Required)]).
+
+-spec presence(Variable, Absent) -> Presence when
+    Variable :: erl_syntax:syntaxTree(),
+    Absent :: erl_syntax:syntaxTree() | undefined,
+    Presence :: erl_syntax:syntaxTree().
+%% A path parameter is present whenever its clause matched, so it needs no test.
+presence(_Variable, undefined) ->
+    erl_syntax:atom(true);
+presence(Variable, Absent) ->
+    erl_syntax:infix_expr(Variable, erl_syntax:operator('=/='), Absent).
 
 -spec load_binary(ModuleName, Bin) -> Result when
     ModuleName :: atom(),

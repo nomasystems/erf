@@ -25,6 +25,7 @@
 all() ->
     [
         foo,
+        validation_detail,
         middlewares,
         statics,
         swagger_ui,
@@ -127,7 +128,7 @@ foo(_Conf) ->
     ),
 
     ?assertMatch(
-        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, <<>>}},
+        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, _Result2Body}},
         httpc:request(
             get,
             {"http://localhost:8789/1/foo?page=2.5", []},
@@ -137,7 +138,7 @@ foo(_Conf) ->
     ),
 
     ?assertMatch(
-        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, <<>>}},
+        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, _Result2Body}},
         httpc:request(
             get,
             {"http://localhost:8789/1/foo?page=test", []},
@@ -147,7 +148,7 @@ foo(_Conf) ->
     ),
 
     ?assertMatch(
-        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, <<>>}},
+        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, _Result2Body}},
         httpc:request(
             get,
             {"http://localhost:8789/1/foo?page=true", []},
@@ -177,7 +178,7 @@ foo(_Conf) ->
     ),
 
     ?assertMatch(
-        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, <<>>}},
+        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, _Result2Body}},
         httpc:request(
             get,
             {"http://localhost:8789/1/foo?price=test", []},
@@ -187,7 +188,7 @@ foo(_Conf) ->
     ),
 
     ?assertMatch(
-        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, <<>>}},
+        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, _Result2Body}},
         httpc:request(
             get,
             {"http://localhost:8789/1/foo?price=true", []},
@@ -217,7 +218,7 @@ foo(_Conf) ->
     ),
 
     ?assertMatch(
-        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, <<>>}},
+        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, _Result2Body}},
         httpc:request(
             get,
             {"http://localhost:8789/1/foo?enabled=2", []},
@@ -237,7 +238,7 @@ foo(_Conf) ->
     ),
 
     ?assertMatch(
-        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, <<>>}},
+        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, _Result2Body}},
         httpc:request(
             get,
             {"http://localhost:8789/1/foo?integerArray=1&integerArray=2&integerArray=true", []},
@@ -257,7 +258,7 @@ foo(_Conf) ->
     ),
 
     ?assertMatch(
-        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, <<>>}},
+        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, _Result2Body}},
         httpc:request(
             get,
             {"http://localhost:8789/1/foo?numberArray=1&numberArray=2.0&numberArray=true", []},
@@ -277,7 +278,7 @@ foo(_Conf) ->
     ),
 
     ?assertMatch(
-        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, <<>>}},
+        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, _Result2Body}},
         httpc:request(
             get,
             {"http://localhost:8789/1/foo?boolArray=1&boolArray=2&boolArray=true", []},
@@ -287,7 +288,7 @@ foo(_Conf) ->
     ),
 
     ?assertMatch(
-        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, <<>>}},
+        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, _Result2Body}},
         httpc:request(
             post,
             {"http://localhost:8789/1/foo", [], "application/json", <<"\"foobar\"">>},
@@ -339,6 +340,148 @@ foo(_Conf) ->
     ok = erf:stop(erf_server),
 
     meck:unload(erf_callback),
+
+    ok.
+
+validation_detail(_Conf) ->
+    meck:new([erf_validation_callback], [non_strict, no_link]),
+    meck:expect(erf_validation_callback, list_users, fun(_Request) -> {200, [], <<"ok">>} end),
+    meck:expect(erf_validation_callback, get_user, fun(_Request) -> {200, [], <<"ok">>} end),
+    meck:expect(erf_validation_callback, create_user, fun(_Request) -> {201, [], <<"ok">>} end),
+
+    {ok, _Pid} = erf:start_link(#{
+        spec_path => filename:join(
+            [code:lib_dir(erf), "test", <<"fixtures/validation_oas_3_0_spec.json">>]
+        ),
+        callback => erf_validation_callback,
+        port => 8790,
+        name => erf_validation_server
+    }),
+
+    {BodyHeaders, BodyProblem} = problem(
+        post,
+        {"http://localhost:8790/users", [], "application/json",
+            <<"{\"username\":\"ab\",\"password\":\"hunter2\"}">>}
+    ),
+
+    ?assertEqual(
+        "application/problem+json", proplists:get_value("content-type", BodyHeaders)
+    ),
+    ?assertMatch(
+        #{
+            <<"type">> := <<"about:blank">>,
+            <<"title">> := <<"Bad Request">>,
+            <<"status">> := 400,
+            <<"detail">> := <<"Request body failed schema validation">>,
+            <<"errors">> := [
+                #{
+                    <<"in">> := <<"body">>,
+                    <<"pointer">> := <<"/username">>,
+                    <<"keyword">> := <<"minLength">>,
+                    <<"detail">> := <<"String length is less than 3">>
+                }
+            ]
+        },
+        BodyProblem
+    ),
+
+    %% The response must not reflect what the caller sent.
+    ?assertEqual(nomatch, binary:match(iolist_to_binary(json:encode(BodyProblem)), <<"hunter2">>)),
+    ?assertEqual(nomatch, binary:match(iolist_to_binary(json:encode(BodyProblem)), <<"\"ab\"">>)),
+
+    {_MissingHeaders, MissingProblem} = problem(
+        post, {"http://localhost:8790/users", [], "application/json", <<"{}">>}
+    ),
+
+    ?assertMatch(
+        #{
+            <<"errors">> := [
+                #{
+                    <<"pointer">> := <<"/username">>,
+                    <<"keyword">> := <<"required">>,
+                    <<"detail">> := <<"Missing required property \"username\"">>
+                }
+            ]
+        },
+        MissingProblem
+    ),
+
+    {_ItemHeaders, ItemProblem} = problem(
+        post,
+        {"http://localhost:8790/users", [], "application/json",
+            <<"{\"username\":\"abc\",\"tags\":[\"ok\",\"x\"]}">>}
+    ),
+
+    ?assertMatch(
+        #{
+            <<"errors">> := [
+                #{
+                    <<"pointer">> := <<"/tags/1">>,
+                    <<"keyword">> := <<"minLength">>
+                }
+            ]
+        },
+        ItemProblem
+    ),
+
+    {_PathHeaders, PathProblem} = problem(get, {"http://localhost:8790/users/abc", []}),
+
+    ?assertMatch(
+        #{
+            <<"detail">> := <<"Path parameter \"userId\" failed schema validation">>,
+            <<"errors">> := [
+                #{
+                    <<"in">> := <<"path">>,
+                    <<"pointer">> := <<"/userId">>,
+                    <<"keyword">> := <<"pattern">>
+                }
+            ]
+        },
+        PathProblem
+    ),
+
+    {_QueryHeaders, QueryProblem} = problem(get, {"http://localhost:8790/users?limit=0", []}),
+
+    ?assertMatch(
+        #{
+            <<"detail">> := <<"Query parameter \"limit\" failed schema validation">>,
+            <<"errors">> := [
+                #{
+                    <<"in">> := <<"query">>,
+                    <<"pointer">> := <<"/limit">>,
+                    <<"keyword">> := <<"minimum">>
+                }
+            ]
+        },
+        QueryProblem
+    ),
+
+    {_AbsentHeaders, AbsentProblem} = problem(get, {"http://localhost:8790/users", []}),
+
+    ?assertMatch(
+        #{
+            <<"detail">> := <<"Query parameter \"limit\" is required">>,
+            <<"errors">> := [
+                #{
+                    <<"in">> := <<"query">>,
+                    <<"pointer">> := <<"/limit">>,
+                    <<"keyword">> := <<"required">>
+                }
+            ]
+        },
+        AbsentProblem
+    ),
+
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 200, "OK"}, _OkHeaders, <<"\"ok\"">>}},
+        httpc:request(
+            get, {"http://localhost:8790/users?limit=10", []}, [], [{body_format, binary}]
+        )
+    ),
+
+    ok = erf:stop(erf_validation_server),
+
+    meck:unload(erf_validation_callback),
 
     ok.
 
@@ -910,3 +1053,9 @@ raw_recv(Sock, Acc) ->
         {ok, Bytes} -> raw_recv(Sock, <<Acc/binary, Bytes/binary>>);
         {error, closed} -> Acc
     end.
+
+problem(Method, Request) ->
+    {ok, {{"HTTP/1.1", 400, "Bad Request"}, Headers, Body}} = httpc:request(
+        Method, Request, [], [{body_format, binary}]
+    ),
+    {Headers, json:decode(Body)}.

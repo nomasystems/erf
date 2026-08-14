@@ -364,6 +364,36 @@ As shown in [`erf` configuration](#erf-configuration), the server supports route
 
 This feature enables `erf` to serve a [Swagger UI](https://github.com/swagger-api/swagger-ui) version with your API specification. Just set the `swagger_ui` flag to `true` and open your web browser in the server host under the `/swagger` path.
 
+## Validation errors
+
+A request that fails schema validation gets a `400` response with the content type `application/problem+json`, in the format that [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) defines:
+
+```json
+{
+  "type": "about:blank",
+  "title": "Bad Request",
+  "status": 400,
+  "detail": "Request body failed schema validation",
+  "errors": [
+    {
+      "in": "body",
+      "pointer": "/username",
+      "keyword": "minLength",
+      "detail": "String length is less than 3"
+    }
+  ]
+}
+```
+
+Each entry in `errors` names one failure:
+
+- `in` is the part of the request that failed: `body`, `path`, `query`, `header`, or `cookie`.
+- `pointer` is a JSON Pointer ([RFC 6901](https://www.rfc-editor.org/rfc/rfc6901)) to the value that failed. For a parameter, the first segment is the parameter name.
+- `keyword` is the JSON Schema keyword that rejected the value, for example `minLength`, `type`, or `required`.
+- `detail` explains the constraint.
+
+The response never holds a value that the caller sent. It names constraints from the specification, which the server already publishes through Swagger UI.
+
 ## Troubleshooting
 
 Diagnosing the cause of a `400 Bad Request error` for a specific request can become challenging due to the automated generation of the router's source code. To simplify the process of analyzing this generated code, `erf` provides the `get_router/1` function. This function offers the router's source code in binary form, allowing you to conveniently manipulate it using the most suitable handler for your particular use case, whether it's printing the code to a file or using `io` operations.

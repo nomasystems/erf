@@ -26,6 +26,7 @@ all() ->
     [
         foo,
         validation_detail,
+        malformed_body,
         middlewares,
         statics,
         swagger_ui,
@@ -482,6 +483,67 @@ validation_detail(_Conf) ->
     ok = erf:stop(erf_validation_server),
 
     meck:unload(erf_validation_callback),
+
+    ok.
+
+malformed_body(_Conf) ->
+    meck:new([erf_malformed_callback], [non_strict, no_link]),
+    meck:expect(erf_malformed_callback, list_users, fun(_Request) -> {200, [], <<"ok">>} end),
+    meck:expect(erf_malformed_callback, get_user, fun(_Request) -> {200, [], <<"ok">>} end),
+    meck:expect(erf_malformed_callback, create_user, fun(_Request) -> {201, [], <<"ok">>} end),
+
+    {ok, _Pid} = erf:start_link(#{
+        spec_path => filename:join(
+            [code:lib_dir(erf), "test", <<"fixtures/validation_oas_3_0_spec.json">>]
+        ),
+        callback => erf_malformed_callback,
+        port => 8791,
+        name => erf_malformed_server
+    }),
+
+    {ok, {{"HTTP/1.1", 400, "Bad Request"}, MalformedHeaders, MalformedBody}} = httpc:request(
+        post,
+        {"http://localhost:8791/users", [], "application/json", <<"{oops">>},
+        [],
+        [{body_format, binary}]
+    ),
+
+    ?assertEqual("application/json", proplists:get_value("content-type", MalformedHeaders)),
+
+    MalformedProblem = json:decode(MalformedBody),
+
+    ?assert(is_map(MalformedProblem)),
+    ?assertMatch(
+        #{
+            <<"title">> := <<"Bad Request">>,
+            <<"status">> := 400,
+            <<"detail">> := <<"Failed to read request">>
+        },
+        MalformedProblem
+    ),
+
+    {ok, {{"HTTP/1.1", 400, "Bad Request"}, _InvalidHeaders, InvalidBody}} = httpc:request(
+        post,
+        {"http://localhost:8791/users", [], "application/json", <<"{\"username\":\"ab\"}">>},
+        [],
+        [{body_format, binary}]
+    ),
+
+    InvalidProblem = json:decode(InvalidBody),
+
+    ?assert(is_map(InvalidProblem)),
+    ?assertMatch(
+        #{
+            <<"title">> := <<"Bad Request">>,
+            <<"status">> := 400,
+            <<"detail">> := _Detail
+        },
+        InvalidProblem
+    ),
+
+    ok = erf:stop(erf_malformed_server),
+
+    meck:unload(erf_malformed_callback),
 
     ok.
 

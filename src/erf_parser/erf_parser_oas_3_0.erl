@@ -364,7 +364,7 @@ parse_parameter(#{<<"content">> := Content} = RawParameter, #{namespace := Names
             {[], [], CTX},
             maps:to_list(Content)
         ),
-    ParameterSchema = #{any_of => AnyOf},
+    ParameterSchema = media_type_schema(AnyOf),
     {Parameter, [{ParameterRef, ParameterSchema} | ExtraSchemas], NewCTX};
 parse_parameter(#{<<"schema">> := RawSchema} = RawParameter, #{namespace := Namespace} = CTX) ->
     ParameterType =
@@ -424,7 +424,7 @@ parse_request_body(#{<<"content">> := Content} = ReqBody, CTX) ->
         {[], [], CTX},
         maps:to_list(Content)
     ),
-    RequestBodySchema = #{any_of => AnyOf},
+    RequestBodySchema = media_type_schema(AnyOf),
     RequestBody = #{
         schema => RequestBodySchema,
         required => Required
@@ -463,7 +463,7 @@ parse_response(#{<<"content">> := Content}, CTX) ->
             {[], [], CTX},
             maps:to_list(Content)
         ),
-    ResponseSchema = #{any_of => AnyOf},
+    ResponseSchema = media_type_schema(AnyOf),
     Response = #{
         schema => ResponseSchema,
         required => false
@@ -475,6 +475,17 @@ parse_response(_Response, CTX) ->
         required => false
     },
     {Response, [], CTX}.
+
+-spec media_type_schema(Schemas) -> Schema when
+    Schemas :: [erf_parser:schema()],
+    Schema :: erf_parser:schema().
+%% One media type needs no union. A union of one is equivalent to its member,
+%% but `ndto' reports a union failure as a bare "none matched", which throws
+%% away the constraint that rejected the value.
+media_type_schema([Schema]) ->
+    Schema;
+media_type_schema(Schemas) ->
+    #{any_of => Schemas}.
 
 -spec parse_spec(SpecPath) -> Result when
     SpecPath :: binary(),

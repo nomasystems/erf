@@ -107,26 +107,18 @@ petstore(_Conf) ->
                     maximum := 100
                 },
                 <<"petstore_list_pets_request_body">> := true,
-                <<"petstore_list_pets_response_body_200">> := #{
-                    any_of := [#{ref := <<"petstore_pets">>}]
-                },
-                <<"petstore_list_pets_response_body_default">> := #{
-                    any_of := [#{ref := <<"petstore_error">>}]
-                },
+                <<"petstore_list_pets_response_body_200">> := #{ref := <<"petstore_pets">>},
+                <<"petstore_list_pets_response_body_default">> := #{ref := <<"petstore_error">>},
                 <<"petstore_create_pets_request_body">> := true,
                 <<"petstore_create_pets_response_body_201">> := true,
-                <<"petstore_create_pets_response_body_default">> := #{
-                    any_of := [#{ref := <<"petstore_error">>}]
-                },
+                <<"petstore_create_pets_response_body_default">> := #{ref := <<"petstore_error">>},
                 <<"petstore_show_pet_by_id_pet_id">> := #{
                     type := string
                 },
                 <<"petstore_show_pet_by_id_request_body">> := true,
-                <<"petstore_show_pet_by_id_response_body_200">> := #{
-                    any_of := [#{ref := <<"petstore_pet">>}]
-                },
+                <<"petstore_show_pet_by_id_response_body_200">> := #{ref := <<"petstore_pet">>},
                 <<"petstore_show_pet_by_id_response_body_default">> := #{
-                    any_of := [#{ref := <<"petstore_error">>}]
+                    ref := <<"petstore_error">>
                 }
             },
             endpoints := [
@@ -258,9 +250,7 @@ with_refs(_Conf) ->
                 <<"with_refs_oas_3_0_spec_delete_foo_request_body">> := true,
                 <<"with_refs_oas_3_0_spec_delete_foo_response_body_204">> := true,
                 <<"with_refs_oas_3_0_spec_delete_foo_response_body_404">> := #{
-                    any_of := [
-                        #{ref := <<"common_oas_3_0_spec_error">>}
-                    ]
+                    ref := <<"common_oas_3_0_spec_error">>
                 }
             }
         },

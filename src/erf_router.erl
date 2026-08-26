@@ -1141,7 +1141,7 @@ preprocess(RawRequest) ->
     ContentTypeHeader = string:casefold(<<"content-type">>),
     RawBody = maps:get(body, RawRequest, undefined),
     case proplists:get_value(ContentTypeHeader, Headers, undefined) of
-        <<"application/json">> ->
+        <<"application/json", _Rest/binary>> ->
             case RawBody of
                 NonEmptyBinary when is_binary(NonEmptyBinary), byte_size(NonEmptyBinary) > 0 ->
                     try json:decode(RawBody) of

@@ -34,7 +34,8 @@
 -type endpoint() :: #{
     path := path(),
     parameters := [parameter()],
-    operations := [operation()]
+    operations := [operation()],
+    base_path => erf:base_path()
 }.
 -type method() :: erf:method().
 -type operation() :: #{

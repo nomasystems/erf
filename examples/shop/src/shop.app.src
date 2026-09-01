@@ -1,0 +1,8 @@
+{application, shop, [
+    {description, "A tiny app exemplifying erf mounts"},
+    {vsn, "0.1.0"},
+    {registered, []},
+    {applications, [kernel, stdlib, erf]},
+    {mod, {shop, []}},
+    {env, []}
+]}.

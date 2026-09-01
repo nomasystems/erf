@@ -32,6 +32,7 @@
 -type t() :: #{
     callback => module(),
     log_level => logger:level(),
+    mounts => [erf:mount(), ...],
     preprocess_middlewares => [module()],
     postprocess_middlewares => [module()],
     route_patterns => erf:route_patterns(),

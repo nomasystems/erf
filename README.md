@@ -146,8 +146,9 @@ The configuration is provided as map with the following type spec:
 ```erl
 %%% erf.erl
 -type conf() :: #{
-    spec_path := binary(),
-    callback := module(),
+    spec_path => binary(),
+    callback => module(),
+    mounts => [mount(), ...],
     port => inet:port_number(),
     name => atom(),
     spec_parser => module(),
@@ -171,6 +172,7 @@ The configuration is provided as map with the following type spec:
 A detailed description of each parameter can be found in the following list:
 - `spec_path` : Path to API specification file.
 - `callback`: Name of the callback module.
+- `mounts`: List of API specifications to serve, each under its own base path. Mutually exclusive with `spec_path` and `callback`.
 - `port`: Port the server will listen to. Defaults to `8080`.
 - `name`: Name under which the server is registered. Defaults to `erf`.
 - `spec_parser`: Name of the specification parser module. Defaults to `erf_parser_oas_3_0`.
@@ -188,6 +190,47 @@ A detailed description of each parameter can be found in the following list:
 - `body_timeout`: Timeout in ms for receiving more packets when waiting for the body. Defaults to `30000`.
 - `max_body_size`: Maximum size in bytes for the body of allowed received messages. Defaults to `1024000`.
 - `log_level`: Severity associated to logged messages. Defaults to `error`.
+
+## Mounts
+
+A single `erf` instance can serve several API specifications, each under its own base path. The type spec for a mount is the following:
+```erl
+%%% erf.erl
+-type base_path() :: binary().
+-type mount() :: #{
+    base_path := base_path(),
+    spec_path := binary(),
+    callback := module(),
+    spec_parser => module()
+}.
+```
+
+- `base_path`: Path prefix the mount is served under. `<<"/">>` serves it from the root.
+- `spec_path`: Path to the mount's API specification file.
+- `callback`: Name of the mount's callback module.
+- `spec_parser`: Name of the specification parser module. Defaults to the instance's `spec_parser`.
+
+```erl
+ShopAPIConf = #{
+    port => 8080,
+    mounts => [
+        #{
+            base_path => <<"/users">>,
+            spec_path => <<"priv/users.openapi.json">>,
+            callback => users_callback
+        },
+        #{
+            base_path => <<"/products">>,
+            spec_path => <<"priv/products.openapi.json">>,
+            callback => products_callback
+        }
+    ]
+}.
+```
+
+A `GET /users/1` request is validated against the `/1` route of `users.openapi.json` and dispatched to `users_callback`. The prefix is not stripped, so `path` and `route` keep describing the real URL. Mounts repeating a base path, or serving routes that can match the same request, are rejected when the instance starts.
+
+The `examples/shop` application serves [orders.openapi.json](examples/shop/priv/orders.openapi.json) from the root and [catalog.openapi.json](examples/shop/priv/catalog.openapi.json) from `/catalog`. Try it out by running `rebar3 as examples shell` from the root of this project.
 
 ## Callback modules & middlewares
 
@@ -212,6 +255,7 @@ The following type spec corresponds to the runtime configuration of an `erf` ins
 -type t() :: #{
     callback => module(),
     log_level => logger:level(),
+    mounts => [erf:mount(), ...],
     preprocess_middlewares => [module()],
     postprocess_middlewares => [module()],
     router => erl_syntax:syntaxTree(), % not manually updatable
@@ -224,6 +268,8 @@ The following type spec corresponds to the runtime configuration of an `erf` ins
 ```
 > __NOTE:__ the `router` and `router_mod` keys are not updatable as they are automatically computed when new configuration is provided.
 
+A reload replaces the [mounts](#mounts) of an instance when it carries `mounts`, or both `spec_path` and `callback`. Carrying only one of the latter two updates the mount already configured, and needs the instance to have a single one.
+
 ## Static routes
 
 As shown in [`erf` configuration](#erf-configuration), the server supports routes that serve static files. The type spec for static routes is the following:
@@ -234,7 +280,7 @@ As shown in [`erf` configuration](#erf-configuration), the server supports route
 -type static_route() :: {Path :: binary(), Resource :: static_file() | static_dir()}.
 ```
 
-This feature enables `erf` to serve a [Swagger UI](https://github.com/swagger-api/swagger-ui) version with your API specification. Just set the `swagger_ui` flag to `true` and open your web browser in the server host under the `/swagger` path.
+This feature enables `erf` to serve a [Swagger UI](https://github.com/swagger-api/swagger-ui) version with your API specification. Just set the `swagger_ui` flag to `true` and open your web browser in the server host under the `/swagger` path. Each [mount](#mounts) gets its own UI under its base path.
 
 ## Troubleshooting
 

@@ -29,7 +29,8 @@
 %%% TYPES
 -type t() :: erl_syntax:syntaxTree().
 -type callback() :: module().
--type generator_opts() :: #{callback := callback(), static_routes := [erf:static_route()]}.
+-type callback_spec() :: callback() | #{erf:base_path() => callback()}.
+-type generator_opts() :: #{callback := callback_spec(), static_routes := [erf:static_route()]}.
 
 %%%-----------------------------------------------------------------------------
 %%% EXTERNAL EXPORTS
@@ -212,6 +213,9 @@ handle_ast(API, #{callback := Callback} = Opts) ->
                 )
             ),
             EndpointParameters = maps:get(parameters, Endpoint),
+            EndpointCallback = resolve_callback(
+                Callback, maps:get(base_path, Endpoint, <<>>)
+            ),
             AllowedMethods = lists:map(
                 fun(Operation) ->
                     Method = erl_syntax:atom(
@@ -301,7 +305,7 @@ handle_ast(API, #{callback := Callback} = Opts) ->
                                         none,
                                         [
                                             erl_syntax:application(
-                                                erl_syntax:atom(Callback),
+                                                erl_syntax:atom(EndpointCallback),
                                                 erl_syntax:atom(
                                                     erlang:binary_to_atom(
                                                         erf_util:to_snake_case(
@@ -550,6 +554,17 @@ handle_ast(API, #{callback := Callback} = Opts) ->
         erl_syntax:atom(handle),
         RESTClauses ++ StaticClauses ++ [NotFoundClause]
     ).
+
+-spec resolve_callback(CallbackSpec, BasePath) -> Callback when
+    CallbackSpec :: callback_spec(),
+    BasePath :: erf:base_path(),
+    Callback :: callback().
+%% @doc Resolves which callback module handles a given endpoint: a single callback module is
+%% shared by every endpoint, while a map gives each mount its own module.
+resolve_callback(Callback, _BasePath) when is_atom(Callback) ->
+    Callback;
+resolve_callback(CallbacksByBasePath, BasePath) when is_map(CallbacksByBasePath) ->
+    maps:get(BasePath, CallbacksByBasePath).
 
 -spec is_valid_request(Parameters, Request) -> Result when
     Parameters :: [erf_parser:parameter()],

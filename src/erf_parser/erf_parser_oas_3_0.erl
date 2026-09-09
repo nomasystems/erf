@@ -392,7 +392,7 @@ parse_parameter(#{<<"schema">> := RawSchema} = RawParameter, #{namespace := Name
         ref => ParameterRef,
         name => ParameterName,
         type => ParameterType,
-        schema => RawSchema,
+        schema => parameter_schema(RawSchema, CTX),
         required => Required
     },
     {ParameterSchema, NewExtraSchemas, NewCTX} = parse_schemas(RawSchema, CTX),
@@ -486,6 +486,26 @@ media_type_schema([Schema]) ->
     Schema;
 media_type_schema(Schemas) ->
     #{any_of => Schemas}.
+
+-spec parameter_schema(RawSchema, CTX) -> Schema when
+    RawSchema :: spec(),
+    CTX :: ctx(),
+    Schema :: spec().
+parameter_schema(RawSchema, CTX) ->
+    parameter_schema(RawSchema, CTX, []).
+
+parameter_schema(#{<<"$ref">> := Ref} = RawSchema, CTX, Seen) ->
+    case lists:member(Ref, Seen) of
+        true ->
+            RawSchema;
+        false ->
+            {_RefName, RefSchema, RefCTX} = resolve_ref(Ref, CTX),
+            parameter_schema(RefSchema, RefCTX, [Ref | Seen])
+    end;
+parameter_schema(#{<<"items">> := RawItems} = RawSchema, CTX, Seen) ->
+    RawSchema#{<<"items">> => parameter_schema(RawItems, CTX, Seen)};
+parameter_schema(RawSchema, _CTX, _Seen) ->
+    RawSchema.
 
 -spec parse_spec(SpecPath) -> Result when
     SpecPath :: binary(),

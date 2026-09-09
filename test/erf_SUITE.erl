@@ -290,6 +290,56 @@ foo(_Conf) ->
     ),
 
     ?assertMatch(
+        {ok, {{"HTTP/1.1", 200, "OK"}, _ResultHeaders4, <<"\"bar\"">>}},
+        httpc:request(
+            get,
+            {"http://localhost:8789/1/foo?refInteger=1", []},
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, _Result2Body}},
+        httpc:request(
+            get,
+            {"http://localhost:8789/1/foo?refInteger=test", []},
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, _Result2Body}},
+        httpc:request(
+            get,
+            {"http://localhost:8789/1/foo?refInteger=9", []},
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 200, "OK"}, _ResultHeaders4, <<"\"bar\"">>}},
+        httpc:request(
+            get,
+            {"http://localhost:8789/1/foo?refIntegerArray=1&refIntegerArray=2", []},
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, _Result2Body}},
+        httpc:request(
+            get,
+            {"http://localhost:8789/1/foo?refIntegerArray=1&refIntegerArray=test", []},
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
+    ?assertMatch(
         {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, _Result2Body}},
         httpc:request(
             post,

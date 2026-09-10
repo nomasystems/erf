@@ -23,7 +23,9 @@
                     {"$ref": "common_oas_3_0_spec.json#/components/parameters/IntegerArray"},
                     {"$ref": "common_oas_3_0_spec.json#/components/parameters/StringArray"},
                     {"$ref": "common_oas_3_0_spec.json#/components/parameters/NumberArray"},
-                    {"$ref": "common_oas_3_0_spec.json#/components/parameters/BoolArray"}
+                    {"$ref": "common_oas_3_0_spec.json#/components/parameters/BoolArray"},
+                    {"$ref": "common_oas_3_0_spec.json#/components/parameters/RefInteger"},
+                    {"$ref": "common_oas_3_0_spec.json#/components/parameters/RefIntegerArray"}
                 ],
                 "responses":{
                     "200":{

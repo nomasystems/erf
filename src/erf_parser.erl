@@ -34,7 +34,8 @@
 -type endpoint() :: #{
     path := path(),
     parameters := [parameter()],
-    operations := [operation()]
+    operations := [operation()],
+    version => erf:version()
 }.
 -type method() :: erf:method().
 -type operation() :: #{

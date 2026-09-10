@@ -17,6 +17,12 @@
                         "description": "An English human-friendly description of the error."
                     }
                 }
+            },
+            "BoundedInteger": {
+                "type": "integer",
+                "description": "An integer with bounds",
+                "minimum": 1,
+                "maximum": 5
             }
         },
         "responses": {
@@ -128,6 +134,27 @@
                 },
                 "required": false,
                 "description": "String parameter"
+            },
+            "RefInteger": {
+                "in": "query",
+                "name": "refInteger",
+                "schema": {
+                    "$ref": "#/components/schemas/BoundedInteger"
+                },
+                "required": false,
+                "description": "Integer typed by reference"
+            },
+            "RefIntegerArray": {
+                "in": "query",
+                "name": "refIntegerArray",
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/components/schemas/BoundedInteger"
+                    }
+                },
+                "required": false,
+                "description": "Array with its items typed by reference"
             }
         },
         "requestBodies": {

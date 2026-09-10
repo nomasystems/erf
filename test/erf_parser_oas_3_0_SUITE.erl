@@ -257,6 +257,39 @@ with_refs(_Conf) ->
         WithRefsAPI
     ),
 
+    Endpoints = maps:get(endpoints, WithRefsAPI),
+    [Foo] = [
+        Endpoint
+     || #{path := <<"/{version}/foo">>} = Endpoint <- Endpoints
+    ],
+    [GetFoo] = [
+        Operation
+     || #{method := get} = Operation <- maps:get(operations, Foo)
+    ],
+    Parameters = maps:get(parameters, GetFoo),
+    [RefInteger] = [
+        Parameter
+     || #{name := <<"refInteger">>} = Parameter <- Parameters
+    ],
+    [RefIntegerArray] = [
+        Parameter
+     || #{name := <<"refIntegerArray">>} = Parameter <- Parameters
+    ],
+
+    ?assertMatch(
+        #{schema := #{<<"type">> := <<"integer">>}},
+        RefInteger
+    ),
+    ?assertMatch(
+        #{
+            schema := #{
+                <<"type">> := <<"array">>,
+                <<"items">> := #{<<"type">> := <<"integer">>}
+            }
+        },
+        RefIntegerArray
+    ),
+
     ok.
 
 invalid(_Conf) ->

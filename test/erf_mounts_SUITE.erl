@@ -322,7 +322,7 @@ reload_conf_replaces_mounts(_Conf) ->
     ok = erf:reload_conf(erf_server, #{log_level => warning}),
     ?assertMatch({200, <<"\"orders\"">>}, http_get("/shop/orders")),
 
-    %% An instance with several mounts has no single mount for a bare `callback' to patch.
+    %% A bare `callback' replaces the mounts, and is not enough on its own.
     ok = erf:reload_conf(erf_server, #{
         mounts => [
             #{
@@ -338,7 +338,7 @@ reload_conf_replaces_mounts(_Conf) ->
         ]
     }),
     ?assertEqual(
-        {error, {invalid_conf, ambiguous_mount_patch}},
+        {error, {invalid_conf, missing_spec_path}},
         erf:reload_conf(erf_server, #{callback => erf_items_callback})
     ),
 

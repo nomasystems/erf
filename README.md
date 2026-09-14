@@ -252,7 +252,7 @@ An example of an API specification and a supported callback can be seen in [Quic
 
 The design principles behind `erf` allow its instances to be reconfigured in runtime with no needed downtime. While not every configuration key is updatable once the server is started (e.g., the port), some interesting features of the framework can be updated on-the-fly.
 
-The following type spec corresponds to the runtime configuration of an `erf` instance. At the same time, is the type spec of the second argument for the `erf:reload/2` function.
+The following type spec corresponds to the runtime configuration of an `erf` instance. At the same time, is the type spec of the second argument for the `erf:reload_conf/2` function.
 ```erl
 %%% erf_conf.erl
 -type t() :: #{
@@ -271,7 +271,7 @@ The following type spec corresponds to the runtime configuration of an `erf` ins
 ```
 > __NOTE:__ the `router` and `router_mod` keys are not updatable as they are automatically computed when new configuration is provided.
 
-Reloading `mounts`, or `spec_path` and `callback` together, replaces the configured [mounts](#mounts). Reloading only `spec_path` or only `callback` updates the existing mount, so it only works on instances with a single one.
+Reloading [mounts](#mounts) replaces `spec_path` and `callback`, and reloading either of those replaces `mounts`.
 
 ## Static routes
 

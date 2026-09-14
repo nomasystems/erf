@@ -210,27 +210,30 @@ A single `erf` instance can serve several API specifications, each under its own
 - `callback`: Name of the mount's callback module.
 - `spec_parser`: Name of the specification parser module. Defaults to the instance's `spec_parser`.
 
+For example, [shop_sup.erl](examples/shop/src/shop_sup.erl) serves [orders.openapi.json](examples/shop/priv/orders.openapi.json) from the root and [catalog.openapi.json](examples/shop/priv/catalog.openapi.json) from `/catalog`:
 ```erl
 ShopAPIConf = #{
-    port => 8080,
     mounts => [
         #{
-            base_path => <<"/users">>,
-            spec_path => <<"priv/users.openapi.json">>,
-            callback => users_callback
+            base_path => <<"/">>,
+            spec_path => <<"priv/orders.openapi.json">>,
+            callback => shop_orders_callback
         },
         #{
-            base_path => <<"/products">>,
-            spec_path => <<"priv/products.openapi.json">>,
-            callback => products_callback
+            base_path => <<"/catalog">>,
+            spec_path => <<"priv/catalog.openapi.json">>,
+            callback => shop_catalog_callback
         }
-    ]
+    ],
+    swagger_ui => true,
+    port => 8081,
+    name => shop_api
 }.
 ```
 
-A `GET /users/1` request is validated against the `/1` route of `users.openapi.json` and dispatched to `users_callback`. The prefix is not stripped, so `path` and `route` keep describing the real URL. Mounts repeating a base path, or serving routes that can match the same request, are rejected when the instance starts.
+A `GET /catalog/products/42` request is validated against the `/products/{productId}` route of `catalog.openapi.json` and dispatched to `shop_catalog_callback`. The prefix is not stripped, so `path` and `route` keep describing the real URL. Mounts repeating a base path, or serving routes that can match the same request, are rejected when the instance starts.
 
-The `examples/shop` application serves [orders.openapi.json](examples/shop/priv/orders.openapi.json) from the root and [catalog.openapi.json](examples/shop/priv/catalog.openapi.json) from `/catalog`. Try it out by running `rebar3 as examples shell` from the root of this project.
+Try it out by running `rebar3 as examples shell` from the root of this project.
 
 ## Callback modules & middlewares
 
@@ -268,7 +271,7 @@ The following type spec corresponds to the runtime configuration of an `erf` ins
 ```
 > __NOTE:__ the `router` and `router_mod` keys are not updatable as they are automatically computed when new configuration is provided.
 
-A reload replaces the [mounts](#mounts) of an instance when it carries `mounts`, or both `spec_path` and `callback`. Carrying only one of the latter two updates the mount already configured, and needs the instance to have a single one.
+Reloading `mounts`, or `spec_path` and `callback` together, replaces the configured [mounts](#mounts). Reloading only `spec_path` or only `callback` updates the existing mount, so it only works on instances with a single one.
 
 ## Static routes
 

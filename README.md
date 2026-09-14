@@ -148,7 +148,7 @@ The configuration is provided as map with the following type spec:
 -type conf() :: #{
     spec_path => binary(),
     callback => module(),
-    mounts => [mount(), ...],
+    mounts => [mount()],
     port => inet:port_number(),
     name => atom(),
     spec_parser => module(),
@@ -172,7 +172,7 @@ The configuration is provided as map with the following type spec:
 A detailed description of each parameter can be found in the following list:
 - `spec_path` : Path to API specification file.
 - `callback`: Name of the callback module.
-- `mounts`: List of API specifications to serve, each under its own base path. Mutually exclusive with `spec_path` and `callback`.
+- `mounts`: List of API specifications to serve, each under its own base path. Takes precedence over `spec_path` and `callback` when not empty. Defaults to `[]`.
 - `port`: Port the server will listen to. Defaults to `8080`.
 - `name`: Name under which the server is registered. Defaults to `erf`.
 - `spec_parser`: Name of the specification parser module. Defaults to `erf_parser_oas_3_0`.
@@ -256,14 +256,14 @@ The following type spec corresponds to the runtime configuration of an `erf` ins
 ```erl
 %%% erf_conf.erl
 -type t() :: #{
-    callback => module(),
+    callback => module() | undefined,
     log_level => logger:level(),
-    mounts => [erf:mount(), ...],
+    mounts => [erf:mount()],
     preprocess_middlewares => [module()],
     postprocess_middlewares => [module()],
     router => erl_syntax:syntaxTree(), % not manually updatable
     router_mod => module(), % not manually updatable
-    spec_path => binary(),
+    spec_path => binary() | undefined,
     spec_parser => module(),
     static_routes => [erf:static_route()],
     swagger_ui => boolean()
@@ -271,7 +271,7 @@ The following type spec corresponds to the runtime configuration of an `erf` ins
 ```
 > __NOTE:__ the `router` and `router_mod` keys are not updatable as they are automatically computed when new configuration is provided.
 
-Reloading [mounts](#mounts) replaces `spec_path` and `callback`, and reloading either of those replaces `mounts`.
+`mounts` takes precedence over `spec_path` and `callback` while it is not empty, so reloading with `mounts => []` goes back to serving `spec_path`.
 
 ## Static routes
 

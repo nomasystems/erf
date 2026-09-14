@@ -244,14 +244,6 @@ invalid_conf(_Conf) ->
     },
 
     ?assertEqual(
-        {error, {invalid_conf, mounts_and_spec_path}},
-        erf:reload_conf(erf_server, #{
-            mounts => [ItemsMount],
-            spec_path => spec(<<"mount_items_oas_3_0_spec.json">>)
-        })
-    ),
-
-    ?assertEqual(
         {error, {duplicate_base_path, <<"/v1">>}},
         erf:reload_conf(erf_server, #{mounts => [ItemsMount, ItemsMount#{callback => other}]})
     ),
@@ -322,36 +314,16 @@ reload_conf_replaces_mounts(_Conf) ->
     ok = erf:reload_conf(erf_server, #{log_level => warning}),
     ?assertMatch({200, <<"\"orders\"">>}, http_get("/shop/orders")),
 
-    %% A bare `callback' replaces the mounts, and is not enough on its own.
-    ok = erf:reload_conf(erf_server, #{
-        mounts => [
-            #{
-                base_path => <<"/shop">>,
-                spec_path => spec(<<"mount_orders_oas_3_0_spec.json">>),
-                callback => erf_orders_callback
-            },
-            #{
-                base_path => <<"/v1">>,
-                spec_path => spec(<<"mount_items_oas_3_0_spec.json">>),
-                callback => erf_items_callback
-            }
-        ]
-    }),
-    ?assertEqual(
-        {error, {invalid_conf, missing_spec_path}},
-        erf:reload_conf(erf_server, #{callback => erf_items_callback})
-    ),
-
-    %% But `spec_path' and `callback' together describe a whole instance, so they replace the
-    %% mounts and take it back to serving a single specification from the root.
     ok = erf:reload_conf(erf_server, #{
         spec_path => spec(<<"mount_items_oas_3_0_spec.json">>),
         callback => erf_items_callback
     }),
+    ?assertMatch({200, <<"\"orders\"">>}, http_get("/shop/orders")),
+    ?assertMatch({404, _Body3}, http_get("/items")),
+
+    ok = erf:reload_conf(erf_server, #{mounts => []}),
     ?assertMatch({200, <<"\"items\"">>}, http_get("/items")),
-    ?assertMatch({404, _Body3}, http_get("/v1/items")),
-    {ok, BackToSingle} = erf_conf:get(erf_server),
-    ?assertEqual(erf_items_callback, maps:get(callback, BackToSingle)),
+    ?assertMatch({404, _Body4}, http_get("/shop/orders")),
 
     ok = erf:stop(erf_server),
     meck:unload([erf_items_callback, erf_orders_callback]),

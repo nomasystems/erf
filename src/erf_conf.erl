@@ -30,15 +30,15 @@
 
 %%% TYPES
 -type t() :: #{
-    callback => module(),
+    callback => module() | undefined,
     log_level => logger:level(),
-    mounts => [erf:mount(), ...],
+    mounts => [erf:mount()],
     preprocess_middlewares => [module()],
     postprocess_middlewares => [module()],
     route_patterns => erf:route_patterns(),
     router => erl_syntax:syntaxTree(),
     router_mod => module(),
-    spec_path => binary(),
+    spec_path => binary() | undefined,
     spec_parser => module(),
     static_routes => [erf:static_route()],
     swagger_ui => boolean()

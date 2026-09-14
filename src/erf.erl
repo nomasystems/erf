@@ -47,7 +47,7 @@
 -type conf() :: #{
     spec_path => binary(),
     callback => module(),
-    mounts => [mount(), ...],
+    mounts => [mount()],
     port => inet:port_number(),
     name => atom(),
     spec_parser => module(),
@@ -215,18 +215,7 @@ reload_conf(Name, NewConf) ->
                 Old
         end,
 
-    ReplacedKeys =
-        case NewConf of
-            #{mounts := _Mounts} ->
-                [spec_path, callback];
-            #{spec_path := _SpecPath} ->
-                [mounts];
-            #{callback := _Callback} ->
-                [mounts];
-            _NewConf ->
-                []
-        end,
-    Conf = maps:merge(maps:without(ReplacedKeys, OldConf), NewConf),
+    Conf = maps:merge(OldConf, NewConf),
 
     case build_router(Conf) of
         {ok, Extras} ->
@@ -240,17 +229,17 @@ reload_conf(Name, NewConf) ->
 %%% INIT/TERMINATE EXPORTS
 %%%-----------------------------------------------------------------------------
 init([Name, RawConf]) ->
-    RawErfConf = maps:merge(
-        maps:with([spec_path, callback, mounts], RawConf),
-        #{
-            spec_parser => maps:get(spec_parser, RawConf, erf_parser_oas_3_0),
-            static_routes => maps:get(static_routes, RawConf, []),
-            swagger_ui => maps:get(swagger_ui, RawConf, false),
-            preprocess_middlewares => maps:get(preprocess_middlewares, RawConf, []),
-            postprocess_middlewares => maps:get(postprocess_middlewares, RawConf, []),
-            log_level => maps:get(log_level, RawConf, error)
-        }
-    ),
+    RawErfConf = #{
+        spec_path => maps:get(spec_path, RawConf, undefined),
+        spec_parser => maps:get(spec_parser, RawConf, erf_parser_oas_3_0),
+        callback => maps:get(callback, RawConf, undefined),
+        mounts => maps:get(mounts, RawConf, []),
+        static_routes => maps:get(static_routes, RawConf, []),
+        swagger_ui => maps:get(swagger_ui, RawConf, false),
+        preprocess_middlewares => maps:get(preprocess_middlewares, RawConf, []),
+        postprocess_middlewares => maps:get(postprocess_middlewares, RawConf, []),
+        log_level => maps:get(log_level, RawConf, error)
+    },
 
     case build_router(RawErfConf) of
         {ok, Extras} ->
@@ -340,7 +329,7 @@ build_router(Conf) ->
     end.
 
 -spec build_router(Mounts, StaticRoutes) -> Result when
-    Mounts :: [mount(), ...],
+    Mounts :: [mount()],
     StaticRoutes :: [static_route()],
     Result :: {ok, Extras} | {error, Reason},
     Extras :: #{
@@ -386,15 +375,9 @@ build_router(Mounts, StaticRoutes) ->
 -spec mounts(Conf) -> Result when
     Conf :: erf_conf:t(),
     Result :: {ok, Mounts} | {error, Reason},
-    Mounts :: [mount(), ...],
+    Mounts :: [mount()],
     Reason :: term().
-mounts(#{mounts := _Mounts, spec_path := _SpecPath}) ->
-    {error, {invalid_conf, mounts_and_spec_path}};
-mounts(#{mounts := _Mounts, callback := _Callback}) ->
-    {error, {invalid_conf, mounts_and_callback}};
-mounts(#{mounts := []}) ->
-    {error, {invalid_conf, empty_mounts}};
-mounts(#{mounts := RawMounts} = Conf) ->
+mounts(#{mounts := [_ | _] = RawMounts} = Conf) ->
     Mounts = [normalize_mount(RawMount, Conf) || RawMount <- RawMounts],
     BasePaths = [BasePath || #{base_path := BasePath} <- Mounts],
     InvalidBasePaths = [
@@ -409,7 +392,9 @@ mounts(#{mounts := RawMounts} = Conf) ->
         {[], []} ->
             {ok, Mounts}
     end;
-mounts(#{spec_path := SpecPath, callback := Callback} = Conf) ->
+mounts(#{spec_path := SpecPath, callback := Callback} = Conf) when
+    SpecPath =/= undefined, Callback =/= undefined
+->
     Mount = #{base_path => <<"/">>, spec_path => SpecPath, callback => Callback},
     {ok, [normalize_mount(Mount, Conf)]};
 mounts(_Conf) ->
@@ -430,7 +415,7 @@ normalize_mount(#{base_path := BasePath} = Mount, Conf) ->
     }.
 
 -spec callbacks(Mounts) -> Callbacks when
-    Mounts :: [mount(), ...],
+    Mounts :: [mount()],
     Callbacks :: #{base_path() => module()}.
 callbacks(Mounts) ->
     maps:from_list([
@@ -439,7 +424,7 @@ callbacks(Mounts) ->
     ]).
 
 -spec parse_api(Mounts) -> Result when
-    Mounts :: [mount(), ...],
+    Mounts :: [mount()],
     Result :: {ok, API} | {error, Reason},
     API :: api(),
     Reason :: term().
@@ -499,7 +484,7 @@ mount_api(#{base_path := BasePath}, RawAPI) ->
 namespace_refs(<<>>, API) ->
     API;
 namespace_refs(<<"/", Path/binary>>, API) ->
-    Prefix = erf_util:to_snake_case(binary:replace(Path, [<<"/">>, <<"-">>], <<"_">>, [global])),
+    Prefix = erf_util:to_snake_case(Path),
     #{schemas := Schemas} = RenamedAPI = rename_refs(<<Prefix/binary, "_">>, API),
     RenamedAPI#{
         schemas => maps:from_list([
@@ -571,7 +556,7 @@ path_segments(Path) ->
     [Segment || Segment <- binary:split(Path, <<"/">>, [global]), Segment =/= <<>>].
 
 -spec swagger_routes(Mounts, SwaggerUI) -> Result when
-    Mounts :: [mount(), ...],
+    Mounts :: [mount()],
     SwaggerUI :: boolean(),
     Result :: {ok, [static_route()]} | {error, swagger_ui_not_found}.
 swagger_routes(_Mounts, false) ->

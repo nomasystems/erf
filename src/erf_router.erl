@@ -559,8 +559,6 @@ handle_ast(API, #{callback := Callback} = Opts) ->
     CallbackSpec :: callback_spec(),
     BasePath :: erf:base_path(),
     Callback :: callback().
-%% @doc Resolves which callback module handles a given endpoint: a single callback module is
-%% shared by every endpoint, while a map gives each mount its own module.
 resolve_callback(Callback, _BasePath) when is_atom(Callback) ->
     Callback;
 resolve_callback(CallbacksByBasePath, BasePath) when is_map(CallbacksByBasePath) ->

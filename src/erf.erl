@@ -379,8 +379,6 @@ callbacks(Mounts) ->
     Result :: {ok, Mounts} | {error, Reason},
     Mounts :: [mount(), ...],
     Reason :: term().
-%% @doc Normalises the specification config into a list of mounts, so that a single
-%% specification is just a single mount at the root.
 mounts(#{mounts := _Mounts, spec_path := _SpecPath}) ->
     {error, {invalid_conf, mounts_and_spec_path}};
 mounts(#{mounts := _Mounts, callback := _Callback}) ->
@@ -403,9 +401,6 @@ mounts(_Conf) ->
     Conf :: erf_conf:t(),
     Mounts :: [mount(), ...],
     NewConf :: erf_conf:t().
-%% @doc Stores the normalised mounts in a configuration. An instance serving a single
-%% specification from the root keeps `spec_path' and `callback' alongside them, so that a
-%% configuration that never mentions `mounts' reads back exactly as it always has.
 with_mounts(Conf, [#{base_path := <<>>, spec_path := SpecPath, callback := Callback}] = Mounts) ->
     Conf#{mounts => Mounts, spec_path => SpecPath, callback => Callback};
 with_mounts(Conf, Mounts) ->
@@ -417,13 +412,6 @@ with_mounts(Conf, Mounts) ->
     Result :: {ok, Mounts} | {error, Reason},
     Mounts :: [mount(), ...],
     Reason :: term().
-%% @doc Resolves the mounts of a reloaded configuration. A reload carrying `mounts' replaces
-%% the stored ones wholesale, while one carrying `spec_path' or `callback' patches the only
-%% mount already configured, which is how an instance serving one specification swaps its
-%% callback module.
-%% The stored configuration of a single-specification instance carries `spec_path' and
-%% `callback' next to its `mounts', so the exclusivity between the two shapes is checked
-%% against what the reload itself brings, never against the merged configuration.
 reload_mounts(NewConf, RawConf) ->
     HasMounts = maps:is_key(mounts, NewConf),
     HasSingleSpec = maps:is_key(spec_path, NewConf) orelse maps:is_key(callback, NewConf),
@@ -443,8 +431,6 @@ reload_mounts(NewConf, RawConf) ->
     Result :: {ok, Mounts} | {error, Reason},
     Mounts :: [mount(), ...],
     Reason :: term().
-%% @doc Returns the mounts a reload that brings no specification config of its own must keep.
-%% They are already normalised, unless nothing has been configured for this instance yet.
 stored_mounts(#{mounts := Mounts}) ->
     {ok, Mounts};
 stored_mounts(RawConf) ->
@@ -536,8 +522,6 @@ normalize_mount(Mount, _DefaultSpecParser) ->
     RawBasePath :: binary(),
     Result :: {ok, base_path()} | {error, Reason},
     Reason :: term().
-%% @doc Canonicalises a base path so that the root is the empty binary and every other base
-%% path has a leading and no trailing slash, making it a prefix that can be prepended as is.
 normalize_base_path(RawBasePath) ->
     Segments = path_segments(RawBasePath),
     case lists:any(fun is_path_parameter/1, Segments) of
@@ -552,8 +536,6 @@ normalize_base_path(RawBasePath) ->
     Result :: {ok, API} | {error, Reason},
     API :: api(),
     Reason :: term().
-%% @doc Parses the specification of every mount and merges them into a single API AST whose
-%% endpoints are prefixed by, and tagged with, the base path they are mounted under.
 parse_api(Mounts) ->
     case parse_mounts(Mounts, []) of
         {ok, ParsedMounts} ->
@@ -584,9 +566,6 @@ parse_mounts([Mount | Rest], Acc) ->
     Result :: {ok, API} | {error, Reason},
     API :: api(),
     Reason :: term().
-%% @doc Merges the APIs parsed from every mount into a single API AST. The parser already
-%% namespaces the schemas it generates by the specification's file name, so references are
-%% only renamed for the mounts whose specifications share a file name with another mount's.
 merge_apis([{_FirstMount, FirstAPI} | _Rest] = ParsedMounts) ->
     Ambiguous = ambiguous_spec_names(ParsedMounts),
     PrefixedAPIs = [
@@ -636,8 +615,6 @@ prefix_api(#{base_path := BasePath}, API, PrefixRefs) ->
 -spec ambiguous_spec_names(ParsedMounts) -> SpecNames when
     ParsedMounts :: [{mount(), api()}],
     SpecNames :: [binary()].
-%% @doc Returns the specification file names used by more than one mount, whose generated
-%% schema references would otherwise collide.
 ambiguous_spec_names(ParsedMounts) ->
     Counts = lists:foldl(
         fun({Mount, _API}, Acc) ->
@@ -660,10 +637,6 @@ spec_name(#{spec_path := SpecPath}) ->
     Result :: {ok, Path, OtherPath} | none,
     Path :: binary(),
     OtherPath :: binary().
-%% @doc Finds two routes belonging to different mounts that can match the same
-%% request, which the generated router would silently resolve by clause order. Routes within
-%% a single specification are left alone: a specification is free to shadow, say,
-%% `/items/{id}' with `/items/latest', and the more specific one is expected to win.
 conflicting_routes([]) ->
     none;
 conflicting_routes([API | Rest]) ->
@@ -718,9 +691,6 @@ is_path_parameter(_Segment) ->
     Prefix :: binary() | undefined,
     Term :: term(),
     NewTerm :: term().
-%% @doc Recursively walks an API AST fragment, namespacing every `ref' field it finds
-%% (schema/parameter/body references) no matter how deeply nested it is, inside object
-%% properties, array items, oneOf/anyOf branches and so on.
 rewrite_refs(undefined, Term) ->
     Term;
 rewrite_refs(Prefix, Term) when is_map(Term) ->
@@ -751,7 +721,6 @@ prefix_ref(Prefix, Ref) ->
 -spec ref_prefix(BasePath) -> Prefix when
     BasePath :: base_path(),
     Prefix :: binary().
-%% @doc Turns a base path into a valid prefix for a generated schema reference.
 ref_prefix(<<>>) ->
     <<"root">>;
 ref_prefix(BasePath) ->
@@ -765,8 +734,6 @@ ref_prefix(BasePath) ->
     Mounts :: [mount(), ...],
     SwaggerUI :: boolean(),
     StaticRoutes :: [static_route()].
-%% @doc Serves a Swagger UI per mount, under the base path the mount is served from, so that
-%% each mount documents only its own endpoints.
 swagger_routes(_Mounts, false) ->
     [];
 swagger_routes(Mounts, true) ->

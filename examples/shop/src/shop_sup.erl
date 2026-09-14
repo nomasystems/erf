@@ -35,7 +35,8 @@ init([]) ->
             }
         ],
         swagger_ui => true,
-        port => 8081
+        port => 8081,
+        name => shop_api
     },
     ShopChildSpec = {
         shop_api_server,

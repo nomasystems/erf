@@ -263,6 +263,11 @@ invalid_conf(_Conf) ->
     ),
 
     ?assertEqual(
+        {error, {invalid_conf, missing_mounts}},
+        erf:reload_conf(erf_server, #{mounts => []})
+    ),
+
+    ?assertEqual(
         {error, {invalid_conf, missing_spec_path}},
         erf:reload_conf(erf_server, #{callback => erf_items_callback})
     ),

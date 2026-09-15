@@ -216,8 +216,9 @@ reload_conf(Name, NewConf) ->
         end,
 
     maybe
-        {ok, MountConf} ?= spec_path_to_mount(NewConf),
+        {ok, MountConf} ?= build_mounts_conf(NewConf),
         Conf = maps:merge(OldConf, MountConf),
+        ok ?= check_mounts(Conf),
         {ok, Extras} ?= build_router(Conf),
         erf_conf:set(Name, maps:merge(Conf, Extras)),
         ok
@@ -228,9 +229,10 @@ reload_conf(Name, NewConf) ->
 %%%-----------------------------------------------------------------------------
 init([Name, RawConf]) ->
     maybe
-        {ok, MountConf} ?= spec_path_to_mount(RawConf),
+        {ok, MountConf} ?= build_mounts_conf(RawConf),
+        ok ?= check_mounts(MountConf),
         RawErfConf = #{
-            mounts => maps:get(mounts, MountConf, []),
+            mounts => maps:get(mounts, MountConf),
             spec_parser => maps:get(spec_parser, RawConf, erf_parser_oas_3_0),
             static_routes => maps:get(static_routes, RawConf, []),
             swagger_ui => maps:get(swagger_ui, RawConf, false),
@@ -312,17 +314,14 @@ build_http_server_conf(ErfConf) ->
         router := erl_syntax:syntaxTree()
     },
     Reason :: term().
-build_router(Conf) ->
-    case mounts(Conf) of
-        {ok, Mounts} ->
-            case swagger_routes(Mounts, maps:get(swagger_ui, Conf)) of
-                {ok, SwaggerRoutes} ->
-                    build_router(Mounts, SwaggerRoutes ++ maps:get(static_routes, Conf));
-                {error, Reason} ->
-                    {error, Reason}
-            end;
-        {error, Reason} ->
-            {error, Reason}
+build_router(#{mounts := RawMounts} = Conf) ->
+    Mounts = [normalize_mount(RawMount, Conf) || RawMount <- RawMounts],
+    BasePaths = [BasePath || #{base_path := BasePath} <- Mounts],
+    maybe
+        ok ?= check_path_parameters(BasePaths),
+        ok ?= check_duplicated_base_paths(BasePaths),
+        {ok, SwaggerRoutes} ?= swagger_routes(Mounts, maps:get(swagger_ui, Conf)),
+        build_router(Mounts, SwaggerRoutes ++ maps:get(static_routes, Conf))
     end.
 
 -spec build_router(Mounts, StaticRoutes) -> Result when
@@ -336,89 +335,101 @@ build_router(Conf) ->
     },
     Reason :: term().
 build_router(Mounts, StaticRoutes) ->
-    case parse_api(Mounts) of
-        {ok, API} ->
-            Schemas = maps:to_list(maps:get(schemas, API)),
-            case build_dtos(Schemas) of
-                ok ->
-                    {RouterMod, Router} = erf_router:generate(API, #{
-                        callback => callbacks(Mounts),
-                        static_routes => StaticRoutes
-                    }),
-                    Extras = #{
-                        route_patterns => route_patterns(API, StaticRoutes),
-                        router_mod => RouterMod,
-                        router => Router
-                    },
-                    case erf_router:load(Router) of
-                        ok ->
-                            {ok, Extras};
-                        {ok, Warnings} ->
-                            log_warnings(Warnings, <<"router generation">>),
-                            {ok, Extras};
-                        error ->
-                            {error, {router_loading_failed, [unknown_error]}};
-                        {error, {Errors, Warnings}} ->
-                            log_warnings(Warnings, <<"router generation">>),
-                            {error, {router_loading_failed, Errors}}
-                    end;
-                {error, Reason} ->
-                    {error, Reason}
-            end;
-        {error, Reason} ->
-            {error, Reason}
+    maybe
+        {ok, API} ?= parse_api(Mounts),
+        Schemas = maps:to_list(maps:get(schemas, API)),
+        ok ?= build_dtos(Schemas),
+        {RouterMod, Router} = erf_router:generate(API, #{
+            callback => callbacks(Mounts),
+            static_routes => StaticRoutes
+        }),
+        Extras = #{
+            route_patterns => route_patterns(API, StaticRoutes),
+            router_mod => RouterMod,
+            router => Router
+        },
+        case erf_router:load(Router) of
+            ok ->
+                {ok, Extras};
+            {ok, Warnings} ->
+                log_warnings(Warnings, <<"router generation">>),
+                {ok, Extras};
+            error ->
+                {error, {router_loading_failed, [unknown_error]}};
+            {error, {Errors, Warnings}} ->
+                log_warnings(Warnings, <<"router generation">>),
+                {error, {router_loading_failed, Errors}}
+        end
     end.
 
--spec spec_path_to_mount(Conf) -> Result when
+-spec build_mounts_conf(Conf) -> Result when
     Conf :: erf_conf:t(),
     Result :: {ok, erf_conf:t()} | {error, Reason},
     Reason :: term().
-spec_path_to_mount(#{mounts := [_ | _]} = Conf) ->
+build_mounts_conf(#{mounts := [_ | _]} = Conf) ->
     {ok, Conf};
-spec_path_to_mount(#{spec_path := SpecPath, callback := Callback} = Conf) ->
+build_mounts_conf(#{spec_path := SpecPath, callback := Callback} = Conf) ->
     {ok, Conf#{mounts => [#{base_path => <<"/">>, spec_path => SpecPath, callback => Callback}]}};
-spec_path_to_mount(#{callback := _Callback}) ->
+build_mounts_conf(#{callback := _Callback}) ->
     {error, {invalid_conf, missing_spec_path}};
-spec_path_to_mount(#{spec_path := _SpecPath}) ->
+build_mounts_conf(#{spec_path := _SpecPath}) ->
     {error, {invalid_conf, missing_callback}};
-spec_path_to_mount(Conf) ->
+build_mounts_conf(Conf) ->
     {ok, Conf}.
 
--spec mounts(Conf) -> Result when
+-spec check_mounts(Conf) -> Result when
     Conf :: erf_conf:t(),
-    Result :: {ok, Mounts} | {error, Reason},
-    Mounts :: [mount()],
-    Reason :: term().
-mounts(#{mounts := [_ | _] = RawMounts} = Conf) ->
-    Mounts = [normalize_mount(RawMount, Conf) || RawMount <- RawMounts],
-    BasePaths = [BasePath || #{base_path := BasePath} <- Mounts],
-    InvalidBasePaths = [
-        BasePath
-     || BasePath <- BasePaths, binary:match(BasePath, <<"{">>) =/= nomatch
-    ],
-    case {InvalidBasePaths, BasePaths -- lists:uniq(BasePaths)} of
-        {[BasePath | _Rest], _DuplicatedBasePaths} ->
-            {error, {invalid_base_path, BasePath}};
-        {[], [BasePath | _Rest]} ->
+    Result :: ok | {error, {invalid_conf, missing_mounts}}.
+check_mounts(#{mounts := [_ | _]}) ->
+    ok;
+check_mounts(_Conf) ->
+    {error, {invalid_conf, missing_mounts}}.
+
+-spec check_path_parameters(BasePaths) -> Result when
+    BasePaths :: [base_path()],
+    Result :: ok | {error, {invalid_base_path, base_path()}}.
+%% @doc Rejects base paths with a path parameter, such as `/{tenant}'. The router turns
+%% every `{name}' segment into a variable, but no specification declares it, so its value
+%% would be neither validated nor passed to the callback.
+check_path_parameters(BasePaths) ->
+    case [BasePath || BasePath <- BasePaths, binary:match(BasePath, <<"{">>) =/= nomatch] of
+        [] ->
+            ok;
+        [BasePath | _Rest] ->
+            {error, {invalid_base_path, BasePath}}
+    end.
+
+-spec check_duplicated_base_paths(BasePaths) -> Result when
+    BasePaths :: [base_path()],
+    Result :: ok | {error, {duplicate_base_path, base_path()}}.
+check_duplicated_base_paths([BasePath | BasePaths]) ->
+    case lists:member(BasePath, BasePaths) of
+        true ->
             {error, {duplicate_base_path, BasePath}};
-        {[], []} ->
-            {ok, Mounts}
+        false ->
+            check_duplicated_base_paths(BasePaths)
     end;
-mounts(_Conf) ->
-    {error, {invalid_conf, missing_spec_path}}.
+check_duplicated_base_paths([]) ->
+    ok.
 
 -spec normalize_mount(Mount, Conf) -> NormalizedMount when
     Mount :: mount(),
     Conf :: erf_conf:t(),
     NormalizedMount :: mount().
+%% @doc Makes the base path canonical: a leading slash, no repeated or trailing slashes,
+%% and the root as an empty binary. Base paths are prepended as is to the routes of each
+%% specification, compared to detect duplicates and used as the key that links every
+%% endpoint to its callback, so `/v1' and `/v1/' must end up being the same base path.
 normalize_mount(#{base_path := BasePath} = Mount, Conf) ->
     DefaultSpecParser = maps:get(spec_parser, Conf, erf_parser_oas_3_0),
+    CanonicalBasePath = erlang:iolist_to_binary([
+        [<<"/">>, Segment]
+     || Segment <- path_segments(BasePath)
+    ]),
+    SpecParser = maps:get(spec_parser, Mount, DefaultSpecParser),
     Mount#{
-        base_path => erlang:iolist_to_binary([
-            [<<"/">>, Segment]
-         || Segment <- path_segments(BasePath)
-        ]),
-        spec_parser => maps:get(spec_parser, Mount, DefaultSpecParser)
+        base_path => CanonicalBasePath,
+        spec_parser => SpecParser
     }.
 
 -spec callbacks(Mounts) -> Callbacks when

@@ -315,7 +315,8 @@ build_http_server_conf(ErfConf) ->
     },
     Reason :: term().
 build_router(#{mounts := RawMounts} = Conf) ->
-    Mounts = [normalize_mount(RawMount, Conf) || RawMount <- RawMounts],
+    SpecParser = maps:get(spec_parser, Conf),
+    Mounts = [maps:merge(#{spec_parser => SpecParser}, RawMount) || RawMount <- RawMounts],
     BasePaths = [BasePath || #{base_path := BasePath} <- Mounts],
     maybe
         ok ?= check_path_parameters(BasePaths),
@@ -369,7 +370,7 @@ build_router(Mounts, StaticRoutes) ->
 build_mounts_conf(#{mounts := [_ | _]} = Conf) ->
     {ok, Conf};
 build_mounts_conf(#{spec_path := SpecPath, callback := Callback} = Conf) ->
-    {ok, Conf#{mounts => [#{base_path => <<"/">>, spec_path => SpecPath, callback => Callback}]}};
+    {ok, Conf#{mounts => [#{base_path => <<>>, spec_path => SpecPath, callback => Callback}]}};
 build_mounts_conf(#{callback := _Callback}) ->
     {error, {invalid_conf, missing_spec_path}};
 build_mounts_conf(#{spec_path := _SpecPath}) ->
@@ -411,26 +412,6 @@ check_duplicated_base_paths([BasePath | BasePaths]) ->
     end;
 check_duplicated_base_paths([]) ->
     ok.
-
--spec normalize_mount(Mount, Conf) -> NormalizedMount when
-    Mount :: mount(),
-    Conf :: erf_conf:t(),
-    NormalizedMount :: mount().
-%% @doc Makes the base path canonical: a leading slash, no repeated or trailing slashes,
-%% and the root as an empty binary. Base paths are prepended as is to the routes of each
-%% specification, compared to detect duplicates and used as the key that links every
-%% endpoint to its callback, so `/v1' and `/v1/' must end up being the same base path.
-normalize_mount(#{base_path := BasePath} = Mount, Conf) ->
-    DefaultSpecParser = maps:get(spec_parser, Conf, erf_parser_oas_3_0),
-    CanonicalBasePath = erlang:iolist_to_binary([
-        [<<"/">>, Segment]
-     || Segment <- path_segments(BasePath)
-    ]),
-    SpecParser = maps:get(spec_parser, Mount, DefaultSpecParser),
-    Mount#{
-        base_path => CanonicalBasePath,
-        spec_parser => SpecParser
-    }.
 
 -spec callbacks(Mounts) -> Callbacks when
     Mounts :: [mount()],

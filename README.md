@@ -205,7 +205,7 @@ A single `erf` instance can serve several API specifications, each under its own
 }.
 ```
 
-- `base_path`: Path prefix the mount is served under. `<<"/">>` serves it from the root.
+- `base_path`: Path prefix the mount is served under. `<<>>` serves it from the root.
 - `spec_path`: Path to the mount's API specification file.
 - `callback`: Name of the mount's callback module.
 - `spec_parser`: Name of the specification parser module. Defaults to the instance's `spec_parser`.
@@ -215,7 +215,7 @@ For example, [shop_sup.erl](examples/shop/src/shop_sup.erl) serves [orders.opena
 ShopAPIConf = #{
     mounts => [
         #{
-            base_path => <<"/">>,
+            base_path => <<>>,
             spec_path => <<"priv/orders.openapi.json">>,
             callback => shop_orders_callback
         },

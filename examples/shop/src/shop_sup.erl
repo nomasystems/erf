@@ -24,7 +24,7 @@ init([]) ->
     ShopAPIConf = #{
         mounts => [
             #{
-                base_path => <<"/">>,
+                base_path => <<>>,
                 spec_path => filename:join(code:priv_dir(shop), <<"orders.openapi.json">>),
                 callback => shop_orders_callback
             },

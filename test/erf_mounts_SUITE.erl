@@ -109,7 +109,7 @@ mounts_route_by_base_path(_Conf) ->
     {ok, _Pid} = erf:start_link(#{
         mounts => [
             #{
-                base_path => <<"/">>,
+                base_path => <<>>,
                 spec_path => spec(<<"mount_items_oas_3_0_spec.json">>),
                 callback => erf_items_callback
             },
@@ -190,7 +190,7 @@ swagger_ui_per_mount(_Conf) ->
     {ok, _Pid} = erf:start_link(#{
         mounts => [
             #{
-                base_path => <<"/">>,
+                base_path => <<>>,
                 spec_path => spec(<<"mount_items_oas_3_0_spec.json">>),
                 callback => erf_items_callback
             },
@@ -249,7 +249,7 @@ invalid_conf(_Conf) ->
             mounts => [
                 ItemsMount#{base_path => <<"/orders">>},
                 #{
-                    base_path => <<"/">>,
+                    base_path => <<>>,
                     spec_path => spec(<<"mount_orders_oas_3_0_spec.json">>),
                     callback => erf_items_callback
                 }

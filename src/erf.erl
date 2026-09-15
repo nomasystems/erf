@@ -215,57 +215,54 @@ reload_conf(Name, NewConf) ->
                 Old
         end,
 
-    Conf = maps:merge(OldConf, NewConf),
-
-    case build_router(Conf) of
-        {ok, Extras} ->
-            erf_conf:set(Name, maps:merge(Conf, Extras)),
-            ok;
-        {error, Reason} ->
-            {error, Reason}
+    maybe
+        {ok, MountConf} ?= spec_path_to_mount(NewConf),
+        Conf = maps:merge(OldConf, MountConf),
+        {ok, Extras} ?= build_router(Conf),
+        erf_conf:set(Name, maps:merge(Conf, Extras)),
+        ok
     end.
 
 %%%-----------------------------------------------------------------------------
 %%% INIT/TERMINATE EXPORTS
 %%%-----------------------------------------------------------------------------
 init([Name, RawConf]) ->
-    RawErfConf = #{
-        spec_path => maps:get(spec_path, RawConf, undefined),
-        spec_parser => maps:get(spec_parser, RawConf, erf_parser_oas_3_0),
-        callback => maps:get(callback, RawConf, undefined),
-        mounts => maps:get(mounts, RawConf, []),
-        static_routes => maps:get(static_routes, RawConf, []),
-        swagger_ui => maps:get(swagger_ui, RawConf, false),
-        preprocess_middlewares => maps:get(preprocess_middlewares, RawConf, []),
-        postprocess_middlewares => maps:get(postprocess_middlewares, RawConf, []),
-        log_level => maps:get(log_level, RawConf, error)
-    },
+    maybe
+        {ok, MountConf} ?= spec_path_to_mount(RawConf),
+        RawErfConf = #{
+            mounts => maps:get(mounts, MountConf, []),
+            spec_parser => maps:get(spec_parser, RawConf, erf_parser_oas_3_0),
+            static_routes => maps:get(static_routes, RawConf, []),
+            swagger_ui => maps:get(swagger_ui, RawConf, false),
+            preprocess_middlewares => maps:get(preprocess_middlewares, RawConf, []),
+            postprocess_middlewares => maps:get(postprocess_middlewares, RawConf, []),
+            log_level => maps:get(log_level, RawConf, error)
+        },
+        {ok, Extras} ?= build_router(RawErfConf),
+        ErfConf = maps:merge(RawErfConf, Extras),
+        ok = erf_conf:set(Name, ErfConf),
 
-    case build_router(RawErfConf) of
-        {ok, Extras} ->
-            ErfConf = maps:merge(RawErfConf, Extras),
-            ok = erf_conf:set(Name, ErfConf),
-
-            {HTTPServer, HTTPServerExtraConf} = maps:get(
-                http_server, RawConf, {erf_http_server_elli, #{}}
-            ),
-            HTTPServerConf = build_http_server_conf(RawConf),
-            SupFlags = #{
-                strategy => one_for_one,
-                intensity => 1,
-                period => 5
-            },
-            ChildSpec = {
-                Name,
-                {erf_http_server, start_link, [
-                    HTTPServer, HTTPServerExtraConf, Name, HTTPServerConf
-                ]},
-                permanent,
-                5000,
-                worker,
-                [erf_http_server]
-            },
-            {ok, {SupFlags, [ChildSpec]}};
+        {HTTPServer, HTTPServerExtraConf} = maps:get(
+            http_server, RawConf, {erf_http_server_elli, #{}}
+        ),
+        HTTPServerConf = build_http_server_conf(RawConf),
+        SupFlags = #{
+            strategy => one_for_one,
+            intensity => 1,
+            period => 5
+        },
+        ChildSpec = {
+            Name,
+            {erf_http_server, start_link, [
+                HTTPServer, HTTPServerExtraConf, Name, HTTPServerConf
+            ]},
+            permanent,
+            5000,
+            worker,
+            [erf_http_server]
+        },
+        {ok, {SupFlags, [ChildSpec]}}
+    else
         {error, Reason} ->
             {stop, Reason}
     end.
@@ -372,6 +369,21 @@ build_router(Mounts, StaticRoutes) ->
             {error, Reason}
     end.
 
+-spec spec_path_to_mount(Conf) -> Result when
+    Conf :: erf_conf:t(),
+    Result :: {ok, erf_conf:t()} | {error, Reason},
+    Reason :: term().
+spec_path_to_mount(#{mounts := [_ | _]} = Conf) ->
+    {ok, Conf};
+spec_path_to_mount(#{spec_path := SpecPath, callback := Callback} = Conf) ->
+    {ok, Conf#{mounts => [#{base_path => <<"/">>, spec_path => SpecPath, callback => Callback}]}};
+spec_path_to_mount(#{callback := _Callback}) ->
+    {error, {invalid_conf, missing_spec_path}};
+spec_path_to_mount(#{spec_path := _SpecPath}) ->
+    {error, {invalid_conf, missing_callback}};
+spec_path_to_mount(Conf) ->
+    {ok, Conf}.
+
 -spec mounts(Conf) -> Result when
     Conf :: erf_conf:t(),
     Result :: {ok, Mounts} | {error, Reason},
@@ -392,11 +404,6 @@ mounts(#{mounts := [_ | _] = RawMounts} = Conf) ->
         {[], []} ->
             {ok, Mounts}
     end;
-mounts(#{spec_path := SpecPath, callback := Callback} = Conf) when
-    SpecPath =/= undefined, Callback =/= undefined
-->
-    Mount = #{base_path => <<"/">>, spec_path => SpecPath, callback => Callback},
-    {ok, [normalize_mount(Mount, Conf)]};
 mounts(_Conf) ->
     {error, {invalid_conf, missing_spec_path}}.
 

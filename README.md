@@ -256,14 +256,14 @@ The following type spec corresponds to the runtime configuration of an `erf` ins
 ```erl
 %%% erf_conf.erl
 -type t() :: #{
-    callback => module() | undefined,
+    callback => module(),
     log_level => logger:level(),
     mounts => [erf:mount()],
     preprocess_middlewares => [module()],
     postprocess_middlewares => [module()],
     router => erl_syntax:syntaxTree(), % not manually updatable
     router_mod => module(), % not manually updatable
-    spec_path => binary() | undefined,
+    spec_path => binary(),
     spec_parser => module(),
     static_routes => [erf:static_route()],
     swagger_ui => boolean()
@@ -271,7 +271,7 @@ The following type spec corresponds to the runtime configuration of an `erf` ins
 ```
 > __NOTE:__ the `router` and `router_mod` keys are not updatable as they are automatically computed when new configuration is provided.
 
-`mounts` takes precedence over `spec_path` and `callback` while it is not empty, so reloading with `mounts => []` goes back to serving `spec_path`.
+A reload with `spec_path` and `callback` replaces the [mounts](#mounts) of an instance, and one with `mounts` replaces them too. When both come in the same reload, `mounts` takes precedence. `spec_path` and `callback` must be given together.
 
 ## Static routes
 

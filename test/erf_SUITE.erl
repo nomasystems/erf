@@ -565,7 +565,12 @@ reload_conf(_Conf) ->
         )
     ),
 
-    ok = erf:reload_conf(erf_server, #{callback => erf_callback_2}),
+    ok = erf:reload_conf(erf_server, #{
+        spec_path => filename:join(
+            [code:lib_dir(erf), "test", <<"fixtures/with_refs_oas_3_0_spec.json">>]
+        ),
+        callback => erf_callback_2
+    }),
 
     ?assertMatch(
         {ok, {{"HTTP/1.1", 200, "OK"}, _Result2Headers, <<"\"baz\"">>}},

@@ -83,13 +83,6 @@ single_spec_path_is_unaffected(_Conf) ->
     ?assertMatch({404, _Body}, http_get("/v1/items")),
     ?assertMatch({ok, <<"/items">>}, erf:match_route(erf_server, <<"/items">>)),
 
-    %% The stored configuration still reads back the keys it was given, so anything
-    %% inspecting it through `erf_conf:get/1' keeps working untouched.
-    {ok, StoredConf} = erf_conf:get(erf_server),
-    ?assertEqual(spec(<<"mount_items_oas_3_0_spec.json">>), maps:get(spec_path, StoredConf)),
-    ?assertEqual(erf_items_callback, maps:get(callback, StoredConf)),
-
-    %% And so does a reload that carries no specification config of its own.
     ok = erf:reload_conf(erf_server, #{log_level => warning}),
     ?assertMatch({200, <<"\"items\"">>}, http_get("/items")),
 
@@ -269,6 +262,16 @@ invalid_conf(_Conf) ->
         erf:reload_conf(erf_server, #{mounts => [ItemsMount#{base_path => <<"/{tenant}">>}]})
     ),
 
+    ?assertEqual(
+        {error, {invalid_conf, missing_spec_path}},
+        erf:reload_conf(erf_server, #{callback => erf_items_callback})
+    ),
+
+    ?assertEqual(
+        {error, {invalid_conf, missing_callback}},
+        erf:reload_conf(erf_server, #{spec_path => spec(<<"mount_items_oas_3_0_spec.json">>)})
+    ),
+
     %% None of the rejected configurations replaced the running one.
     ?assertMatch({ok, <<"/items">>}, erf:match_route(erf_server, <<"/items">>)),
 
@@ -318,12 +321,22 @@ reload_conf_replaces_mounts(_Conf) ->
         spec_path => spec(<<"mount_items_oas_3_0_spec.json">>),
         callback => erf_items_callback
     }),
-    ?assertMatch({200, <<"\"orders\"">>}, http_get("/shop/orders")),
-    ?assertMatch({404, _Body3}, http_get("/items")),
-
-    ok = erf:reload_conf(erf_server, #{mounts => []}),
     ?assertMatch({200, <<"\"items\"">>}, http_get("/items")),
-    ?assertMatch({404, _Body4}, http_get("/shop/orders")),
+    ?assertMatch({404, _Body3}, http_get("/shop/orders")),
+
+    ok = erf:reload_conf(erf_server, #{
+        mounts => [
+            #{
+                base_path => <<"/shop">>,
+                spec_path => spec(<<"mount_orders_oas_3_0_spec.json">>),
+                callback => erf_orders_callback
+            }
+        ],
+        spec_path => spec(<<"mount_items_oas_3_0_spec.json">>),
+        callback => erf_items_callback
+    }),
+    ?assertMatch({200, <<"\"orders\"">>}, http_get("/shop/orders")),
+    ?assertMatch({404, _Body4}, http_get("/items")),
 
     ok = erf:stop(erf_server),
     meck:unload([erf_items_callback, erf_orders_callback]),

@@ -30,7 +30,7 @@
 
 %%% TYPES
 -type t() :: #{
-    callback => module() | undefined,
+    callback => module(),
     log_level => logger:level(),
     mounts => [erf:mount()],
     preprocess_middlewares => [module()],
@@ -38,7 +38,7 @@
     route_patterns => erf:route_patterns(),
     router => erl_syntax:syntaxTree(),
     router_mod => module(),
-    spec_path => binary() | undefined,
+    spec_path => binary(),
     spec_parser => module(),
     static_routes => [erf:static_route()],
     swagger_ui => boolean()

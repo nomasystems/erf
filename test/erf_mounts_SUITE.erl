@@ -67,8 +67,6 @@ end_per_testcase(Case, Conf) ->
 %%% TEST CASES
 %%%-----------------------------------------------------------------------------
 single_spec_path_is_unaffected(_Conf) ->
-    %% A plain `spec_path'/`callback' pair, the only shape `erf' has ever supported, keeps
-    %% behaving exactly as before: it is served from the root, with no prefix in its routes.
     meck:new([erf_items_callback], [non_strict, no_link]),
     meck:expect(erf_items_callback, list_items, fun(_Request) -> {200, [], <<"items">>} end),
 
@@ -91,9 +89,6 @@ single_spec_path_is_unaffected(_Conf) ->
     ok.
 
 mounts_route_by_base_path(_Conf) ->
-    %% Three mounts on a single port: the same specification served both from the
-    %% root and from `/v1', and an unrelated one served from `/shop'. Each one dispatches to
-    %% its own callback module, and the callbacks see the real, prefixed path.
     meck:new([erf_items_callback, erf_items_v1_callback, erf_orders_callback], [
         non_strict, no_link
     ]),
@@ -133,7 +128,6 @@ mounts_route_by_base_path(_Conf) ->
     ?assertMatch({200, <<"\"shop/orders\"">>}, http_get("/shop/orders")),
     ?assertMatch({200, <<"\"42\"">>}, http_get("/shop/orders/42")),
 
-    %% Only the mounted routes exist: the orders specification is not served from the root.
     ?assertMatch({404, _Body}, http_get("/orders")),
     ?assertMatch({404, _Body2}, http_get("/v2/items")),
 
@@ -146,9 +140,8 @@ mounts_route_by_base_path(_Conf) ->
     ok.
 
 isolated_validation_across_mounts(_Conf) ->
-    %% Two specifications that share a file name, and therefore the schema names the parser
-    %% generates from them, define an incompatible `Entry'. Each mount must validate against
-    %% its own, so a body accepted by one is rejected by the other.
+    %% Both fixtures are named `catalog_oas_3_0_spec.json', so the parser generates the same
+    %% schema names for the two mounts.
     meck:new([erf_catalog_a_callback, erf_catalog_b_callback], [non_strict, no_link]),
     meck:expect(erf_catalog_a_callback, create_entry, fun(_Request) -> {201, [], <<"a">>} end),
     meck:expect(erf_catalog_b_callback, create_entry, fun(_Request) -> {201, [], <<"b">>} end),
@@ -184,7 +177,6 @@ isolated_validation_across_mounts(_Conf) ->
     ok.
 
 swagger_ui_per_mount(_Conf) ->
-    %% Every mount documents only itself, under the base path it is served from.
     meck:new([erf_items_callback, erf_orders_callback], [non_strict, no_link]),
 
     {ok, _Pid} = erf:start_link(#{
@@ -219,8 +211,6 @@ swagger_ui_per_mount(_Conf) ->
     ok.
 
 invalid_conf(_Conf) ->
-    %% Configuration errors are reported instead of silently producing a router where one
-    %% mount shadows another.
     meck:new([erf_items_callback], [non_strict, no_link]),
 
     {ok, _Pid} = erf:start_link(#{
@@ -241,8 +231,7 @@ invalid_conf(_Conf) ->
         erf:reload_conf(erf_server, #{mounts => [ItemsMount, ItemsMount#{callback => other}]})
     ),
 
-    %% The orders mount serves `/orders/{id}', which would shadow the `/orders/items'
-    %% of an items mount under `/orders'.
+    %% The specifications share a route once mounted: `/orders/items' against `/orders/{id}'.
     ?assertEqual(
         {error, {conflicting_routes, <<"/orders/items">>, <<"/orders/{id}">>}},
         erf:reload_conf(erf_server, #{
@@ -277,7 +266,6 @@ invalid_conf(_Conf) ->
         erf:reload_conf(erf_server, #{spec_path => spec(<<"mount_items_oas_3_0_spec.json">>)})
     ),
 
-    %% None of the rejected configurations replaced the running one.
     ?assertMatch({ok, <<"/items">>}, erf:match_route(erf_server, <<"/items">>)),
 
     ok = erf:stop(erf_server),
@@ -285,7 +273,6 @@ invalid_conf(_Conf) ->
     ok.
 
 reload_conf_replaces_mounts(_Conf) ->
-    %% A reload carrying `mounts' swaps the whole set of mounts.
     meck:new([erf_items_callback, erf_orders_callback], [non_strict, no_link]),
     meck:expect(erf_items_callback, list_items, fun(_Request) -> {200, [], <<"items">>} end),
     meck:expect(erf_orders_callback, list_orders, fun(_Request) -> {200, [], <<"orders">>} end),
@@ -318,7 +305,6 @@ reload_conf_replaces_mounts(_Conf) ->
     ?assertMatch({200, <<"\"orders\"">>}, http_get("/shop/orders")),
     ?assertMatch({404, _Body2}, http_get("/v1/items")),
 
-    %% A reload bringing no specification config keeps the mounts in place.
     ok = erf:reload_conf(erf_server, #{log_level => warning}),
     ?assertMatch({200, <<"\"orders\"">>}, http_get("/shop/orders")),
 

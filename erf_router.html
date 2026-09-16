@@ -12,7 +12,7 @@
 
     <link rel="stylesheet" href="dist/html-erlang-KCHZLXSC.css" />
 
-    <script defer src="dist/sidebar_items-CA107D78.js"></script>
+    <script defer src="dist/sidebar_items-CE809D76.js"></script>
     <script defer src="docs_config.js"></script>
     <script defer src="dist/html-Y2MUTVIN.js"></script>
 
@@ -131,6 +131,14 @@ erf
 
     <div class="summary-row">
       <div class="summary-signature">
+        <a href="#t:callback_spec/0" data-no-tooltip="" translate="no">callback_spec/0</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
         <a href="#t:generator_opts/0" data-no-tooltip="" translate="no">generator_opts/0</a>
 
       </div>
@@ -223,14 +231,14 @@ erf
 
   </section>
 </section>
-<section class="detail" id="t:generator_opts/0">
+<section class="detail" id="t:callback_spec/0">
 
   <div class="detail-header">
-    <a href="#t:generator_opts/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
+    <a href="#t:callback_spec/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
       <i class="ri-link-m" aria-hidden="true"></i>
     </a>
     <div class="heading-with-actions">
-      <h1 class="signature" translate="no">generator_opts/0</h1>
+      <h1 class="signature" translate="no">callback_spec/0</h1>
 
 
         <a href="https://github.com/nomasystems/erf/blob/0.2.0/src/erf_router.erl#L32" class="icon-action" rel="help nofollow" aria-label="View Source">
@@ -244,7 +252,35 @@ erf
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">-type</span> generator_opts() :: #{callback := <a href="#t:callback/0">callback</a>(), static_routes := [<a href="erf.html#t:static_route/0">erf:static_route</a>()]}.</pre>
+          <pre translate="no"><span class="attribute">-type</span> callback_spec() :: <a href="#t:callback/0">callback</a>() | #{<a href="erf.html#t:path/0">erf:path</a>() => <a href="#t:callback/0">callback</a>()}.</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="t:generator_opts/0">
+
+  <div class="detail-header">
+    <a href="#t:generator_opts/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">generator_opts/0</h1>
+
+
+        <a href="https://github.com/nomasystems/erf/blob/0.2.0/src/erf_router.erl#L33" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">-type</span> generator_opts() :: #{callback := <a href="#t:callback_spec/0">callback_spec</a>(), static_routes := [<a href="erf.html#t:static_route/0">erf:static_route</a>()]}.</pre>
 
       </div>
 
@@ -302,7 +338,7 @@ erf
       <h1 class="signature" translate="no">generate(API, Opts)</h1>
 
 
-        <a href="https://github.com/nomasystems/erf/blob/0.2.0/src/erf_router.erl#L44" class="icon-action" rel="help nofollow" aria-label="View Source">
+        <a href="https://github.com/nomasystems/erf/blob/0.2.0/src/erf_router.erl#L45" class="icon-action" rel="help nofollow" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -336,7 +372,7 @@ erf
       <h1 class="signature" translate="no">handle(Name, Request)</h1>
 
 
-        <a href="https://github.com/nomasystems/erf/blob/0.2.0/src/erf_router.erl#L116" class="icon-action" rel="help nofollow" aria-label="View Source">
+        <a href="https://github.com/nomasystems/erf/blob/0.2.0/src/erf_router.erl#L117" class="icon-action" rel="help nofollow" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -365,7 +401,7 @@ erf
       <h1 class="signature" translate="no">load(Router)</h1>
 
 
-        <a href="https://github.com/nomasystems/erf/blob/0.2.0/src/erf_router.erl#L88" class="icon-action" rel="help nofollow" aria-label="View Source">
+        <a href="https://github.com/nomasystems/erf/blob/0.2.0/src/erf_router.erl#L89" class="icon-action" rel="help nofollow" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 

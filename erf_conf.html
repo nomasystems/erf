@@ -12,7 +12,7 @@
 
     <link rel="stylesheet" href="dist/html-erlang-KCHZLXSC.css" />
 
-    <script defer src="dist/sidebar_items-CA107D78.js"></script>
+    <script defer src="dist/sidebar_items-CE809D76.js"></script>
     <script defer src="docs_config.js"></script>
     <script defer src="dist/html-Y2MUTVIN.js"></script>
 
@@ -267,12 +267,13 @@ erf
           <pre translate="no"><span class="attribute">-type</span> t() ::
           #{callback => <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:module/0">module</a>(),
             log_level => <a href="https://www.erlang.org/doc/apps/kernel/logger.html#t:level/0">logger:level</a>(),
+            mounts => [<a href="erf.html#t:mount/0">erf:mount</a>()],
             preprocess_middlewares => [<a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:module/0">module</a>()],
             postprocess_middlewares => [<a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:module/0">module</a>()],
             route_patterns => <a href="erf.html#t:route_patterns/0">erf:route_patterns</a>(),
             router => <a href="https://www.erlang.org/doc/apps/syntax_tools/erl_syntax.html#t:syntaxTree/0">erl_syntax:syntaxTree</a>(),
             router_mod => <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:module/0">module</a>(),
-            spec_path => <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:binary/0">binary</a>(),
+            spec_path => <a href="erf.html#t:path/0">erf:path</a>(),
             spec_parser => <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:module/0">module</a>(),
             static_routes => [<a href="erf.html#t:static_route/0">erf:static_route</a>()],
             swagger_ui => <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:boolean/0">boolean</a>()}.</pre>
@@ -305,7 +306,7 @@ erf
       <h1 class="signature" translate="no">clear(Name)</h1>
 
 
-        <a href="https://github.com/nomasystems/erf/blob/0.2.0/src/erf_conf.erl#L63" class="icon-action" rel="help nofollow" aria-label="View Source">
+        <a href="https://github.com/nomasystems/erf/blob/0.2.0/src/erf_conf.erl#L64" class="icon-action" rel="help nofollow" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -333,7 +334,7 @@ erf
       <h1 class="signature" translate="no">get(Name)</h1>
 
 
-        <a href="https://github.com/nomasystems/erf/blob/0.2.0/src/erf_conf.erl#L72" class="icon-action" rel="help nofollow" aria-label="View Source">
+        <a href="https://github.com/nomasystems/erf/blob/0.2.0/src/erf_conf.erl#L73" class="icon-action" rel="help nofollow" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -361,7 +362,7 @@ erf
       <h1 class="signature" translate="no">log_level(Name)</h1>
 
 
-        <a href="https://github.com/nomasystems/erf/blob/0.2.0/src/erf_conf.erl#L85" class="icon-action" rel="help nofollow" aria-label="View Source">
+        <a href="https://github.com/nomasystems/erf/blob/0.2.0/src/erf_conf.erl#L86" class="icon-action" rel="help nofollow" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -393,7 +394,7 @@ erf
       <h1 class="signature" translate="no">postprocess_middlewares(Name)</h1>
 
 
-        <a href="https://github.com/nomasystems/erf/blob/0.2.0/src/erf_conf.erl#L111" class="icon-action" rel="help nofollow" aria-label="View Source">
+        <a href="https://github.com/nomasystems/erf/blob/0.2.0/src/erf_conf.erl#L112" class="icon-action" rel="help nofollow" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -425,7 +426,7 @@ erf
       <h1 class="signature" translate="no">preprocess_middlewares(Name)</h1>
 
 
-        <a href="https://github.com/nomasystems/erf/blob/0.2.0/src/erf_conf.erl#L98" class="icon-action" rel="help nofollow" aria-label="View Source">
+        <a href="https://github.com/nomasystems/erf/blob/0.2.0/src/erf_conf.erl#L99" class="icon-action" rel="help nofollow" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -457,7 +458,7 @@ erf
       <h1 class="signature" translate="no">route_patterns(Name)</h1>
 
 
-        <a href="https://github.com/nomasystems/erf/blob/0.2.0/src/erf_conf.erl#L124" class="icon-action" rel="help nofollow" aria-label="View Source">
+        <a href="https://github.com/nomasystems/erf/blob/0.2.0/src/erf_conf.erl#L125" class="icon-action" rel="help nofollow" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -489,7 +490,7 @@ erf
       <h1 class="signature" translate="no">router(Name)</h1>
 
 
-        <a href="https://github.com/nomasystems/erf/blob/0.2.0/src/erf_conf.erl#L137" class="icon-action" rel="help nofollow" aria-label="View Source">
+        <a href="https://github.com/nomasystems/erf/blob/0.2.0/src/erf_conf.erl#L138" class="icon-action" rel="help nofollow" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -521,7 +522,7 @@ erf
       <h1 class="signature" translate="no">router_mod(Name)</h1>
 
 
-        <a href="https://github.com/nomasystems/erf/blob/0.2.0/src/erf_conf.erl#L150" class="icon-action" rel="help nofollow" aria-label="View Source">
+        <a href="https://github.com/nomasystems/erf/blob/0.2.0/src/erf_conf.erl#L151" class="icon-action" rel="help nofollow" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -553,7 +554,7 @@ erf
       <h1 class="signature" translate="no">set(Name, Conf)</h1>
 
 
-        <a href="https://github.com/nomasystems/erf/blob/0.2.0/src/erf_conf.erl#L163" class="icon-action" rel="help nofollow" aria-label="View Source">
+        <a href="https://github.com/nomasystems/erf/blob/0.2.0/src/erf_conf.erl#L164" class="icon-action" rel="help nofollow" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 

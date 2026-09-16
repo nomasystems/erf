@@ -44,8 +44,9 @@
 -type api() :: erf_parser:api().
 -type body() :: undefined | json:decode_value().
 -type conf() :: #{
-    spec_path := binary(),
-    callback := module(),
+    spec_path => path(),
+    callback => module(),
+    mounts => [mount()],
     port => inet:port_number(),
     name => atom(),
     spec_parser => module(),
@@ -69,6 +70,13 @@
     | options
     | trace
     | connect.
+-type mount() :: #{
+    base_path := path(),
+    spec_path := path(),
+    callback := module(),
+    spec_parser => module()
+}.
+-type path() :: binary().
 -type path_parameter() :: {binary(), binary()}.
 -type query_parameter() :: {binary(), binary()}.
 -type request() :: #{
@@ -82,7 +90,7 @@
     headers := [header()],
     body := body(),
     peer := undefined | binary(),
-    route := binary(),
+    route := path(),
     context => any()
 }.
 -type response() :: {
@@ -90,11 +98,11 @@
     Headers :: [header()],
     Body :: body() | {file, binary()} | stream_body()
 }.
--type route_patterns() :: [{Route :: binary(), RouteRegEx :: binary()}].
+-type route_patterns() :: [{Route :: path(), RouteRegEx :: binary()}].
 -type send_chunk_fun() :: fun((iodata()) -> ok | {error, closed | timeout}).
 -type static_dir() :: {dir, binary()}.
 -type static_file() :: {file, binary()}.
--type static_route() :: {Path :: binary(), Resource :: static_file() | static_dir()}.
+-type static_route() :: {Path :: path(), Resource :: static_file() | static_dir()}.
 -type stream_body() :: {stream, stream_producer()}.
 -type stream_producer() :: fun((send_chunk_fun()) -> any()).
 
@@ -105,6 +113,8 @@
     conf/0,
     header/0,
     method/0,
+    mount/0,
+    path/0,
     path_parameter/0,
     query_parameter/0,
     request/0,
@@ -178,9 +188,9 @@ get_router(Name) ->
 
 -spec match_route(Name, RawPath) -> Result when
     Name :: atom(),
-    RawPath :: binary(),
+    RawPath :: path(),
     Result :: {ok, Route} | {error, Reason},
-    Route :: binary(),
+    Route :: path(),
     Reason :: term().
 match_route(Name, RawPath) ->
     case erf_conf:route_patterns(Name) of
@@ -205,78 +215,56 @@ reload_conf(Name, NewConf) ->
                 Old
         end,
 
-    Conf = maps:merge(OldConf, NewConf),
-
-    SpecPath = maps:get(spec_path, Conf),
-    SpecParser = maps:get(spec_parser, Conf),
-    Callback = maps:get(callback, Conf),
-    StaticRoutes = maps:get(static_routes, Conf),
-    SwaggerUI = maps:get(swagger_ui, Conf),
-
-    case build_router(SpecPath, SpecParser, Callback, StaticRoutes, SwaggerUI) of
-        {ok, RouterMod, Router, API} ->
-            RoutePatterns = route_patterns(API, StaticRoutes, SwaggerUI),
-            erf_conf:set(Name, Conf#{
-                route_patterns => RoutePatterns,
-                router_mod => RouterMod,
-                router => Router
-            }),
-            ok;
-        {error, Reason} ->
-            {error, Reason}
+    maybe
+        {ok, MountConf} ?= build_mounts_conf(NewConf),
+        Conf = maps:merge(OldConf, MountConf),
+        ok ?= check_mounts(Conf),
+        {ok, Extras} ?= build_router(Conf),
+        erf_conf:set(Name, maps:merge(Conf, Extras)),
+        ok
     end.
 
 %%%-----------------------------------------------------------------------------
 %%% INIT/TERMINATE EXPORTS
 %%%-----------------------------------------------------------------------------
 init([Name, RawConf]) ->
-    RawErfConf = #{
-        spec_path => maps:get(spec_path, RawConf),
-        spec_parser => maps:get(spec_parser, RawConf, erf_parser_oas_3_0),
-        callback => maps:get(callback, RawConf),
-        static_routes => maps:get(static_routes, RawConf, []),
-        swagger_ui => maps:get(swagger_ui, RawConf, false),
-        preprocess_middlewares => maps:get(preprocess_middlewares, RawConf, []),
-        postprocess_middlewares => maps:get(postprocess_middlewares, RawConf, []),
-        log_level => maps:get(log_level, RawConf, error)
-    },
+    maybe
+        {ok, MountConf} ?= build_mounts_conf(RawConf),
+        ok ?= check_mounts(MountConf),
+        RawErfConf = #{
+            mounts => maps:get(mounts, MountConf),
+            spec_parser => maps:get(spec_parser, RawConf, erf_parser_oas_3_0),
+            static_routes => maps:get(static_routes, RawConf, []),
+            swagger_ui => maps:get(swagger_ui, RawConf, false),
+            preprocess_middlewares => maps:get(preprocess_middlewares, RawConf, []),
+            postprocess_middlewares => maps:get(postprocess_middlewares, RawConf, []),
+            log_level => maps:get(log_level, RawConf, error)
+        },
+        {ok, Extras} ?= build_router(RawErfConf),
+        ErfConf = maps:merge(RawErfConf, Extras),
+        ok = erf_conf:set(Name, ErfConf),
 
-    SpecPath = maps:get(spec_path, RawErfConf),
-    SpecParser = maps:get(spec_parser, RawErfConf),
-    Callback = maps:get(callback, RawErfConf),
-    StaticRoutes = maps:get(static_routes, RawErfConf),
-    SwaggerUI = maps:get(swagger_ui, RawErfConf),
-
-    case build_router(SpecPath, SpecParser, Callback, StaticRoutes, SwaggerUI) of
-        {ok, RouterMod, Router, API} ->
-            RoutePatterns = route_patterns(API, StaticRoutes, SwaggerUI),
-            ErfConf = RawErfConf#{
-                route_patterns => RoutePatterns,
-                router_mod => RouterMod,
-                router => Router
-            },
-            ok = erf_conf:set(Name, ErfConf),
-
-            {HTTPServer, HTTPServerExtraConf} = maps:get(
-                http_server, RawConf, {erf_http_server_elli, #{}}
-            ),
-            HTTPServerConf = build_http_server_conf(RawConf),
-            SupFlags = #{
-                strategy => one_for_one,
-                intensity => 1,
-                period => 5
-            },
-            ChildSpec = {
-                Name,
-                {erf_http_server, start_link, [
-                    HTTPServer, HTTPServerExtraConf, Name, HTTPServerConf
-                ]},
-                permanent,
-                5000,
-                worker,
-                [erf_http_server]
-            },
-            {ok, {SupFlags, [ChildSpec]}};
+        {HTTPServer, HTTPServerExtraConf} = maps:get(
+            http_server, RawConf, {erf_http_server_elli, #{}}
+        ),
+        HTTPServerConf = build_http_server_conf(RawConf),
+        SupFlags = #{
+            strategy => one_for_one,
+            intensity => 1,
+            period => 5
+        },
+        ChildSpec = {
+            Name,
+            {erf_http_server, start_link, [
+                HTTPServer, HTTPServerExtraConf, Name, HTTPServerConf
+            ]},
+            permanent,
+            5000,
+            worker,
+            [erf_http_server]
+        },
+        {ok, {SupFlags, [ChildSpec]}}
+    else
         {error, Reason} ->
             {stop, Reason}
     end.
@@ -317,62 +305,277 @@ build_http_server_conf(ErfConf) ->
         keyfile => maps:get(keyfile, ErfConf, undefined)
     }.
 
--spec build_router(SpecPath, SpecParser, Callback, StaticRoutes, SwaggerUI) -> Result when
-    SpecPath :: binary(),
-    SpecParser :: module(),
-    Callback :: module(),
+-spec build_router(Conf) -> Result when
+    Conf :: erf_conf:t(),
+    Result :: {ok, Extras} | {error, Reason},
+    Extras :: #{
+        route_patterns := route_patterns(),
+        router_mod := module(),
+        router := erl_syntax:syntaxTree()
+    },
+    Reason :: term().
+build_router(#{mounts := RawMounts} = Conf) ->
+    SpecParser = maps:get(spec_parser, Conf),
+    Mounts = [maps:merge(#{spec_parser => SpecParser}, RawMount) || RawMount <- RawMounts],
+    BasePaths = [BasePath || #{base_path := BasePath} <- Mounts],
+    maybe
+        ok ?= check_path_parameters(BasePaths),
+        ok ?= check_duplicated_base_paths(BasePaths),
+        {ok, SwaggerRoutes} ?= swagger_routes(Mounts, maps:get(swagger_ui, Conf)),
+        build_router(Mounts, SwaggerRoutes ++ maps:get(static_routes, Conf))
+    end.
+
+-spec build_router(Mounts, StaticRoutes) -> Result when
+    Mounts :: [mount()],
     StaticRoutes :: [static_route()],
-    SwaggerUI :: boolean(),
-    Result :: {ok, RouterMod, Router, API} | {error, Reason},
-    RouterMod :: module(),
-    Router :: erl_syntax:syntaxTree(),
+    Result :: {ok, Extras} | {error, Reason},
+    Extras :: #{
+        route_patterns := route_patterns(),
+        router_mod := module(),
+        router := erl_syntax:syntaxTree()
+    },
+    Reason :: term().
+build_router(Mounts, StaticRoutes) ->
+    maybe
+        {ok, API} ?= parse_api(Mounts),
+        Schemas = maps:to_list(maps:get(schemas, API)),
+        ok ?= build_dtos(Schemas),
+        {RouterMod, Router} = erf_router:generate(API, #{
+            callback => callbacks(Mounts),
+            static_routes => StaticRoutes
+        }),
+        Extras = #{
+            route_patterns => route_patterns(API, StaticRoutes),
+            router_mod => RouterMod,
+            router => Router
+        },
+        case erf_router:load(Router) of
+            ok ->
+                {ok, Extras};
+            {ok, Warnings} ->
+                log_warnings(Warnings, <<"router generation">>),
+                {ok, Extras};
+            error ->
+                {error, {router_loading_failed, [unknown_error]}};
+            {error, {Errors, Warnings}} ->
+                log_warnings(Warnings, <<"router generation">>),
+                {error, {router_loading_failed, Errors}}
+        end
+    end.
+
+-spec build_mounts_conf(Conf) -> Result when
+    Conf :: erf_conf:t(),
+    Result :: {ok, erf_conf:t()} | {error, Reason},
+    Reason :: term().
+build_mounts_conf(#{mounts := [_ | _]} = Conf) ->
+    {ok, Conf};
+build_mounts_conf(#{spec_path := SpecPath, callback := Callback} = Conf) ->
+    {ok, Conf#{mounts => [#{base_path => <<>>, spec_path => SpecPath, callback => Callback}]}};
+build_mounts_conf(#{callback := _Callback}) ->
+    {error, {invalid_conf, missing_spec_path}};
+build_mounts_conf(#{spec_path := _SpecPath}) ->
+    {error, {invalid_conf, missing_callback}};
+build_mounts_conf(Conf) ->
+    {ok, Conf}.
+
+-spec check_mounts(Conf) -> Result when
+    Conf :: erf_conf:t(),
+    Result :: ok | {error, {invalid_conf, missing_mounts}}.
+check_mounts(#{mounts := [_ | _]}) ->
+    ok;
+check_mounts(_Conf) ->
+    {error, {invalid_conf, missing_mounts}}.
+
+-spec check_path_parameters(BasePaths) -> Result when
+    BasePaths :: [path()],
+    Result :: ok | {error, {invalid_base_path, path()}}.
+%% @doc Rejects base paths with a path parameter, such as `/{tenant}'. The router turns
+%% every `{name}' segment into a variable, but no specification declares it, so its value
+%% would be neither validated nor passed to the callback.
+check_path_parameters(BasePaths) ->
+    case [BasePath || BasePath <- BasePaths, binary:match(BasePath, <<"{">>) =/= nomatch] of
+        [] ->
+            ok;
+        [BasePath | _Rest] ->
+            {error, {invalid_base_path, BasePath}}
+    end.
+
+-spec check_duplicated_base_paths(BasePaths) -> Result when
+    BasePaths :: [path()],
+    Result :: ok | {error, {duplicate_base_path, path()}}.
+check_duplicated_base_paths([BasePath | BasePaths]) ->
+    case lists:member(BasePath, BasePaths) of
+        true ->
+            {error, {duplicate_base_path, BasePath}};
+        false ->
+            check_duplicated_base_paths(BasePaths)
+    end;
+check_duplicated_base_paths([]) ->
+    ok.
+
+-spec callbacks(Mounts) -> Callbacks when
+    Mounts :: [mount()],
+    Callbacks :: #{path() => module()}.
+callbacks(Mounts) ->
+    maps:from_list([
+        {BasePath, Callback}
+     || #{base_path := BasePath, callback := Callback} <- Mounts
+    ]).
+
+-spec parse_api(Mounts) -> Result when
+    Mounts :: [mount()],
+    Result :: {ok, API} | {error, Reason},
     API :: api(),
     Reason :: term().
-build_router(SpecPath, SpecParser, Callback, RawStaticRoutes, SwaggerUI) ->
-    case erf_parser:parse(SpecPath, SpecParser) of
-        {ok, API} ->
-            Schemas = maps:to_list(maps:get(schemas, API)),
-            case build_dtos(Schemas) of
-                ok ->
-                    StaticRoutes =
-                        case SwaggerUI of
-                            true ->
-                                IndexHTML =
-                                    case code:priv_dir(erf) of
-                                        {error, bad_name} ->
-                                            {error, <<"Cannot build `swagger-ui`">>};
-                                        Priv ->
-                                            filename:join([Priv, <<"swagger-ui">>, <<"index.html">>])
-                                    end,
-                                [
-                                    {<<"/swagger">>, {file, IndexHTML}},
-                                    {<<"/swagger/spec.json">>, {file, SpecPath}}
-                                    | RawStaticRoutes
-                                ];
-                            _False ->
-                                RawStaticRoutes
-                        end,
-                    {RouterMod, Router} = erf_router:generate(API, #{
-                        callback => Callback,
-                        static_routes => StaticRoutes
-                    }),
-                    case erf_router:load(Router) of
-                        ok ->
-                            {ok, RouterMod, Router, API};
-                        {ok, Warnings} ->
-                            log_warnings(Warnings, <<"router generation">>),
-                            {ok, RouterMod, Router, API};
-                        error ->
-                            {error, {router_loading_failed, [unknown_error]}};
-                        {error, {Errors, Warnings}} ->
-                            log_warnings(Warnings, <<"router generation">>),
-                            {error, {router_loading_failed, Errors}}
-                    end;
-                {error, Reason} ->
-                    {error, Reason}
+parse_api(Mounts) ->
+    case parse_mounts(Mounts, []) of
+        {ok, [FirstAPI | _Rest] = APIs} ->
+            case conflicting_routes(APIs) of
+                {ok, Path, OtherPath} ->
+                    {error, {conflicting_routes, Path, OtherPath}};
+                none ->
+                    {ok, FirstAPI#{
+                        endpoints => lists:append([maps:get(endpoints, API) || API <- APIs]),
+                        schemas => lists:foldl(
+                            fun(API, Acc) -> maps:merge(Acc, maps:get(schemas, API)) end,
+                            #{},
+                            APIs
+                        )
+                    }}
             end;
         {error, Reason} ->
             {error, Reason}
+    end.
+
+-spec parse_mounts(Mounts, APIs) -> Result when
+    Mounts :: [mount()],
+    APIs :: [api()],
+    Result :: {ok, [api()]} | {error, Reason},
+    Reason :: term().
+parse_mounts([], APIs) ->
+    {ok, lists:reverse(APIs)};
+parse_mounts([Mount | Mounts], APIs) ->
+    #{spec_path := SpecPath, spec_parser := SpecParser} = Mount,
+    case erf_parser:parse(SpecPath, SpecParser) of
+        {ok, API} ->
+            parse_mounts(Mounts, [mount_api(Mount, API) | APIs]);
+        {error, Reason} ->
+            {error, Reason}
+    end.
+
+-spec mount_api(Mount, API) -> MountedAPI when
+    Mount :: mount(),
+    API :: api(),
+    MountedAPI :: api().
+mount_api(#{base_path := BasePath}, RawAPI) ->
+    #{endpoints := Endpoints} = API = namespace_refs(BasePath, RawAPI),
+    API#{
+        endpoints => [
+            Endpoint#{path => <<BasePath/binary, Path/binary>>, base_path => BasePath}
+         || #{path := Path} = Endpoint <- Endpoints
+        ]
+    }.
+
+-spec namespace_refs(BasePath, API) -> NamespacedAPI when
+    BasePath :: path(),
+    API :: api(),
+    NamespacedAPI :: api().
+namespace_refs(<<>>, API) ->
+    API;
+namespace_refs(<<"/", Path/binary>>, API) ->
+    Prefix = erf_util:to_snake_case(Path),
+    #{schemas := Schemas} = RenamedAPI = rename_refs(<<Prefix/binary, "_">>, API),
+    RenamedAPI#{
+        schemas => maps:from_list([
+            {<<Prefix/binary, "_", Ref/binary>>, Schema}
+         || {Ref, Schema} <- maps:to_list(Schemas)
+        ])
+    }.
+
+-spec rename_refs(Prefix, Term) -> RenamedTerm when
+    Prefix :: binary(),
+    Term :: term(),
+    RenamedTerm :: term().
+rename_refs(Prefix, Term) when is_map(Term) ->
+    maps:map(
+        fun
+            (ref, Ref) when is_binary(Ref) ->
+                <<Prefix/binary, Ref/binary>>;
+            (_Key, Value) ->
+                rename_refs(Prefix, Value)
+        end,
+        Term
+    );
+rename_refs(Prefix, Term) when is_list(Term) ->
+    [rename_refs(Prefix, Item) || Item <- Term];
+rename_refs(_Prefix, Term) ->
+    Term.
+
+-spec conflicting_routes(APIs) -> Result when
+    APIs :: [api()],
+    Result :: {ok, Path, OtherPath} | none,
+    Path :: path(),
+    OtherPath :: path().
+conflicting_routes([]) ->
+    none;
+conflicting_routes([API | OtherAPIs]) ->
+    Conflicts = [
+        {Path, OtherPath}
+     || #{path := Path} <- maps:get(endpoints, API),
+        OtherAPI <- OtherAPIs,
+        #{path := OtherPath} <- maps:get(endpoints, OtherAPI),
+        segments_match(path_segments(Path), path_segments(OtherPath))
+    ],
+    case Conflicts of
+        [{Path, OtherPath} | _Rest] ->
+            {ok, Path, OtherPath};
+        [] ->
+            conflicting_routes(OtherAPIs)
+    end.
+
+-spec segments_match(Segments, OtherSegments) -> Match when
+    Segments :: [binary()],
+    OtherSegments :: [binary()],
+    Match :: boolean().
+segments_match([], []) ->
+    true;
+segments_match([Segment | Segments], [Segment | OtherSegments]) ->
+    segments_match(Segments, OtherSegments);
+segments_match([<<"{", _/binary>> | Segments], [_OtherSegment | OtherSegments]) ->
+    segments_match(Segments, OtherSegments);
+segments_match([_Segment | Segments], [<<"{", _/binary>> | OtherSegments]) ->
+    segments_match(Segments, OtherSegments);
+segments_match(_Segments, _OtherSegments) ->
+    false.
+
+-spec path_segments(Path) -> Segments when
+    Path :: path(),
+    Segments :: [binary()].
+path_segments(Path) ->
+    [Segment || Segment <- binary:split(Path, <<"/">>, [global]), Segment =/= <<>>].
+
+-spec swagger_routes(Mounts, SwaggerUI) -> Result when
+    Mounts :: [mount()],
+    SwaggerUI :: boolean(),
+    Result :: {ok, [static_route()]} | {error, swagger_ui_not_found}.
+swagger_routes(_Mounts, false) ->
+    {ok, []};
+swagger_routes(Mounts, true) ->
+    case code:priv_dir(erf) of
+        {error, bad_name} ->
+            {error, swagger_ui_not_found};
+        Priv ->
+            IndexHTML = filename:join([Priv, <<"swagger-ui">>, <<"index.html">>]),
+            {ok,
+                lists:flatmap(
+                    fun(#{base_path := BasePath, spec_path := SpecPath}) ->
+                        [
+                            {<<BasePath/binary, "/swagger">>, {file, IndexHTML}},
+                            {<<BasePath/binary, "/swagger/spec.json">>, {file, SpecPath}}
+                        ]
+                    end,
+                    Mounts
+                )}
     end.
 
 -spec log_warnings(Warnings, Step) -> ok when
@@ -387,10 +590,10 @@ log_warnings(Warnings, Step) ->
     ).
 
 -spec match_route_(RawPath, RoutePatterns) -> Result when
-    RawPath :: binary(),
+    RawPath :: path(),
     RoutePatterns :: erf:route_patterns(),
     Result :: {ok, Route} | {error, not_found},
-    Route :: binary().
+    Route :: path().
 match_route_(_RawPath, []) ->
     {error, not_found};
 match_route_(RawPath, [{Route, RouteRegEx} | Routes]) ->
@@ -401,12 +604,11 @@ match_route_(RawPath, [{Route, RouteRegEx} | Routes]) ->
             {ok, Route}
     end.
 
--spec route_patterns(API, StaticRoutes, SwaggerUI) -> RoutePatterns when
+-spec route_patterns(API, StaticRoutes) -> RoutePatterns when
     API :: api(),
     StaticRoutes :: [static_route()],
-    SwaggerUI :: boolean(),
     RoutePatterns :: route_patterns().
-route_patterns(API, StaticRoutes, SwaggerUI) ->
+route_patterns(API, StaticRoutes) ->
     Acc =
         lists:map(
             fun
@@ -417,27 +619,16 @@ route_patterns(API, StaticRoutes, SwaggerUI) ->
             end,
             StaticRoutes
         ),
-    Acc1 =
-        case SwaggerUI of
-            true ->
-                [
-                    {<<"/swagger">>, <<"^/swagger$">>},
-                    {<<"/swagger/spec.json">>, <<"^/swagger/spec.json$">>}
-                    | Acc
-                ];
-            _false ->
-                Acc
-        end,
     RawRoutes = [maps:get(path, Endpoint) || Endpoint <- maps:get(endpoints, API)],
-    route_patterns(RawRoutes, Acc1).
+    route_patterns_(RawRoutes, Acc).
 
--spec route_patterns(RawRoutes, Acc) -> RoutePatterns when
+-spec route_patterns_(RawRoutes, Acc) -> RoutePatterns when
     RawRoutes :: [binary()],
     Acc :: route_patterns(),
     RoutePatterns :: route_patterns().
-route_patterns([], Acc) ->
+route_patterns_([], Acc) ->
     Acc;
-route_patterns([Route | Routes], Acc) ->
+route_patterns_([Route | Routes], Acc) ->
     RegExParts = lists:map(
         fun
             (<<"{", _Variable/binary>>) ->
@@ -452,4 +643,4 @@ route_patterns([Route | Routes], Acc) ->
             (erlang:list_to_binary([
                 <<"/">> | lists:join(<<"/">>, RegExParts)
             ]))/binary, "$">>,
-    route_patterns(Routes, [{Route, RegEx} | Acc]).
+    route_patterns_(Routes, [{Route, RegEx} | Acc]).

@@ -146,8 +146,9 @@ The configuration is provided as map with the following type spec:
 ```erl
 %%% erf.erl
 -type conf() :: #{
-    spec_path := binary(),
-    callback := module(),
+    spec_path => path(),
+    callback => module(),
+    mounts => [mount()],
     port => inet:port_number(),
     name => atom(),
     spec_parser => module(),
@@ -171,6 +172,7 @@ The configuration is provided as map with the following type spec:
 A detailed description of each parameter can be found in the following list:
 - `spec_path` : Path to API specification file.
 - `callback`: Name of the callback module.
+- `mounts`: List of API specifications to serve, each under its own base path. Takes precedence over `spec_path` and `callback` when not empty. Defaults to `[]`.
 - `port`: Port the server will listen to. Defaults to `8080`.
 - `name`: Name under which the server is registered. Defaults to `erf`.
 - `spec_parser`: Name of the specification parser module. Defaults to `erf_parser_oas_3_0`.
@@ -189,6 +191,50 @@ A detailed description of each parameter can be found in the following list:
 - `max_body_size`: Maximum size in bytes for the body of allowed received messages. Defaults to `1024000`.
 - `log_level`: Severity associated to logged messages. Defaults to `error`.
 
+## Mounts
+
+A single `erf` instance can serve several API specifications, each under its own base path. The type spec for a mount is the following:
+```erl
+%%% erf.erl
+-type path() :: binary().
+-type mount() :: #{
+    base_path := path(),
+    spec_path := path(),
+    callback := module(),
+    spec_parser => module()
+}.
+```
+
+- `base_path`: Path prefix the mount is served under. `<<>>` serves it from the root.
+- `spec_path`: Path to the mount's API specification file.
+- `callback`: Name of the mount's callback module.
+- `spec_parser`: Name of the specification parser module. Defaults to the instance's `spec_parser`.
+
+For example, [shop_sup.erl](examples/shop/src/shop_sup.erl) serves [orders.openapi.json](examples/shop/priv/orders.openapi.json) from the root and [catalog.openapi.json](examples/shop/priv/catalog.openapi.json) from `/catalog`:
+```erl
+ShopAPIConf = #{
+    mounts => [
+        #{
+            base_path => <<>>,
+            spec_path => <<"priv/orders.openapi.json">>,
+            callback => shop_orders_callback
+        },
+        #{
+            base_path => <<"/catalog">>,
+            spec_path => <<"priv/catalog.openapi.json">>,
+            callback => shop_catalog_callback
+        }
+    ],
+    swagger_ui => true,
+    port => 8081,
+    name => shop_api
+}.
+```
+
+A `GET /catalog/products/42` request is validated against the `/products/{productId}` route of `catalog.openapi.json` and dispatched to `shop_catalog_callback`. The prefix is not stripped, so `path` and `route` keep describing the real URL. Mounts repeating a base path, or serving routes that can match the same request, are rejected when the instance starts.
+
+Try it out by running `rebar3 as examples shell` from the root of this project.
+
 ## Callback modules & middlewares
 
 `erf` dynamically generates a router that type check the received requests against the API specification. If the request passes the validation, it is deconstructed and passed to the middleware and callback modules. But, how do those middleware and callback modules must look like?
@@ -206,23 +252,26 @@ An example of an API specification and a supported callback can be seen in [Quic
 
 The design principles behind `erf` allow its instances to be reconfigured in runtime with no needed downtime. While not every configuration key is updatable once the server is started (e.g., the port), some interesting features of the framework can be updated on-the-fly.
 
-The following type spec corresponds to the runtime configuration of an `erf` instance. At the same time, is the type spec of the second argument for the `erf:reload/2` function.
+The following type spec corresponds to the runtime configuration of an `erf` instance. At the same time, is the type spec of the second argument for the `erf:reload_conf/2` function.
 ```erl
 %%% erf_conf.erl
 -type t() :: #{
     callback => module(),
     log_level => logger:level(),
+    mounts => [erf:mount()],
     preprocess_middlewares => [module()],
     postprocess_middlewares => [module()],
     router => erl_syntax:syntaxTree(), % not manually updatable
     router_mod => module(), % not manually updatable
-    spec_path => binary(),
+    spec_path => erf:path(),
     spec_parser => module(),
     static_routes => [erf:static_route()],
     swagger_ui => boolean()
 }.
 ```
 > __NOTE:__ the `router` and `router_mod` keys are not updatable as they are automatically computed when new configuration is provided.
+
+A reload with `spec_path` and `callback` replaces the [mounts](#mounts) of an instance, and one with `mounts` replaces them too. When both come in the same reload, `mounts` takes precedence. `spec_path` and `callback` must be given together.
 
 ## Static routes
 
@@ -231,10 +280,10 @@ As shown in [`erf` configuration](#erf-configuration), the server supports route
 %%% erf.erl
 -type static_dir() :: {dir, binary()}.
 -type static_file() :: {file, binary()}.
--type static_route() :: {Path :: binary(), Resource :: static_file() | static_dir()}.
+-type static_route() :: {Path :: path(), Resource :: static_file() | static_dir()}.
 ```
 
-This feature enables `erf` to serve a [Swagger UI](https://github.com/swagger-api/swagger-ui) version with your API specification. Just set the `swagger_ui` flag to `true` and open your web browser in the server host under the `/swagger` path.
+This feature enables `erf` to serve a [Swagger UI](https://github.com/swagger-api/swagger-ui) version with your API specification. Just set the `swagger_ui` flag to `true` and open your web browser in the server host under the `/swagger` path. Each [mount](#mounts) gets its own UI under its base path.
 
 ## Troubleshooting
 

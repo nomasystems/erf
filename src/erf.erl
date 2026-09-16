@@ -42,10 +42,9 @@
 
 %%% TYPES
 -type api() :: erf_parser:api().
--type base_path() :: binary().
 -type body() :: undefined | json:decode_value().
 -type conf() :: #{
-    spec_path => binary(),
+    spec_path => path(),
     callback => module(),
     mounts => [mount()],
     port => inet:port_number(),
@@ -72,11 +71,12 @@
     | trace
     | connect.
 -type mount() :: #{
-    base_path := base_path(),
-    spec_path := binary(),
+    base_path := path(),
+    spec_path := path(),
     callback := module(),
     spec_parser => module()
 }.
+-type path() :: binary().
 -type path_parameter() :: {binary(), binary()}.
 -type query_parameter() :: {binary(), binary()}.
 -type request() :: #{
@@ -90,7 +90,7 @@
     headers := [header()],
     body := body(),
     peer := undefined | binary(),
-    route := binary(),
+    route := path(),
     context => any()
 }.
 -type response() :: {
@@ -98,23 +98,23 @@
     Headers :: [header()],
     Body :: body() | {file, binary()} | stream_body()
 }.
--type route_patterns() :: [{Route :: binary(), RouteRegEx :: binary()}].
+-type route_patterns() :: [{Route :: path(), RouteRegEx :: binary()}].
 -type send_chunk_fun() :: fun((iodata()) -> ok | {error, closed | timeout}).
 -type static_dir() :: {dir, binary()}.
 -type static_file() :: {file, binary()}.
--type static_route() :: {Path :: binary(), Resource :: static_file() | static_dir()}.
+-type static_route() :: {Path :: path(), Resource :: static_file() | static_dir()}.
 -type stream_body() :: {stream, stream_producer()}.
 -type stream_producer() :: fun((send_chunk_fun()) -> any()).
 
 %%% TYPE EXPORTS
 -export_type([
     api/0,
-    base_path/0,
     body/0,
     conf/0,
     header/0,
     method/0,
     mount/0,
+    path/0,
     path_parameter/0,
     query_parameter/0,
     request/0,
@@ -188,9 +188,9 @@ get_router(Name) ->
 
 -spec match_route(Name, RawPath) -> Result when
     Name :: atom(),
-    RawPath :: binary(),
+    RawPath :: path(),
     Result :: {ok, Route} | {error, Reason},
-    Route :: binary(),
+    Route :: path(),
     Reason :: term().
 match_route(Name, RawPath) ->
     case erf_conf:route_patterns(Name) of
@@ -387,8 +387,8 @@ check_mounts(_Conf) ->
     {error, {invalid_conf, missing_mounts}}.
 
 -spec check_path_parameters(BasePaths) -> Result when
-    BasePaths :: [base_path()],
-    Result :: ok | {error, {invalid_base_path, base_path()}}.
+    BasePaths :: [path()],
+    Result :: ok | {error, {invalid_base_path, path()}}.
 %% @doc Rejects base paths with a path parameter, such as `/{tenant}'. The router turns
 %% every `{name}' segment into a variable, but no specification declares it, so its value
 %% would be neither validated nor passed to the callback.
@@ -401,8 +401,8 @@ check_path_parameters(BasePaths) ->
     end.
 
 -spec check_duplicated_base_paths(BasePaths) -> Result when
-    BasePaths :: [base_path()],
-    Result :: ok | {error, {duplicate_base_path, base_path()}}.
+    BasePaths :: [path()],
+    Result :: ok | {error, {duplicate_base_path, path()}}.
 check_duplicated_base_paths([BasePath | BasePaths]) ->
     case lists:member(BasePath, BasePaths) of
         true ->
@@ -415,7 +415,7 @@ check_duplicated_base_paths([]) ->
 
 -spec callbacks(Mounts) -> Callbacks when
     Mounts :: [mount()],
-    Callbacks :: #{base_path() => module()}.
+    Callbacks :: #{path() => module()}.
 callbacks(Mounts) ->
     maps:from_list([
         {BasePath, Callback}
@@ -477,7 +477,7 @@ mount_api(#{base_path := BasePath}, RawAPI) ->
     }.
 
 -spec namespace_refs(BasePath, API) -> NamespacedAPI when
-    BasePath :: base_path(),
+    BasePath :: path(),
     API :: api(),
     NamespacedAPI :: api().
 namespace_refs(<<>>, API) ->
@@ -514,8 +514,8 @@ rename_refs(_Prefix, Term) ->
 -spec conflicting_routes(APIs) -> Result when
     APIs :: [api()],
     Result :: {ok, Path, OtherPath} | none,
-    Path :: binary(),
-    OtherPath :: binary().
+    Path :: path(),
+    OtherPath :: path().
 conflicting_routes([]) ->
     none;
 conflicting_routes([API | OtherAPIs]) ->
@@ -549,7 +549,7 @@ segments_match(_Segments, _OtherSegments) ->
     false.
 
 -spec path_segments(Path) -> Segments when
-    Path :: binary(),
+    Path :: path(),
     Segments :: [binary()].
 path_segments(Path) ->
     [Segment || Segment <- binary:split(Path, <<"/">>, [global]), Segment =/= <<>>].
@@ -590,10 +590,10 @@ log_warnings(Warnings, Step) ->
     ).
 
 -spec match_route_(RawPath, RoutePatterns) -> Result when
-    RawPath :: binary(),
+    RawPath :: path(),
     RoutePatterns :: erf:route_patterns(),
     Result :: {ok, Route} | {error, not_found},
-    Route :: binary().
+    Route :: path().
 match_route_(_RawPath, []) ->
     {error, not_found};
 match_route_(RawPath, [{Route, RouteRegEx} | Routes]) ->

@@ -146,7 +146,7 @@ The configuration is provided as map with the following type spec:
 ```erl
 %%% erf.erl
 -type conf() :: #{
-    spec_path => binary(),
+    spec_path => path(),
     callback => module(),
     mounts => [mount()],
     port => inet:port_number(),
@@ -196,10 +196,10 @@ A detailed description of each parameter can be found in the following list:
 A single `erf` instance can serve several API specifications, each under its own base path. The type spec for a mount is the following:
 ```erl
 %%% erf.erl
--type base_path() :: binary().
+-type path() :: binary().
 -type mount() :: #{
-    base_path := base_path(),
-    spec_path := binary(),
+    base_path := path(),
+    spec_path := path(),
     callback := module(),
     spec_parser => module()
 }.
@@ -263,7 +263,7 @@ The following type spec corresponds to the runtime configuration of an `erf` ins
     postprocess_middlewares => [module()],
     router => erl_syntax:syntaxTree(), % not manually updatable
     router_mod => module(), % not manually updatable
-    spec_path => binary(),
+    spec_path => erf:path(),
     spec_parser => module(),
     static_routes => [erf:static_route()],
     swagger_ui => boolean()
@@ -280,7 +280,7 @@ As shown in [`erf` configuration](#erf-configuration), the server supports route
 %%% erf.erl
 -type static_dir() :: {dir, binary()}.
 -type static_file() :: {file, binary()}.
--type static_route() :: {Path :: binary(), Resource :: static_file() | static_dir()}.
+-type static_route() :: {Path :: path(), Resource :: static_file() | static_dir()}.
 ```
 
 This feature enables `erf` to serve a [Swagger UI](https://github.com/swagger-api/swagger-ui) version with your API specification. Just set the `swagger_ui` flag to `true` and open your web browser in the server host under the `/swagger` path. Each [mount](#mounts) gets its own UI under its base path.

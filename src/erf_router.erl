@@ -29,7 +29,7 @@
 %%% TYPES
 -type t() :: erl_syntax:syntaxTree().
 -type callback() :: module().
--type callback_spec() :: callback() | #{erf:base_path() => callback()}.
+-type callback_spec() :: callback() | #{erf:path() => callback()}.
 -type generator_opts() :: #{callback := callback_spec(), static_routes := [erf:static_route()]}.
 
 %%%-----------------------------------------------------------------------------
@@ -557,7 +557,7 @@ handle_ast(API, #{callback := Callback} = Opts) ->
 
 -spec resolve_callback(CallbackSpec, BasePath) -> Callback when
     CallbackSpec :: callback_spec(),
-    BasePath :: erf:base_path(),
+    BasePath :: erf:path(),
     Callback :: callback().
 resolve_callback(Callback, _BasePath) when is_atom(Callback) ->
     Callback;

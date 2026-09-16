@@ -35,7 +35,7 @@
     path := path(),
     parameters := [parameter()],
     operations := [operation()],
-    base_path => erf:base_path()
+    base_path => erf:path()
 }.
 -type method() :: erf:method().
 -type operation() :: #{

@@ -37,7 +37,8 @@ all() ->
         stream_non_200_status,
         callback_crash,
         json_content_type,
-        malformed_body
+        malformed_body,
+        optional_query_parameters
     ].
 
 %%%-----------------------------------------------------------------------------
@@ -952,7 +953,6 @@ json_content_type(_Conf) ->
     meck:unload(erf_callback),
 
     ok.
-
 malformed_body(_Conf) ->
     meck:new([erf_callback], [non_strict, no_link]),
 
@@ -989,6 +989,57 @@ malformed_body(_Conf) ->
             <<"detail">> => <<"Failed to read request">>
         },
         json:decode(Body)
+    ),
+
+    ok = erf:stop(erf_server),
+
+    meck:unload(erf_callback),
+
+    ok.
+
+optional_query_parameters(_Conf) ->
+    meck:new([erf_callback], [non_strict, no_link]),
+
+    meck:expect(
+        erf_callback,
+        list_items,
+        fun(_Request) ->
+            {200, [], <<"items">>}
+        end
+    ),
+
+    {ok, _Pid} = erf:start_link(#{
+        spec_path => filename:join(
+            [code:lib_dir(erf), "test", <<"fixtures/optional_query_oas_3_0_spec.json">>]
+        ),
+        callback => erf_callback,
+        port => 8789,
+        name => erf_server
+    }),
+
+    lists:foreach(
+        fun({Query, ExpectedStatus}) ->
+            {ok, {{"HTTP/1.1", Status, _Reason}, _Headers, _Body}} =
+                httpc:request(
+                    get,
+                    {"http://localhost:8789/items" ++ Query, []},
+                    [],
+                    [{body_format, binary}]
+                ),
+            ?assertEqual({Query, ExpectedStatus}, {Query, Status})
+        end,
+        [
+            {"", 200},
+            {"?page=2", 200},
+            {"?ratio=0.7", 200},
+            {"?active=true", 200},
+            {"?name=abc", 200},
+            {"?page=2&ratio=0.7&active=true&name=abc", 200},
+            {"?page=0", 400},
+            {"?ratio=0.1", 400},
+            {"?active=false", 400},
+            {"?name=ab", 400}
+        ]
     ),
 
     ok = erf:stop(erf_server),

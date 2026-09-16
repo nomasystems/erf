@@ -1,0 +1,61 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "version": "1.0.0",
+        "title": "Optional query parameters",
+        "license": {
+            "name": "Apache 2.0"
+        }
+    },
+    "paths": {
+        "/items": {
+            "get": {
+                "summary": "List items",
+                "operationId": "listItems",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "page",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        },
+                        "required": false
+                    },
+                    {
+                        "in": "query",
+                        "name": "ratio",
+                        "schema": {
+                            "type": "number",
+                            "minimum": 0.5
+                        },
+                        "required": false
+                    },
+                    {
+                        "in": "query",
+                        "name": "active",
+                        "schema": {
+                            "type": "boolean",
+                            "enum": [true]
+                        },
+                        "required": false
+                    },
+                    {
+                        "in": "query",
+                        "name": "name",
+                        "schema": {
+                            "type": "string",
+                            "minLength": 3
+                        },
+                        "required": false
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        }
+    }
+}

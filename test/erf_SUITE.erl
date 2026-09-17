@@ -35,7 +35,8 @@ all() ->
         stream_with_postprocess_middleware,
         stream_producer_crash,
         stream_non_200_status,
-        callback_crash
+        callback_crash,
+        json_content_type
     ].
 
 %%%-----------------------------------------------------------------------------
@@ -860,6 +861,90 @@ callback_crash(_Conf) ->
             [{body_format, binary}]
         ),
     ?assertEqual(500, Status),
+
+    ok = erf:stop(erf_server),
+
+    meck:unload(erf_callback),
+
+    ok.
+
+json_content_type(_Conf) ->
+    meck:new([erf_callback], [non_strict, no_link]),
+
+    meck:expect(
+        erf_callback,
+        get_foo,
+        fun(_Request) ->
+            {200, [], <<"bar">>}
+        end
+    ),
+    meck:expect(
+        erf_callback,
+        create_foo,
+        fun(_Request) ->
+            {201, [], <<"bar">>}
+        end
+    ),
+
+    {ok, _Pid} = erf:start_link(#{
+        spec_path => filename:join(
+            [code:lib_dir(erf), "test", <<"fixtures/with_refs_oas_3_0_spec.json">>]
+        ),
+        callback => erf_callback,
+        port => 8789,
+        name => erf_server
+    }),
+
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 201, "Created"}, _ResultHeaders, <<"\"bar\"">>}},
+        httpc:request(
+            post,
+            {"http://localhost:8789/1/foo", [], "application/json", <<>>},
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 200, "OK"}, _Result2Headers, <<"\"bar\"">>}},
+        httpc:request(
+            get,
+            {"http://localhost:8789/1/foo", [{"content-type", "application/json"}]},
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 201, "Created"}, _Result3Headers, <<"\"bar\"">>}},
+        httpc:request(
+            post,
+            {"http://localhost:8789/1/foo", [], "application/json; charset=utf-8", <<"\"bar\"">>},
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result4Headers, _Result4Body}},
+        httpc:request(
+            post,
+            {"http://localhost:8789/1/foo", [], "application/json; charset=utf-8",
+                <<"\"foobar\"">>},
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result5Headers, _Result5Body}},
+        httpc:request(
+            post,
+            {"http://localhost:8789/1/foo", [], "application/json; charset=utf-8", <<"{">>},
+            [],
+            [{body_format, binary}]
+        )
+    ),
 
     ok = erf:stop(erf_server),
 

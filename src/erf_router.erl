@@ -936,7 +936,7 @@ preprocess(RawRequest) ->
     Headers = maps:get(headers, RawRequest, []),
     ContentTypeHeader = string:casefold(<<"content-type">>),
     RawBody = maps:get(body, RawRequest, undefined),
-    case proplists:get_value(ContentTypeHeader, Headers, undefined) of
+    case content_type(proplists:get_value(ContentTypeHeader, Headers, undefined)) of
         <<"application/json">> ->
             case RawBody of
                 NonEmptyBinary when is_binary(NonEmptyBinary), byte_size(NonEmptyBinary) > 0 ->
@@ -947,9 +947,18 @@ preprocess(RawRequest) ->
                         error:Reason ->
                             {error, {cannot_decode_body, Reason}}
                     end;
-                _RawBody ->
-                    {error, {cannot_decode_body, invalid_json}}
+                _EmptyBody ->
+                    {ok, RawRequest#{body => undefined}}
             end;
         _ContentType ->
             {ok, RawRequest}
     end.
+
+-spec content_type(ContentType) -> MediaType when
+    ContentType :: binary() | undefined,
+    MediaType :: binary() | undefined.
+content_type(undefined) ->
+    undefined;
+content_type(ContentType) ->
+    [MediaType | _Parameters] = binary:split(ContentType, <<";">>),
+    string:trim(MediaType).

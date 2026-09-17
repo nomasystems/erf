@@ -889,15 +889,6 @@ load_binary(ModuleName, Bin) ->
             {error, Reason}
     end.
 
--spec content_type(ContentType) -> MediaType when
-    ContentType :: binary() | undefined,
-    MediaType :: binary() | undefined.
-content_type(undefined) ->
-    undefined;
-content_type(ContentType) ->
-    [MediaType | _Parameters] = binary:split(ContentType, <<";">>),
-    string:trim(MediaType).
-
 -spec postprocess(Request, RawResponse) -> Response when
     Request :: erf:request(),
     RawResponse :: erf:response(),
@@ -962,3 +953,12 @@ preprocess(RawRequest) ->
         _ContentType ->
             {ok, RawRequest}
     end.
+
+-spec content_type(ContentType) -> MediaType when
+    ContentType :: binary() | undefined,
+    MediaType :: binary() | undefined.
+content_type(undefined) ->
+    undefined;
+content_type(ContentType) ->
+    [MediaType | _Parameters] = binary:split(ContentType, <<";">>),
+    string:trim(MediaType).

@@ -129,13 +129,11 @@ handle(Name, RawRequest) ->
                 end;
             {error, _Reason} ->
                 ContentTypeHeader = string:casefold(<<"content-type">>),
-                ErrorBody = iolist_to_binary(
-                    json:encode(#{
-                        <<"title">> => <<"Bad Request">>,
-                        <<"status">> => 400,
-                        <<"detail">> => <<"Failed to read request">>
-                    })
-                ),
+                ErrorBody = #{
+                    <<"title">> => <<"Bad Request">>,
+                    <<"status">> => 400,
+                    <<"detail">> => <<"Failed to read request">>
+                },
                 ResponseError = {400, [{ContentTypeHeader, <<"application/json">>}], ErrorBody},
                 {ResponseError, RawRequest}
         end,

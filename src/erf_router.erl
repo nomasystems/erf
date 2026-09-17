@@ -889,12 +889,12 @@ load_binary(ModuleName, Bin) ->
             {error, Reason}
     end.
 
--spec media_type(ContentType) -> MediaType when
+-spec content_type(ContentType) -> MediaType when
     ContentType :: binary() | undefined,
     MediaType :: binary() | undefined.
-media_type(undefined) ->
+content_type(undefined) ->
     undefined;
-media_type(ContentType) ->
+content_type(ContentType) ->
     [MediaType | _Parameters] = binary:split(ContentType, <<";">>),
     string:trim(MediaType).
 
@@ -945,7 +945,7 @@ preprocess(RawRequest) ->
     Headers = maps:get(headers, RawRequest, []),
     ContentTypeHeader = string:casefold(<<"content-type">>),
     RawBody = maps:get(body, RawRequest, undefined),
-    case media_type(proplists:get_value(ContentTypeHeader, Headers, undefined)) of
+    case content_type(proplists:get_value(ContentTypeHeader, Headers, undefined)) of
         <<"application/json">> ->
             case RawBody of
                 NonEmptyBinary when is_binary(NonEmptyBinary), byte_size(NonEmptyBinary) > 0 ->

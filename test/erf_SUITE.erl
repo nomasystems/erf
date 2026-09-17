@@ -36,7 +36,8 @@ all() ->
         stream_producer_crash,
         stream_non_200_status,
         callback_crash,
-        json_content_type
+        json_content_type,
+        malformed_body
     ].
 
 %%%-----------------------------------------------------------------------------
@@ -944,6 +945,50 @@ json_content_type(_Conf) ->
             [],
             [{body_format, binary}]
         )
+    ),
+
+    ok = erf:stop(erf_server),
+
+    meck:unload(erf_callback),
+
+    ok.
+
+malformed_body(_Conf) ->
+    meck:new([erf_callback], [non_strict, no_link]),
+
+    meck:expect(
+        erf_callback,
+        create_foo,
+        fun(_Request) ->
+            {201, [], <<"bar">>}
+        end
+    ),
+
+    {ok, _Pid} = erf:start_link(#{
+        spec_path => filename:join(
+            [code:lib_dir(erf), "test", <<"fixtures/with_refs_oas_3_0_spec.json">>]
+        ),
+        callback => erf_callback,
+        port => 8789,
+        name => erf_server
+    }),
+
+    {ok, {{"HTTP/1.1", 400, "Bad Request"}, Headers, Body}} =
+        httpc:request(
+            post,
+            {"http://localhost:8789/1/foo", [], "application/json", <<"{oops">>},
+            [],
+            [{body_format, binary}]
+        ),
+
+    ?assertEqual("application/json", proplists:get_value("content-type", Headers)),
+    ?assertEqual(
+        #{
+            <<"title">> => <<"Bad Request">>,
+            <<"status">> => 400,
+            <<"detail">> => <<"Failed to read request">>
+        },
+        json:decode(Body)
     ),
 
     ok = erf:stop(erf_server),

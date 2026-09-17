@@ -18,18 +18,12 @@
     to_pascal_case/1,
     to_snake_case/1,
     safe_binary_to_integer/1,
-    safe_binary_to_number/1,
-    maybe_safe_binary_to_integer/1,
-    maybe_safe_binary_to_number/1,
-    maybe_binary_to_atom/1
+    safe_binary_to_number/1
 ]).
 
 -ignore_xref([
     safe_binary_to_integer/1,
-    safe_binary_to_number/1,
-    maybe_safe_binary_to_integer/1,
-    maybe_safe_binary_to_number/1,
-    maybe_binary_to_atom/1
+    safe_binary_to_number/1
 ]).
 
 %%%-----------------------------------------------------------------------------
@@ -117,18 +111,3 @@ safe_binary_to_number(Bin) when is_binary(Bin) ->
     end;
 safe_binary_to_number(_) ->
     null.
-
-maybe_safe_binary_to_integer(undefined) ->
-    undefined;
-maybe_safe_binary_to_integer(Binary) ->
-    safe_binary_to_integer(Binary).
-
-maybe_safe_binary_to_number(undefined) ->
-    undefined;
-maybe_safe_binary_to_number(Binary) ->
-    safe_binary_to_number(Binary).
-
-maybe_binary_to_atom(undefined) ->
-    undefined;
-maybe_binary_to_atom(Binary) ->
-    erlang:binary_to_atom(Binary).

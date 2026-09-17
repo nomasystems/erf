@@ -27,10 +27,7 @@ all() ->
         to_pascal_case,
         to_snake_case,
         safe_binary_to_integer,
-        safe_binary_to_number,
-        maybe_safe_binary_to_integer,
-        maybe_safe_binary_to_number,
-        maybe_binary_to_atom
+        safe_binary_to_number
     ].
 
 %%%-----------------------------------------------------------------------------
@@ -87,17 +84,3 @@ safe_binary_to_number(_Conf) ->
     ?assertEqual(null, erf_util:safe_binary_to_number(<<"a">>)),
     ?assertEqual(null, erf_util:safe_binary_to_number(<<"">>)),
     ?assertEqual(null, erf_util:safe_binary_to_number("test")).
-
-maybe_safe_binary_to_integer(_Conf) ->
-    ?assertEqual(undefined, erf_util:maybe_safe_binary_to_integer(undefined)),
-    ?assertEqual(1, erf_util:maybe_safe_binary_to_integer(<<"1">>)),
-    ?assertEqual(null, erf_util:maybe_safe_binary_to_integer(<<"a">>)).
-
-maybe_safe_binary_to_number(_Conf) ->
-    ?assertEqual(undefined, erf_util:maybe_safe_binary_to_number(undefined)),
-    ?assertEqual(1.5, erf_util:maybe_safe_binary_to_number(<<"1.5">>)),
-    ?assertEqual(null, erf_util:maybe_safe_binary_to_number(<<"a">>)).
-
-maybe_binary_to_atom(_Conf) ->
-    ?assertEqual(undefined, erf_util:maybe_binary_to_atom(undefined)),
-    ?assertEqual(true, erf_util:maybe_binary_to_atom(<<"true">>)).

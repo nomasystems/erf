@@ -18,6 +18,7 @@
 %%% EXTERNAL EXPORTS
 -export([
     clear/1,
+    error_formatter/1,
     log_level/1,
     get/1,
     preprocess_middlewares/1,
@@ -41,7 +42,8 @@
     spec_path => erf:path(),
     spec_parser => module(),
     static_routes => [erf:static_route()],
-    swagger_ui => boolean()
+    swagger_ui => boolean(),
+    error_formatter => false | problem_json | erf_error_formatter:t()
 }.
 
 %%% EXPORT TYPES
@@ -64,6 +66,19 @@
 clear(Name) ->
     true = persistent_term:erase(?KEY(Name)),
     ok.
+
+-spec error_formatter(Name) -> Result when
+    Name :: atom(),
+    Result :: {ok, ErrorFormatter} | {error, not_found},
+    ErrorFormatter :: false | erf_error_formatter:t().
+%% @doc Returns the error formatter for the given <code>Name</code>.
+error_formatter(Name) ->
+    case ?MODULE:get(Name) of
+        {error, not_found} ->
+            {error, not_found};
+        {ok, Conf} ->
+            {ok, maps:get(error_formatter, Conf)}
+    end.
 
 -spec get(Name) -> Result when
     Name :: atom(),

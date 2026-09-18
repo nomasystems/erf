@@ -23,14 +23,26 @@
 -export([
     generate/2,
     load/1,
-    handle/2
+    handle/2,
+    error_response/3,
+    validation_error_response/3
+]).
+
+-ignore_xref([
+    error_response/3,
+    validation_error_response/3
 ]).
 
 %%% TYPES
 -type t() :: erl_syntax:syntaxTree().
 -type callback() :: module().
 -type callback_spec() :: callback() | #{erf:path() => callback()}.
--type generator_opts() :: #{callback := callback_spec(), static_routes := [erf:static_route()]}.
+-type generator_opts() :: #{
+    callback := callback_spec(),
+    static_routes := [erf:static_route()],
+    error_formatter => false | erf_error_formatter:t(),
+    error_formatters => #{erf:path() => false | erf_error_formatter:t()}
+}.
 
 %%%-----------------------------------------------------------------------------
 %%% EXTERNAL EXPORTS
@@ -128,23 +140,45 @@ handle(Name, RawRequest) ->
                         {RouterMod:handle(PreprocessRequest), PreprocessRequest}
                 end;
             {error, _Reason} ->
-                ContentTypeHeader = string:casefold(<<"content-type">>),
-                ErrorBody = #{
-                    <<"title">> => <<"Bad Request">>,
-                    <<"status">> => 400,
-                    <<"detail">> => <<"Failed to read request">>
-                },
-                ResponseError = {400, [{ContentTypeHeader, <<"application/json">>}], ErrorBody},
-                {ResponseError, RawRequest}
+                {ok, ErrorFormatter} = erf_conf:error_formatter(Name),
+                {error_response(ErrorFormatter, unreadable_body, 400), RawRequest}
         end,
     Response = apply_postprocess_middlewares(
         InitialRequest, InitialResponse, PostProcessMiddlewares
     ),
     postprocess(InitialRequest, Response).
 
+-spec error_response(ErrorFormatter, Error, Status) -> Response when
+    ErrorFormatter :: false | erf_error_formatter:t(),
+    Error :: erf_error_formatter:error(),
+    Status :: pos_integer(),
+    Response :: erf:response().
+%% @doc Builds the response for an error, asking the configured formatter and falling back to
+%% an empty body when there is none or it returns <code>default</code>.
+error_response(false, _Error, Status) ->
+    {Status, [], undefined};
+error_response(ErrorFormatter, Error, Status) ->
+    case ErrorFormatter:format(Error) of
+        default ->
+            {Status, [], undefined};
+        Response ->
+            Response
+    end.
+
+-spec validation_error_response(ErrorFormatter, Reason, Sources) -> Response when
+    ErrorFormatter :: false | erf_error_formatter:t(),
+    Reason :: term(),
+    Sources :: tuple(),
+    Response :: erf:response().
+%% @doc Builds the response for a failed validation, resolving which part of the request the
+%% failing condition covers before handing the error to the formatter.
+validation_error_response(ErrorFormatter, Reason, Sources) ->
+    error_response(ErrorFormatter, {validation_failed, Reason, source(Reason, Sources)}, 400).
+
 %%%-----------------------------------------------------------------------------
 %%% INTERNAL FUNCTIONS
 %%%-----------------------------------------------------------------------------
+
 -spec apply_preprocess_middlewares(Request, Middlewares) -> Result when
     Request :: erf:request(),
     Middlewares :: [erf_preprocess_middleware:t()],
@@ -175,6 +209,24 @@ apply_postprocess_middlewares(Request, RawResponse, [Middleware | Rest]) ->
         Response ->
             apply_postprocess_middlewares(Request, Response, Rest)
     end.
+
+-spec source(Reason, Sources) -> Source when
+    Reason :: term(),
+    Sources :: tuple(),
+    Source :: erf_error_formatter:source() | undefined.
+source({_RawReason, Index}, Sources) when is_integer(Index), is_tuple(Sources) ->
+    source_at(erlang:tuple_size(Sources) - Index, Sources);
+source(_Reason, _Sources) ->
+    undefined.
+
+-spec source_at(Position, Sources) -> Source when
+    Position :: integer(),
+    Sources :: tuple(),
+    Source :: erf_error_formatter:source() | undefined.
+source_at(Position, Sources) when Position >= 1, Position =< tuple_size(Sources) ->
+    erlang:element(Position, Sources);
+source_at(_Position, _Sources) ->
+    undefined.
 
 -spec handle_ast(API, Opts) -> Result when
     API :: erf:api(),
@@ -214,6 +266,7 @@ handle_ast(API, #{callback := Callback} = Opts) ->
             EndpointCallback = resolve_callback(
                 Callback, maps:get(base_path, Endpoint, <<>>)
             ),
+            EndpointErrorFormatter = resolve_error_formatter(Opts, Endpoint),
             AllowedMethods = lists:map(
                 fun(Operation) ->
                     Method = erl_syntax:atom(
@@ -328,22 +381,7 @@ handle_ast(API, #{callback := Callback} = Opts) ->
                                             )
                                         ]
                                     ),
-                                    erl_syntax:clause(
-                                        [
-                                            erl_syntax:tuple([
-                                                erl_syntax:atom(false),
-                                                erl_syntax:variable('Reason')
-                                            ])
-                                        ],
-                                        none,
-                                        [
-                                            erl_syntax:application(
-                                                erl_syntax:atom(erf_validation),
-                                                erl_syntax:atom(bad_request),
-                                                [erl_syntax:variable('Reason'), SourcesAST]
-                                            )
-                                        ]
-                                    )
+                                    bad_request_clause(EndpointErrorFormatter, SourcesAST)
                                 ]
                             )
                         ]
@@ -373,12 +411,16 @@ handle_ast(API, #{callback := Callback} = Opts) ->
                     ],
                     none,
                     [
-                        erl_syntax:tuple(
-                            [
-                                erl_syntax:integer(405),
-                                erl_syntax:list([]),
-                                erl_syntax:atom(undefined)
-                            ]
+                        error_response_ast(
+                            EndpointErrorFormatter,
+                            erl_syntax:tuple([
+                                erl_syntax:atom(method_not_allowed),
+                                erl_syntax:list([
+                                    erl_syntax:atom(maps:get(method, Operation))
+                                 || Operation <- maps:get(operations, Endpoint, [])
+                                ])
+                            ]),
+                            405
                         )
                     ]
                 ),
@@ -537,12 +579,10 @@ handle_ast(API, #{callback := Callback} = Opts) ->
             ],
             none,
             [
-                erl_syntax:tuple(
-                    [
-                        erl_syntax:integer(404),
-                        erl_syntax:list([]),
-                        erl_syntax:atom(undefined)
-                    ]
+                error_response_ast(
+                    maps:get(error_formatter, Opts, false),
+                    erl_syntax:atom(route_not_found),
+                    404
                 )
             ]
         ),
@@ -559,6 +599,60 @@ resolve_callback(Callback, _BasePath) when is_atom(Callback) ->
     Callback;
 resolve_callback(CallbacksByBasePath, BasePath) when is_map(CallbacksByBasePath) ->
     maps:get(BasePath, CallbacksByBasePath).
+
+-spec resolve_error_formatter(Opts, Endpoint) -> ErrorFormatter when
+    Opts :: generator_opts(),
+    Endpoint :: erf_parser:endpoint(),
+    ErrorFormatter :: false | erf_error_formatter:t().
+resolve_error_formatter(Opts, Endpoint) ->
+    ErrorFormatters = maps:get(error_formatters, Opts, #{}),
+    BasePath = maps:get(base_path, Endpoint, <<>>),
+    maps:get(BasePath, ErrorFormatters, maps:get(error_formatter, Opts, false)).
+
+-spec bad_request_clause(ErrorFormatter, Sources) -> Clause when
+    ErrorFormatter :: false | erf_error_formatter:t(),
+    Sources :: erl_syntax:syntaxTree(),
+    Clause :: erl_syntax:syntaxTree().
+bad_request_clause(false, _Sources) ->
+    erl_syntax:clause(
+        [erl_syntax:tuple([erl_syntax:atom(false), erl_syntax:variable('_Reason')])],
+        none,
+        [empty_response_ast(400)]
+    );
+bad_request_clause(ErrorFormatter, Sources) ->
+    erl_syntax:clause(
+        [erl_syntax:tuple([erl_syntax:atom(false), erl_syntax:variable('Reason')])],
+        none,
+        [
+            erl_syntax:application(
+                erl_syntax:atom(?MODULE),
+                erl_syntax:atom(validation_error_response),
+                [erl_syntax:atom(ErrorFormatter), erl_syntax:variable('Reason'), Sources]
+            )
+        ]
+    ).
+
+-spec error_response_ast(ErrorFormatter, Error, Status) -> ResponseAST when
+    ErrorFormatter :: false | erf_error_formatter:t(),
+    Error :: erl_syntax:syntaxTree(),
+    Status :: pos_integer(),
+    ResponseAST :: erl_syntax:syntaxTree().
+error_response_ast(false, _Error, Status) ->
+    empty_response_ast(Status);
+error_response_ast(ErrorFormatter, Error, Status) ->
+    erl_syntax:application(
+        erl_syntax:atom(?MODULE),
+        erl_syntax:atom(error_response),
+        [erl_syntax:atom(ErrorFormatter), Error, erl_syntax:integer(Status)]
+    ).
+
+-spec empty_response_ast(Status) -> ResponseAST when
+    Status :: pos_integer(),
+    ResponseAST :: erl_syntax:syntaxTree().
+empty_response_ast(Status) ->
+    erl_syntax:tuple([
+        erl_syntax:integer(Status), erl_syntax:list([]), erl_syntax:atom(undefined)
+    ]).
 
 -spec is_valid_request(Parameters, Request) -> Result when
     Parameters :: [erf_parser:parameter()],
@@ -752,17 +846,17 @@ is_valid_request(RawParameters, Request) ->
         ),
     Sources =
         erl_syntax:tuple([
-            source(Source)
+            source_ast(Source)
          || Source <- [{body, undefined} | [maps:get(source, P) || P <- FilteredParameters]]
         ]),
     {IsValidRequest, Sources}.
 
--spec source(Source) -> SourceAST when
-    Source :: erf_validation:source(),
+-spec source_ast(Source) -> SourceAST when
+    Source :: erf_error_formatter:source(),
     SourceAST :: erl_syntax:syntaxTree().
-source({In, undefined}) ->
+source_ast({In, undefined}) ->
     erl_syntax:tuple([erl_syntax:atom(In), erl_syntax:atom(undefined)]);
-source({In, Name}) ->
+source_ast({In, Name}) ->
     erl_syntax:tuple([
         erl_syntax:atom(In),
         erl_syntax:binary([

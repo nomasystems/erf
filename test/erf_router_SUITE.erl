@@ -132,7 +132,9 @@ foo(_Conf) ->
         ]
     },
 
-    {Mod, Router} = erf_router:generate(API, #{callback => foo_callback}),
+    {Mod, Router} = erf_router:generate(API, #{
+        callback => foo_callback, error_formatter => erf_error_formatter_problem_json
+    }),
     ok = erf_router:load(Router),
 
     meck:new(
@@ -180,7 +182,15 @@ foo(_Conf) ->
         peer => <<"localhost">>
     },
 
-    ?assertEqual({405, [], undefined}, Mod:handle(NotAllowedReq)),
+    ?assertMatch(
+        {405,
+            [
+                {<<"content-type">>, <<"application/problem+json">>},
+                {<<"allow">>, <<"GET">>}
+            ],
+            _MethodNotAllowed},
+        Mod:handle(NotAllowedReq)
+    ),
 
     meck:unload([
         foo_callback,

@@ -159,6 +159,7 @@ The configuration is provided as map with the following type spec:
     keyfile => binary(),
     static_routes => [static_route()],
     swagger_ui => boolean(),
+    error_formatter => false | problem_json | erf_error_formatter:t(),
     min_acceptors => pos_integer(),
     accept_timeout => pos_integer(),
     request_timeout => pos_integer(),
@@ -183,6 +184,7 @@ A detailed description of each parameter can be found in the following list:
 - `keyfile`: Path to the SSL key file. Defaults to `undefined`.
 - `static_routes`: List of routes that serve static files. Defaults to `[]`.
 - `swagger_ui`: Boolean flag that enables/disables the Swagger UI. Defaults to `false`.
+- `error_formatter`: How error responses are formatted: `false` for empty bodies, `problem_json` for [RFC 9457 bodies](#error-responses), or the name of a module implementing the `erf_error_formatter` behaviour. Defaults to `false`.
 - `min_acceptors`: Minimum number of acceptor processes. Defaults to `20`.
 - `accept_timeout`: Timeout in ms for accepting an incoming request. Defaults to `10000`.
 - `request_timeout`: Timeout in ms for receiving more packets when waiting for the request line. Defaults to `60000`.
@@ -201,7 +203,8 @@ A single `erf` instance can serve several API specifications, each under its own
     base_path := path(),
     spec_path := path(),
     callback := module(),
-    spec_parser => module()
+    spec_parser => module(),
+    error_formatter => false | problem_json | erf_error_formatter:t()
 }.
 ```
 
@@ -209,6 +212,7 @@ A single `erf` instance can serve several API specifications, each under its own
 - `spec_path`: Path to the mount's API specification file.
 - `callback`: Name of the mount's callback module.
 - `spec_parser`: Name of the specification parser module. Defaults to the instance's `spec_parser`.
+- `error_formatter`: How the mount formats its error responses. Defaults to the instance's `error_formatter`.
 
 For example, [shop_sup.erl](examples/shop/src/shop_sup.erl) serves [orders.openapi.json](examples/shop/priv/orders.openapi.json) from the root and [catalog.openapi.json](examples/shop/priv/catalog.openapi.json) from `/catalog`:
 ```erl
@@ -266,7 +270,8 @@ The following type spec corresponds to the runtime configuration of an `erf` ins
     spec_path => erf:path(),
     spec_parser => module(),
     static_routes => [erf:static_route()],
-    swagger_ui => boolean()
+    swagger_ui => boolean(),
+    error_formatter => false | problem_json | erf_error_formatter:t()
 }.
 ```
 > __NOTE:__ the `router` and `router_mod` keys are not updatable as they are automatically computed when new configuration is provided.
@@ -285,9 +290,11 @@ As shown in [`erf` configuration](#erf-configuration), the server supports route
 
 This feature enables `erf` to serve a [Swagger UI](https://github.com/swagger-api/swagger-ui) version with your API specification. Just set the `swagger_ui` flag to `true` and open your web browser in the server host under the `/swagger` path. Each [mount](#mounts) gets its own UI under its base path.
 
-## Validation errors
+## Error responses
 
-A request that fails schema validation gets a `400` response with the content type `application/problem+json`, in the format [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) defines:
+By default the error responses `erf` produces on its own have an empty body: the `400` of a request that fails schema validation or whose body cannot be read, the `404` of an unknown route and the `405` of a method the specification does not define. The `error_formatter` option chooses what those responses carry.
+
+With `error_formatter => problem_json`, they have the content type `application/problem+json`, in the format [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) defines, and the `405` also carries an `allow` header:
 
 ```json
 {
@@ -298,7 +305,29 @@ A request that fails schema validation gets a `400` response with the content ty
 }
 ```
 
-The `detail` names the part of the request that failed: the body, or a path, query, header or cookie parameter. It never holds a value the caller sent.
+For a failed validation the `detail` names the part of the request that failed: the body, or a path, query, header or cookie parameter. It never holds a value the caller sent.
+
+With `error_formatter => Module`, the responses are whatever that module returns. The module implements the `erf_error_formatter` behaviour:
+
+```erl
+%%% erf_error_formatter.erl
+-type error() ::
+    {validation_failed, Reason :: term(), Source :: source() | undefined}
+    | unreadable_body
+    | route_not_found
+    | {method_not_allowed, Methods :: [erf:method()]}.
+-type source() :: {body, undefined} | {erf_parser:parameter_type(), Name :: binary()}.
+
+-callback format(Error) -> Result when
+    Error :: error(),
+    Result :: erf:response() | default.
+```
+
+Returning `default` leaves that error to `erf`, which answers it with an empty body, so a formatter only has to handle the errors it cares about.
+
+Each [mount](#mounts) can set its own `error_formatter`, which covers the errors of its own routes. The `404` of an unknown route and the `400` of a body that cannot be read happen before any mount is picked, so they use the instance-level one.
+
+For `validation_failed`, `Source` is the part of the request the failing condition covers, or `undefined` when `erf` cannot tell which one it was, and `Reason` the term `ndto_validation:'andalso'/1` returned, for a formatter that wants more detail than the source. `erf_error_formatter_problem_json` implements the behaviour and is what `problem_json` selects.
 
 ## Troubleshooting
 

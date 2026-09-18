@@ -32,7 +32,8 @@ all() ->
         isolated_validation_across_mounts,
         swagger_ui_per_mount,
         invalid_conf,
-        reload_conf_replaces_mounts
+        reload_conf_replaces_mounts,
+        error_formatter_per_mount
     ].
 
 %%%-----------------------------------------------------------------------------
@@ -328,6 +329,41 @@ reload_conf_replaces_mounts(_Conf) ->
     }),
     ?assertMatch({200, <<"\"orders\"">>}, http_get("/shop/orders")),
     ?assertMatch({404, _Body4}, http_get("/items")),
+
+    ok = erf:stop(erf_server),
+    meck:unload([erf_items_callback, erf_orders_callback]),
+    ok.
+
+error_formatter_per_mount(_Conf) ->
+    meck:new([erf_items_callback, erf_orders_callback], [non_strict, no_link]),
+    meck:expect(erf_items_callback, create_item, fun(_Request) -> {201, [], <<"item">>} end),
+    meck:expect(erf_orders_callback, list_orders, fun(_Request) -> {200, [], <<"orders">>} end),
+
+    {ok, _Pid} = erf:start_link(#{
+        mounts => [
+            #{
+                base_path => <<"/items">>,
+                spec_path => spec(<<"mount_items_oas_3_0_spec.json">>),
+                callback => erf_items_callback,
+                error_formatter => problem_json
+            },
+            #{
+                base_path => <<"/shop">>,
+                spec_path => spec(<<"mount_orders_oas_3_0_spec.json">>),
+                callback => erf_orders_callback
+            }
+        ],
+        port => ?PORT,
+        name => erf_server
+    }),
+
+    {ItemsStatus, ItemsBody} = post("/items/items", <<"{\"name\":42}">>),
+    ?assertEqual(400, ItemsStatus),
+    ?assertMatch(
+        #{<<"detail">> := <<"Request body failed schema validation">>}, json:decode(ItemsBody)
+    ),
+
+    ?assertMatch({405, <<>>}, post("/shop/orders", <<"{}">>)),
 
     ok = erf:stop(erf_server),
     meck:unload([erf_items_callback, erf_orders_callback]),

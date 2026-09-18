@@ -57,6 +57,7 @@
     keyfile => binary(),
     static_routes => [static_route()],
     swagger_ui => boolean(),
+    error_formatter => false | problem_json | erf_error_formatter:t(),
     log_level => logger:level()
 }.
 -type header() :: {binary(), binary()}.
@@ -74,7 +75,8 @@
     base_path := path(),
     spec_path := path(),
     callback := module(),
-    spec_parser => module()
+    spec_parser => module(),
+    error_formatter => false | problem_json | erf_error_formatter:t()
 }.
 -type path() :: binary().
 -type path_parameter() :: {binary(), binary()}.
@@ -217,7 +219,8 @@ reload_conf(Name, NewConf) ->
 
     maybe
         {ok, MountConf} ?= build_mounts_conf(NewConf),
-        Conf = maps:merge(OldConf, MountConf),
+        MergedConf = maps:merge(OldConf, MountConf),
+        Conf = MergedConf#{error_formatter => error_formatter(MergedConf)},
         ok ?= check_mounts(Conf),
         {ok, Extras} ?= build_router(Conf),
         erf_conf:set(Name, maps:merge(Conf, Extras)),
@@ -236,6 +239,7 @@ init([Name, RawConf]) ->
             spec_parser => maps:get(spec_parser, RawConf, erf_parser_oas_3_0),
             static_routes => maps:get(static_routes, RawConf, []),
             swagger_ui => maps:get(swagger_ui, RawConf, false),
+            error_formatter => error_formatter(RawConf),
             preprocess_middlewares => maps:get(preprocess_middlewares, RawConf, []),
             postprocess_middlewares => maps:get(postprocess_middlewares, RawConf, []),
             log_level => maps:get(log_level, RawConf, error)
@@ -315,19 +319,23 @@ build_http_server_conf(ErfConf) ->
     },
     Reason :: term().
 build_router(#{mounts := RawMounts} = Conf) ->
-    SpecParser = maps:get(spec_parser, Conf),
-    Mounts = [maps:merge(#{spec_parser => SpecParser}, RawMount) || RawMount <- RawMounts],
+    MountDefaults = #{
+        spec_parser => maps:get(spec_parser, Conf),
+        error_formatter => maps:get(error_formatter, Conf, false)
+    },
+    Mounts = [maps:merge(MountDefaults, RawMount) || RawMount <- RawMounts],
     BasePaths = [BasePath || #{base_path := BasePath} <- Mounts],
     maybe
         ok ?= check_path_parameters(BasePaths),
         ok ?= check_duplicated_base_paths(BasePaths),
         {ok, SwaggerRoutes} ?= swagger_routes(Mounts, maps:get(swagger_ui, Conf)),
-        build_router(Mounts, SwaggerRoutes ++ maps:get(static_routes, Conf))
+        build_router(Mounts, SwaggerRoutes ++ maps:get(static_routes, Conf), Conf)
     end.
 
--spec build_router(Mounts, StaticRoutes) -> Result when
+-spec build_router(Mounts, StaticRoutes, Conf) -> Result when
     Mounts :: [mount()],
     StaticRoutes :: [static_route()],
+    Conf :: erf_conf:t(),
     Result :: {ok, Extras} | {error, Reason},
     Extras :: #{
         route_patterns := route_patterns(),
@@ -335,14 +343,16 @@ build_router(#{mounts := RawMounts} = Conf) ->
         router := erl_syntax:syntaxTree()
     },
     Reason :: term().
-build_router(Mounts, StaticRoutes) ->
+build_router(Mounts, StaticRoutes, Conf) ->
     maybe
         {ok, API} ?= parse_api(Mounts),
         Schemas = maps:to_list(maps:get(schemas, API)),
         ok ?= build_dtos(Schemas),
         {RouterMod, Router} = erf_router:generate(API, #{
             callback => callbacks(Mounts),
-            static_routes => StaticRoutes
+            static_routes => StaticRoutes,
+            error_formatter => maps:get(error_formatter, Conf, false),
+            error_formatters => error_formatters(Mounts)
         }),
         Extras = #{
             route_patterns => route_patterns(API, StaticRoutes),
@@ -378,6 +388,17 @@ build_mounts_conf(#{spec_path := _SpecPath}) ->
 build_mounts_conf(Conf) ->
     {ok, Conf}.
 
+-spec error_formatter(Conf) -> ErrorFormatter when
+    Conf :: erf_conf:t() | mount(),
+    ErrorFormatter :: false | erf_error_formatter:t().
+error_formatter(Conf) ->
+    case maps:get(error_formatter, Conf, false) of
+        problem_json ->
+            erf_error_formatter_problem_json;
+        ErrorFormatter ->
+            ErrorFormatter
+    end.
+
 -spec check_mounts(Conf) -> Result when
     Conf :: erf_conf:t(),
     Result :: ok | {error, {invalid_conf, missing_mounts}}.
@@ -412,6 +433,15 @@ check_duplicated_base_paths([BasePath | BasePaths]) ->
     end;
 check_duplicated_base_paths([]) ->
     ok.
+
+-spec error_formatters(Mounts) -> ErrorFormatters when
+    Mounts :: [mount()],
+    ErrorFormatters :: #{path() => false | erf_error_formatter:t()}.
+error_formatters(Mounts) ->
+    maps:from_list([
+        {BasePath, error_formatter(Mount)}
+     || #{base_path := BasePath} = Mount <- Mounts
+    ]).
 
 -spec callbacks(Mounts) -> Callbacks when
     Mounts :: [mount()],

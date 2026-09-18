@@ -38,7 +38,8 @@ all() ->
         callback_crash,
         json_content_type,
         malformed_body,
-        optional_query_parameters
+        optional_query_parameters,
+        validation_detail
     ].
 
 %%%-----------------------------------------------------------------------------
@@ -973,6 +974,18 @@ malformed_body(_Conf) ->
         name => erf_server
     }),
 
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _EmptyHeaders, <<>>}},
+        httpc:request(
+            post,
+            {"http://localhost:8789/1/foo", [], "application/json", <<"{oops">>},
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
+    ok = erf:reload_conf(erf_server, #{error_formatter => problem_json}),
+
     {ok, {{"HTTP/1.1", 400, "Bad Request"}, Headers, Body}} =
         httpc:request(
             post,
@@ -981,9 +994,10 @@ malformed_body(_Conf) ->
             [{body_format, binary}]
         ),
 
-    ?assertEqual("application/json", proplists:get_value("content-type", Headers)),
+    ?assertEqual("application/problem+json", proplists:get_value("content-type", Headers)),
     ?assertEqual(
         #{
+            <<"type">> => <<"about:blank">>,
             <<"title">> => <<"Bad Request">>,
             <<"status">> => 400,
             <<"detail">> => <<"Failed to read request">>
@@ -1043,6 +1057,164 @@ optional_query_parameters(_Conf) ->
     ),
 
     ok = erf:stop(erf_server),
+
+    meck:unload(erf_callback),
+
+    ok.
+
+validation_detail(_Conf) ->
+    meck:new([erf_callback], [non_strict, no_link]),
+
+    meck:expect(
+        erf_callback,
+        get_foo,
+        fun(_Request) ->
+            {200, [], <<"bar">>}
+        end
+    ),
+    meck:expect(
+        erf_callback,
+        create_foo,
+        fun(_Request) ->
+            {201, [], <<"bar">>}
+        end
+    ),
+
+    {ok, _Pid} = erf:start_link(#{
+        spec_path => filename:join(
+            [code:lib_dir(erf), "test", <<"fixtures/with_refs_oas_3_0_spec.json">>]
+        ),
+        callback => erf_callback,
+        error_formatter => problem_json,
+        port => 8789,
+        name => erf_server
+    }),
+
+    {ok, {{"HTTP/1.1", 400, "Bad Request"}, BodyHeaders, BodyProblem}} =
+        httpc:request(
+            post,
+            {"http://localhost:8789/1/foo", [], "application/json", <<"\"nope\"">>},
+            [],
+            [{body_format, binary}]
+        ),
+
+    ?assertEqual(
+        "application/problem+json", proplists:get_value("content-type", BodyHeaders)
+    ),
+    ?assertEqual(
+        #{
+            <<"type">> => <<"about:blank">>,
+            <<"title">> => <<"Bad Request">>,
+            <<"status">> => 400,
+            <<"detail">> => <<"Request body failed schema validation">>
+        },
+        json:decode(BodyProblem)
+    ),
+
+    {ok, {{"HTTP/1.1", 400, "Bad Request"}, _QueryHeaders, QueryProblem}} =
+        httpc:request(
+            get,
+            {"http://localhost:8789/1/foo?page=abc", []},
+            [],
+            [{body_format, binary}]
+        ),
+
+    ?assertMatch(
+        #{<<"detail">> := <<"Query parameter \"page\" failed schema validation">>},
+        json:decode(QueryProblem)
+    ),
+
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 200, "OK"}, _OkHeaders, <<"\"bar\"">>}},
+        httpc:request(
+            get,
+            {"http://localhost:8789/1/foo", []},
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
+    {ok, {{"HTTP/1.1", 404, "Not Found"}, NotFoundHeaders, NotFoundProblem}} =
+        httpc:request(
+            get,
+            {"http://localhost:8789/1/nope", []},
+            [],
+            [{body_format, binary}]
+        ),
+
+    ?assertEqual(
+        "application/problem+json", proplists:get_value("content-type", NotFoundHeaders)
+    ),
+    ?assertMatch(
+        #{<<"title">> := <<"Not Found">>, <<"status">> := 404},
+        json:decode(NotFoundProblem)
+    ),
+
+    {ok, {{"HTTP/1.1", 405, "Method Not Allowed"}, NotAllowedHeaders, NotAllowedProblem}} =
+        httpc:request(
+            delete,
+            {"http://localhost:8789/1/foo", [], "application/json", <<>>},
+            [],
+            [{body_format, binary}]
+        ),
+
+    ?assertEqual("GET, POST", proplists:get_value("allow", NotAllowedHeaders)),
+    ?assertMatch(
+        #{<<"title">> := <<"Method Not Allowed">>, <<"status">> := 405},
+        json:decode(NotAllowedProblem)
+    ),
+
+    meck:new([custom_error_formatter], [non_strict, no_link]),
+    meck:expect(
+        custom_error_formatter,
+        format,
+        fun
+            ({validation_failed, _Reason, {query, <<"page">>}}) ->
+                {422, [], #{<<"error">> => <<"nope">>}};
+            (_Error) ->
+                default
+        end
+    ),
+
+    ok = erf:reload_conf(erf_server, #{error_formatter => custom_error_formatter}),
+
+    ?assertMatch(
+        {ok, {
+            {"HTTP/1.1", 422, "Unprocessable Entity"}, _CustomHeaders, <<"{\"error\":\"nope\"}">>
+        }},
+        httpc:request(
+            get,
+            {"http://localhost:8789/1/foo?page=abc", []},
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 405, "Method Not Allowed"}, _DelegatedHeaders, <<>>}},
+        httpc:request(
+            delete,
+            {"http://localhost:8789/1/foo", [], "application/json", <<>>},
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
+    ok = erf:reload_conf(erf_server, #{error_formatter => false}),
+
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _DisabledHeaders, <<>>}},
+        httpc:request(
+            get,
+            {"http://localhost:8789/1/foo?page=abc", []},
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
+    ok = erf:stop(erf_server),
+
+    meck:unload(custom_error_formatter),
 
     meck:unload(erf_callback),
 

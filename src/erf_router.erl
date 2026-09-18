@@ -562,24 +562,22 @@ resolve_callback(Callback, _BasePath) when is_atom(Callback) ->
 resolve_callback(CallbacksByBasePath, BasePath) when is_map(CallbacksByBasePath) ->
     maps:get(BasePath, CallbacksByBasePath).
 
--spec convert_query_value(Type, Value) -> Result when
+-spec convert_query_value(Type, Value) -> ConvertedValue when
     Type :: binary(),
     Value :: erl_syntax:syntaxTree(),
-    Result :: {ok, erl_syntax:syntaxTree()} | none.
+    ConvertedValue :: erl_syntax:syntaxTree().
 convert_query_value(<<"boolean">>, Value) ->
-    {ok, erl_syntax:application(erl_syntax:atom(erlang), erl_syntax:atom(binary_to_atom), [Value])};
+    erl_syntax:application(erl_syntax:atom(erlang), erl_syntax:atom(binary_to_atom), [Value]);
 convert_query_value(<<"integer">>, Value) ->
-    {ok,
-        erl_syntax:application(
-            erl_syntax:atom(erf_util), erl_syntax:atom(safe_binary_to_integer), [Value]
-        )};
+    erl_syntax:application(
+        erl_syntax:atom(erf_util), erl_syntax:atom(safe_binary_to_integer), [Value]
+    );
 convert_query_value(<<"number">>, Value) ->
-    {ok,
-        erl_syntax:application(
-            erl_syntax:atom(erf_util), erl_syntax:atom(safe_binary_to_number), [Value]
-        )};
-convert_query_value(_Type, _Value) ->
-    none.
+    erl_syntax:application(
+        erl_syntax:atom(erf_util), erl_syntax:atom(safe_binary_to_number), [Value]
+    );
+convert_query_value(_Type, Value) ->
+    Value.
 
 -spec is_valid_request(Parameters, Request) -> Result when
     Parameters :: [erf_parser:parameter()],
@@ -682,19 +680,15 @@ is_valid_request(RawParameters, Request) ->
                                         erl_syntax:atom(get_all_values),
                                         [ParameterNameAST, erl_syntax:variable('QueryParameters')]
                                     ),
+                                    RawItem = erl_syntax:variable('X'),
                                     Values =
-                                        case
-                                            convert_query_value(ItemsType, erl_syntax:variable('X'))
-                                        of
-                                            {ok, ConvertedValue} ->
-                                                erl_syntax:list_comp(ConvertedValue, [
-                                                    erl_syntax:generator(
-                                                        erl_syntax:variable('X'),
-                                                        RawValues
-                                                    )
-                                                ]);
-                                            none ->
-                                                RawValues
+                                        case convert_query_value(ItemsType, RawItem) of
+                                            RawItem ->
+                                                RawValues;
+                                            ConvertedItem ->
+                                                erl_syntax:list_comp(ConvertedItem, [
+                                                    erl_syntax:generator(RawItem, RawValues)
+                                                ])
                                         end,
                                     {RawValues, Values};
                                 _ ->
@@ -703,12 +697,7 @@ is_valid_request(RawParameters, Request) ->
                                         erl_syntax:atom(get_value),
                                         [ParameterNameAST, erl_syntax:variable('QueryParameters')]
                                     ),
-                                    case convert_query_value(ParameterSchemaType, RawValue) of
-                                        {ok, ConvertedValue} ->
-                                            {RawValue, ConvertedValue};
-                                        none ->
-                                            {RawValue, RawValue}
-                                    end
+                                    {RawValue, convert_query_value(ParameterSchemaType, RawValue)}
                             end,
                         ParameterRequired = maps:get(required, Parameter),
                         {true, #{

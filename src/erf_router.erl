@@ -638,24 +638,6 @@ is_valid_request(RawParameters, Request) ->
                             required => true
                         }};
                     query ->
-                        DefaultFalse =
-                            erl_syntax:binary([
-                                erl_syntax:binary_field(
-                                    erl_syntax:string("false")
-                                )
-                            ]),
-                        DefaultZero =
-                            erl_syntax:binary([
-                                erl_syntax:binary_field(
-                                    erl_syntax:string("0")
-                                )
-                            ]),
-                        DefaultZeroFloat =
-                            erl_syntax:binary([
-                                erl_syntax:binary_field(
-                                    erl_syntax:string("0.0")
-                                )
-                            ]),
                         ParameterSchemaType =
                             case ParameterSchema of
                                 undefined ->
@@ -663,7 +645,12 @@ is_valid_request(RawParameters, Request) ->
                                 _ ->
                                     maps:get(<<"type">>, ParameterSchema, <<"string">>)
                             end,
-                        GetParameter =
+                        ParameterNameAST = erl_syntax:binary([
+                            erl_syntax:binary_field(
+                                erl_syntax:string(erlang:binary_to_list(ParameterName))
+                            )
+                        ]),
+                        {GetParameter, ParameterValue} =
                             case ParameterSchemaType of
                                 <<"array">> ->
                                     ItemsType = maps:get(
@@ -674,149 +661,32 @@ is_valid_request(RawParameters, Request) ->
                                     RawValues = erl_syntax:application(
                                         erl_syntax:atom(proplists),
                                         erl_syntax:atom(get_all_values),
-                                        [
-                                            erl_syntax:binary([
-                                                erl_syntax:binary_field(
-                                                    erl_syntax:string(
-                                                        erlang:binary_to_list(ParameterName)
-                                                    )
-                                                )
-                                            ]),
-                                            erl_syntax:variable('QueryParameters')
-                                        ]
+                                        [ParameterNameAST, erl_syntax:variable('QueryParameters')]
                                     ),
-                                    case ItemsType of
-                                        <<"boolean">> ->
-                                            erl_syntax:list_comp(
-                                                erl_syntax:application(
-                                                    erl_syntax:atom(erlang),
-                                                    erl_syntax:atom(binary_to_atom),
-                                                    [erl_syntax:variable('X')]
-                                                ),
-                                                [
-                                                    erl_syntax:generator(
-                                                        erl_syntax:variable('X'),
-                                                        RawValues
-                                                    )
-                                                ]
-                                            );
-                                        <<"integer">> ->
-                                            erl_syntax:list_comp(
-                                                erl_syntax:application(
-                                                    erl_syntax:atom(erf_util),
-                                                    erl_syntax:atom(safe_binary_to_integer),
-                                                    [erl_syntax:variable('X')]
-                                                ),
-                                                [
-                                                    erl_syntax:generator(
-                                                        erl_syntax:variable('X'),
-                                                        RawValues
-                                                    )
-                                                ]
-                                            );
-                                        <<"number">> ->
-                                            erl_syntax:list_comp(
-                                                erl_syntax:application(
-                                                    erl_syntax:atom(erf_util),
-                                                    erl_syntax:atom(safe_binary_to_number),
-                                                    [erl_syntax:variable('X')]
-                                                ),
-                                                [
-                                                    erl_syntax:generator(
-                                                        erl_syntax:variable('X'),
-                                                        RawValues
-                                                    )
-                                                ]
-                                            );
-                                        _ ->
-                                            RawValues
-                                    end;
-                                <<"boolean">> ->
-                                    erl_syntax:application(
-                                        erl_syntax:atom(erlang),
-                                        erl_syntax:atom(binary_to_atom),
-                                        [
-                                            erl_syntax:application(
-                                                erl_syntax:atom(proplists),
-                                                erl_syntax:atom(get_value),
-                                                [
-                                                    erl_syntax:binary([
-                                                        erl_syntax:binary_field(
-                                                            erl_syntax:string(
-                                                                erlang:binary_to_list(ParameterName)
-                                                            )
-                                                        )
-                                                    ]),
-                                                    erl_syntax:variable('QueryParameters'),
-                                                    DefaultFalse
-                                                ]
-                                            )
-                                        ]
-                                    );
-                                <<"integer">> ->
-                                    erl_syntax:application(
-                                        erl_syntax:atom(erf_util),
-                                        erl_syntax:atom(safe_binary_to_integer),
-                                        [
-                                            erl_syntax:application(
-                                                erl_syntax:atom(proplists),
-                                                erl_syntax:atom(get_value),
-                                                [
-                                                    erl_syntax:binary([
-                                                        erl_syntax:binary_field(
-                                                            erl_syntax:string(
-                                                                erlang:binary_to_list(ParameterName)
-                                                            )
-                                                        )
-                                                    ]),
-                                                    erl_syntax:variable('QueryParameters'),
-                                                    DefaultZero
-                                                ]
-                                            )
-                                        ]
-                                    );
-                                <<"number">> ->
-                                    erl_syntax:application(
-                                        erl_syntax:atom(erf_util),
-                                        erl_syntax:atom(safe_binary_to_number),
-                                        [
-                                            erl_syntax:application(
-                                                erl_syntax:atom(proplists),
-                                                erl_syntax:atom(get_value),
-                                                [
-                                                    erl_syntax:binary([
-                                                        erl_syntax:binary_field(
-                                                            erl_syntax:string(
-                                                                erlang:binary_to_list(ParameterName)
-                                                            )
-                                                        )
-                                                    ]),
-                                                    erl_syntax:variable('QueryParameters'),
-                                                    DefaultZeroFloat
-                                                ]
-                                            )
-                                        ]
-                                    );
+                                    RawItem = erl_syntax:variable('X'),
+                                    Values =
+                                        case query_param_value(ItemsType, RawItem) of
+                                            RawItem ->
+                                                RawValues;
+                                            ConvertedItem ->
+                                                erl_syntax:list_comp(ConvertedItem, [
+                                                    erl_syntax:generator(RawItem, RawValues)
+                                                ])
+                                        end,
+                                    {RawValues, Values};
                                 _ ->
-                                    erl_syntax:application(
+                                    RawValue = erl_syntax:application(
                                         erl_syntax:atom(proplists),
                                         erl_syntax:atom(get_value),
-                                        [
-                                            erl_syntax:binary([
-                                                erl_syntax:binary_field(
-                                                    erl_syntax:string(
-                                                        erlang:binary_to_list(ParameterName)
-                                                    )
-                                                )
-                                            ]),
-                                            erl_syntax:variable('QueryParameters')
-                                        ]
-                                    )
+                                        [ParameterNameAST, erl_syntax:variable('QueryParameters')]
+                                    ),
+                                    {RawValue, query_param_value(ParameterSchemaType, RawValue)}
                             end,
                         ParameterRequired = maps:get(required, Parameter),
                         {true, #{
                             module => ParameterModule,
                             get => GetParameter,
+                            value => ParameterValue,
                             required => ParameterRequired
                         }}
                 end
@@ -825,12 +695,19 @@ is_valid_request(RawParameters, Request) ->
         ),
     Parameters =
         lists:map(
-            fun(#{module := ParameterModule, get := GetParameter, required := ParameterRequired}) ->
+            fun(
+                #{
+                    module := ParameterModule,
+                    get := GetParameter,
+                    required := ParameterRequired
+                } = Parameter
+            ) ->
+                ParameterValue = maps:get(value, Parameter, GetParameter),
                 IsValidParameter =
                     erl_syntax:application(
                         erl_syntax:atom(ParameterModule),
                         erl_syntax:atom(is_valid),
-                        [GetParameter]
+                        [ParameterValue]
                     ),
                 OptionalParameter =
                     erl_syntax:infix_expr(
@@ -869,6 +746,23 @@ is_valid_request(RawParameters, Request) ->
             ])
         ]
     ).
+
+-spec query_param_value(Type, Value) -> ParamValue when
+    Type :: binary(),
+    Value :: erl_syntax:syntaxTree(),
+    ParamValue :: erl_syntax:syntaxTree().
+query_param_value(<<"boolean">>, Value) ->
+    erl_syntax:application(erl_syntax:atom(erlang), erl_syntax:atom(binary_to_atom), [Value]);
+query_param_value(<<"integer">>, Value) ->
+    erl_syntax:application(
+        erl_syntax:atom(erf_util), erl_syntax:atom(safe_binary_to_integer), [Value]
+    );
+query_param_value(<<"number">>, Value) ->
+    erl_syntax:application(
+        erl_syntax:atom(erf_util), erl_syntax:atom(safe_binary_to_number), [Value]
+    );
+query_param_value(_Type, Value) ->
+    Value.
 
 -spec load_binary(ModuleName, Bin) -> Result when
     ModuleName :: atom(),

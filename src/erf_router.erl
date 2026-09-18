@@ -562,23 +562,6 @@ resolve_callback(Callback, _BasePath) when is_atom(Callback) ->
 resolve_callback(CallbacksByBasePath, BasePath) when is_map(CallbacksByBasePath) ->
     maps:get(BasePath, CallbacksByBasePath).
 
--spec query_param_value(Type, Value) -> ParamValue when
-    Type :: binary(),
-    Value :: erl_syntax:syntaxTree(),
-    ParamValue :: erl_syntax:syntaxTree().
-query_param_value(<<"boolean">>, Value) ->
-    erl_syntax:application(erl_syntax:atom(erlang), erl_syntax:atom(binary_to_atom), [Value]);
-query_param_value(<<"integer">>, Value) ->
-    erl_syntax:application(
-        erl_syntax:atom(erf_util), erl_syntax:atom(safe_binary_to_integer), [Value]
-    );
-query_param_value(<<"number">>, Value) ->
-    erl_syntax:application(
-        erl_syntax:atom(erf_util), erl_syntax:atom(safe_binary_to_number), [Value]
-    );
-query_param_value(_Type, Value) ->
-    Value.
-
 -spec is_valid_request(Parameters, Request) -> Result when
     Parameters :: [erf_parser:parameter()],
     Request :: erf_parser:request(),
@@ -763,6 +746,23 @@ is_valid_request(RawParameters, Request) ->
             ])
         ]
     ).
+
+-spec query_param_value(Type, Value) -> ParamValue when
+    Type :: binary(),
+    Value :: erl_syntax:syntaxTree(),
+    ParamValue :: erl_syntax:syntaxTree().
+query_param_value(<<"boolean">>, Value) ->
+    erl_syntax:application(erl_syntax:atom(erlang), erl_syntax:atom(binary_to_atom), [Value]);
+query_param_value(<<"integer">>, Value) ->
+    erl_syntax:application(
+        erl_syntax:atom(erf_util), erl_syntax:atom(safe_binary_to_integer), [Value]
+    );
+query_param_value(<<"number">>, Value) ->
+    erl_syntax:application(
+        erl_syntax:atom(erf_util), erl_syntax:atom(safe_binary_to_number), [Value]
+    );
+query_param_value(_Type, Value) ->
+    Value.
 
 -spec load_binary(ModuleName, Bin) -> Result when
     ModuleName :: atom(),

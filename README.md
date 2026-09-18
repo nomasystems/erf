@@ -285,6 +285,21 @@ As shown in [`erf` configuration](#erf-configuration), the server supports route
 
 This feature enables `erf` to serve a [Swagger UI](https://github.com/swagger-api/swagger-ui) version with your API specification. Just set the `swagger_ui` flag to `true` and open your web browser in the server host under the `/swagger` path. Each [mount](#mounts) gets its own UI under its base path.
 
+## Validation errors
+
+A request that fails schema validation gets a `400` response with the content type `application/problem+json`, in the format [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) defines:
+
+```json
+{
+  "type": "about:blank",
+  "title": "Bad Request",
+  "status": 400,
+  "detail": "Query parameter \"page\" failed schema validation"
+}
+```
+
+The `detail` names the part of the request that failed: the body, or a path, query, header or cookie parameter. It never holds a value the caller sent.
+
 ## Troubleshooting
 
 Diagnosing the cause of a `400 Bad Request error` for a specific request can become challenging due to the automated generation of the router's source code. To simplify the process of analyzing this generated code, `erf` provides the `get_router/1` function. This function offers the router's source code in binary form, allowing you to conveniently manipulate it using the most suitable handler for your particular use case, whether it's printing the code to a file or using `io` operations.

@@ -38,7 +38,8 @@ all() ->
         callback_crash,
         json_content_type,
         malformed_body,
-        optional_query_parameters
+        optional_query_parameters,
+        validation_detail
     ].
 
 %%%-----------------------------------------------------------------------------
@@ -130,7 +131,7 @@ foo(_Conf) ->
     ),
 
     ?assertMatch(
-        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, <<>>}},
+        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, _Result2Body}},
         httpc:request(
             get,
             {"http://localhost:8789/1/foo?page=2.5", []},
@@ -140,7 +141,7 @@ foo(_Conf) ->
     ),
 
     ?assertMatch(
-        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, <<>>}},
+        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, _Result2Body}},
         httpc:request(
             get,
             {"http://localhost:8789/1/foo?page=test", []},
@@ -150,7 +151,7 @@ foo(_Conf) ->
     ),
 
     ?assertMatch(
-        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, <<>>}},
+        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, _Result2Body}},
         httpc:request(
             get,
             {"http://localhost:8789/1/foo?page=true", []},
@@ -180,7 +181,7 @@ foo(_Conf) ->
     ),
 
     ?assertMatch(
-        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, <<>>}},
+        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, _Result2Body}},
         httpc:request(
             get,
             {"http://localhost:8789/1/foo?price=test", []},
@@ -190,7 +191,7 @@ foo(_Conf) ->
     ),
 
     ?assertMatch(
-        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, <<>>}},
+        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, _Result2Body}},
         httpc:request(
             get,
             {"http://localhost:8789/1/foo?price=true", []},
@@ -220,7 +221,7 @@ foo(_Conf) ->
     ),
 
     ?assertMatch(
-        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, <<>>}},
+        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, _Result2Body}},
         httpc:request(
             get,
             {"http://localhost:8789/1/foo?enabled=2", []},
@@ -240,7 +241,7 @@ foo(_Conf) ->
     ),
 
     ?assertMatch(
-        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, <<>>}},
+        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, _Result2Body}},
         httpc:request(
             get,
             {"http://localhost:8789/1/foo?integerArray=1&integerArray=2&integerArray=true", []},
@@ -260,7 +261,7 @@ foo(_Conf) ->
     ),
 
     ?assertMatch(
-        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, <<>>}},
+        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, _Result2Body}},
         httpc:request(
             get,
             {"http://localhost:8789/1/foo?numberArray=1&numberArray=2.0&numberArray=true", []},
@@ -280,7 +281,7 @@ foo(_Conf) ->
     ),
 
     ?assertMatch(
-        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, <<>>}},
+        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, _Result2Body}},
         httpc:request(
             get,
             {"http://localhost:8789/1/foo?boolArray=1&boolArray=2&boolArray=true", []},
@@ -290,7 +291,7 @@ foo(_Conf) ->
     ),
 
     ?assertMatch(
-        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, <<>>}},
+        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _Result2Headers, _Result2Body}},
         httpc:request(
             post,
             {"http://localhost:8789/1/foo", [], "application/json", <<"\"foobar\"">>},
@@ -1040,6 +1041,83 @@ optional_query_parameters(_Conf) ->
             {"?active=false", 400},
             {"?name=ab", 400}
         ]
+    ),
+
+    ok = erf:stop(erf_server),
+
+    meck:unload(erf_callback),
+
+    ok.
+
+validation_detail(_Conf) ->
+    meck:new([erf_callback], [non_strict, no_link]),
+
+    meck:expect(
+        erf_callback,
+        get_foo,
+        fun(_Request) ->
+            {200, [], <<"bar">>}
+        end
+    ),
+    meck:expect(
+        erf_callback,
+        create_foo,
+        fun(_Request) ->
+            {201, [], <<"bar">>}
+        end
+    ),
+
+    {ok, _Pid} = erf:start_link(#{
+        spec_path => filename:join(
+            [code:lib_dir(erf), "test", <<"fixtures/with_refs_oas_3_0_spec.json">>]
+        ),
+        callback => erf_callback,
+        port => 8789,
+        name => erf_server
+    }),
+
+    {ok, {{"HTTP/1.1", 400, "Bad Request"}, BodyHeaders, BodyProblem}} =
+        httpc:request(
+            post,
+            {"http://localhost:8789/1/foo", [], "application/json", <<"\"nope\"">>},
+            [],
+            [{body_format, binary}]
+        ),
+
+    ?assertEqual(
+        "application/problem+json", proplists:get_value("content-type", BodyHeaders)
+    ),
+    ?assertEqual(
+        #{
+            <<"type">> => <<"about:blank">>,
+            <<"title">> => <<"Bad Request">>,
+            <<"status">> => 400,
+            <<"detail">> => <<"Request body failed schema validation">>
+        },
+        json:decode(BodyProblem)
+    ),
+
+    {ok, {{"HTTP/1.1", 400, "Bad Request"}, _QueryHeaders, QueryProblem}} =
+        httpc:request(
+            get,
+            {"http://localhost:8789/1/foo?page=abc", []},
+            [],
+            [{body_format, binary}]
+        ),
+
+    ?assertMatch(
+        #{<<"detail">> := <<"Query parameter \"page\" failed schema validation">>},
+        json:decode(QueryProblem)
+    ),
+
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 200, "OK"}, _OkHeaders, <<"\"bar\"">>}},
+        httpc:request(
+            get,
+            {"http://localhost:8789/1/foo", []},
+            [],
+            [{body_format, binary}]
+        )
     ),
 
     ok = erf:stop(erf_server),

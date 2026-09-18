@@ -249,7 +249,7 @@ handle_ast(API, #{callback := Callback} = Opts) ->
                             PathParameters
                         )
                     ),
-                    IsValidRequestAST = is_valid_request(
+                    {IsValidRequestAST, SourcesAST} = is_valid_request(
                         Parameters,
                         Request
                     ),
@@ -332,17 +332,15 @@ handle_ast(API, #{callback := Callback} = Opts) ->
                                         [
                                             erl_syntax:tuple([
                                                 erl_syntax:atom(false),
-                                                erl_syntax:variable('_Reason')
+                                                erl_syntax:variable('Reason')
                                             ])
                                         ],
                                         none,
                                         [
-                                            erl_syntax:tuple(
-                                                [
-                                                    erl_syntax:integer(400),
-                                                    erl_syntax:list([]),
-                                                    erl_syntax:atom(undefined)
-                                                ]
+                                            erl_syntax:application(
+                                                erl_syntax:atom(erf_validation),
+                                                erl_syntax:atom(bad_request),
+                                                [erl_syntax:variable('Reason'), SourcesAST]
                                             )
                                         ]
                                     )
@@ -565,7 +563,9 @@ resolve_callback(CallbacksByBasePath, BasePath) when is_map(CallbacksByBasePath)
 -spec is_valid_request(Parameters, Request) -> Result when
     Parameters :: [erf_parser:parameter()],
     Request :: erf_parser:request(),
-    Result :: erl_syntax:syntaxTree().
+    Result :: {IsValidRequest, Sources},
+    IsValidRequest :: erl_syntax:syntaxTree(),
+    Sources :: erl_syntax:syntaxTree().
 is_valid_request(RawParameters, Request) ->
     RawRequestBody = maps:get(body, Request),
     RequestBodyRef = maps:get(ref, RawRequestBody),
@@ -620,7 +620,8 @@ is_valid_request(RawParameters, Request) ->
                         {true, #{
                             module => ParameterModule,
                             get => GetParameter,
-                            required => ParameterRequired
+                            required => ParameterRequired,
+                            source => {header, ParameterName}
                         }};
                     cookie ->
                         %% TODO: implement
@@ -635,7 +636,8 @@ is_valid_request(RawParameters, Request) ->
                         {true, #{
                             module => ParameterModule,
                             get => GetParameter,
-                            required => true
+                            required => true,
+                            source => {path, ParameterName}
                         }};
                     query ->
                         ParameterSchemaType =
@@ -687,7 +689,8 @@ is_valid_request(RawParameters, Request) ->
                             module => ParameterModule,
                             get => GetParameter,
                             value => ParameterValue,
-                            required => ParameterRequired
+                            required => ParameterRequired,
+                            source => {query, ParameterName}
                         }}
                 end
             end,
@@ -728,24 +731,44 @@ is_valid_request(RawParameters, Request) ->
             end,
             FilteredParameters
         ),
-    erl_syntax:application(
-        erl_syntax:atom('ndto_validation'),
-        erl_syntax:atom('andalso'),
-        [
-            erl_syntax:list([
-                erl_syntax:tuple([
-                    erl_syntax:fun_expr([
-                        erl_syntax:clause(
-                            none,
-                            [Condition]
-                        )
-                    ]),
-                    erl_syntax:list([])
+    IsValidRequest =
+        erl_syntax:application(
+            erl_syntax:atom('ndto_validation'),
+            erl_syntax:atom('andalso'),
+            [
+                erl_syntax:list([
+                    erl_syntax:tuple([
+                        erl_syntax:fun_expr([
+                            erl_syntax:clause(
+                                none,
+                                [Condition]
+                            )
+                        ]),
+                        erl_syntax:list([])
+                    ])
+                 || Condition <- [RequestBody | Parameters]
                 ])
-             || Condition <- [RequestBody | Parameters]
-            ])
-        ]
-    ).
+            ]
+        ),
+    Sources =
+        erl_syntax:tuple([
+            source(Source)
+         || Source <- [{body, undefined} | [maps:get(source, P) || P <- FilteredParameters]]
+        ]),
+    {IsValidRequest, Sources}.
+
+-spec source(Source) -> SourceAST when
+    Source :: erf_validation:source(),
+    SourceAST :: erl_syntax:syntaxTree().
+source({In, undefined}) ->
+    erl_syntax:tuple([erl_syntax:atom(In), erl_syntax:atom(undefined)]);
+source({In, Name}) ->
+    erl_syntax:tuple([
+        erl_syntax:atom(In),
+        erl_syntax:binary([
+            erl_syntax:binary_field(erl_syntax:string(erlang:binary_to_list(Name)))
+        ])
+    ]).
 
 -spec query_param_value(Type, Value) -> ParamValue when
     Type :: binary(),

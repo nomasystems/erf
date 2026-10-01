@@ -18,6 +18,7 @@
 %%% EXTERNAL EXPORTS
 -export([
     clear/1,
+    error_formatter/2,
     log_level/1,
     get/1,
     preprocess_middlewares/1,
@@ -41,7 +42,9 @@
     spec_path => erf:path(),
     spec_parser => module(),
     static_routes => [erf:static_route()],
-    swagger_ui => boolean()
+    swagger_ui => boolean(),
+    error_formatter => undefined | false | problem_json | erf_error_formatter:t(),
+    error_formatters => #{erf:path() => undefined | false | erf_error_formatter:t()}
 }.
 
 %%% EXPORT TYPES
@@ -64,6 +67,34 @@
 clear(Name) ->
     true = persistent_term:erase(?KEY(Name)),
     ok.
+
+-spec error_formatter(Name, Path) -> Result when
+    Name :: atom(),
+    Path :: [binary()],
+    Result :: {ok, ErrorFormatter} | {error, not_found},
+    ErrorFormatter :: undefined | false | erf_error_formatter:t().
+%% @doc Returns the error formatter of the mount that serves <code>Path</code> for the given
+%% <code>Name</code>, or the instance's one when no mount serves it.
+error_formatter(Name, Path) ->
+    case ?MODULE:get(Name) of
+        {error, not_found} ->
+            {error, not_found};
+        {ok, Conf} ->
+            Mounts = [
+                {binary:split(BasePath, <<"/">>, [global, trim_all]), ErrorFormatter}
+             || {BasePath, ErrorFormatter} <- maps:to_list(maps:get(error_formatters, Conf, #{}))
+            ],
+            Matching = lists:sort(
+                fun({A, _}, {B, _}) -> length(A) >= length(B) end,
+                [Mount || {BasePath, _} = Mount <- Mounts, lists:prefix(BasePath, Path)]
+            ),
+            case Matching of
+                [{_BasePath, ErrorFormatter} | _Rest] ->
+                    {ok, ErrorFormatter};
+                [] ->
+                    {ok, maps:get(error_formatter, Conf)}
+            end
+    end.
 
 -spec get(Name) -> Result when
     Name :: atom(),

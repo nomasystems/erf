@@ -33,7 +33,8 @@ all() ->
         swagger_ui_per_mount,
         invalid_conf,
         reload_conf_replaces_mounts,
-        error_formatter_per_mount
+        error_formatter_per_mount,
+        invalid_error_formatter_at_startup
     ].
 
 %%%-----------------------------------------------------------------------------
@@ -365,8 +366,55 @@ error_formatter_per_mount(_Conf) ->
 
     ?assertMatch({405, <<>>}, post("/shop/orders", <<"{}">>)),
 
+    {UnreadableStatus, UnreadableBody} = post("/items/items", <<"{oops">>),
+    ?assertEqual(400, UnreadableStatus),
+    ?assertMatch(
+        #{<<"detail">> := <<"Failed to read request">>}, json:decode(UnreadableBody)
+    ),
+
+    {ShopStatus, ShopBody} = post("/shop/orders", <<"{oops">>),
+    ?assertEqual(400, ShopStatus),
+    ?assertEqual(
+        #{
+            <<"title">> => <<"Bad Request">>,
+            <<"status">> => 400,
+            <<"detail">> => <<"Failed to read request">>
+        },
+        json:decode(ShopBody)
+    ),
+
     ok = erf:stop(erf_server),
     meck:unload([erf_items_callback, erf_orders_callback]),
+    ok.
+
+invalid_error_formatter_at_startup(_Conf) ->
+    process_flag(trap_exit, true),
+    ItemsMount = #{
+        base_path => <<"/items">>,
+        spec_path => spec(<<"mount_items_oas_3_0_spec.json">>),
+        callback => erf_items_callback
+    },
+
+    ?assertMatch(
+        {error, {bad_return, {erf, init, {stop, {invalid_error_formatter, no_such_formatter}}}}},
+        erf:start_link(#{
+            mounts => [ItemsMount],
+            error_formatter => no_such_formatter,
+            port => ?PORT,
+            name => erf_server
+        })
+    ),
+
+    ?assertMatch(
+        {error, {bad_return, {erf, init, {stop, {invalid_error_formatter, lists}}}}},
+        erf:start_link(#{
+            mounts => [ItemsMount#{error_formatter => lists}],
+            port => ?PORT,
+            name => erf_server
+        })
+    ),
+
+    process_flag(trap_exit, false),
     ok.
 
 %%%-----------------------------------------------------------------------------

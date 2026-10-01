@@ -39,65 +39,40 @@
 %% @doc Builds the response for an error, in the format
 %% <a href="https://www.rfc-editor.org/rfc/rfc9457">RFC 9457</a> defines.
 format({validation_failed, _Reason, Source}) ->
-    problem(400, <<"Bad Request">>, detail(Source), []);
+    problem(400, <<"Bad Request">>, detail(Source));
 format(unreadable_body) ->
-    problem(400, <<"Bad Request">>, <<"Failed to read request">>, []);
+    problem(400, <<"Bad Request">>, <<"Failed to read request">>);
 format(route_not_found) ->
-    problem(404, <<"Not Found">>, <<"Route not found">>, []);
+    problem(404, <<"Not Found">>, <<"Route not found">>);
 format({method_not_allowed, Methods}) ->
-    Allow = lists:join(<<", ">>, [method(Method) || Method <- Methods]),
+    Allow = lists:join(<<", ">>, [string:uppercase(erlang:atom_to_binary(M)) || M <- Methods]),
     problem(
         405,
         <<"Method Not Allowed">>,
-        <<"Allowed methods are ", (erlang:iolist_to_binary(Allow))/binary>>,
-        [{<<"allow">>, erlang:iolist_to_binary(Allow)}]
+        <<"Allowed methods are ", (erlang:iolist_to_binary(Allow))/binary>>
     ).
 
 %%%-----------------------------------------------------------------------------
 %%% INTERNAL FUNCTIONS
 %%%-----------------------------------------------------------------------------
--spec problem(Status, Title, Detail, Headers) -> Response when
+-spec problem(Status, Title, Detail) -> Response when
     Status :: pos_integer(),
     Title :: binary(),
     Detail :: binary(),
-    Headers :: [erf:header()],
     Response :: erf:response().
-problem(Status, Title, Detail, Headers) ->
+problem(Status, Title, Detail) ->
     Problem = #{
         <<"type">> => <<"about:blank">>,
         <<"title">> => Title,
         <<"status">> => Status,
         <<"detail">> => Detail
     },
-    {Status, [{<<"content-type">>, ?CONTENT_TYPE} | Headers],
-        erlang:iolist_to_binary(json:encode(Problem))}.
-
--spec method(Method) -> Name when
-    Method :: erf:method(),
-    Name :: binary().
-method(get) ->
-    <<"GET">>;
-method(post) ->
-    <<"POST">>;
-method(put) ->
-    <<"PUT">>;
-method(delete) ->
-    <<"DELETE">>;
-method(patch) ->
-    <<"PATCH">>;
-method(head) ->
-    <<"HEAD">>;
-method(options) ->
-    <<"OPTIONS">>;
-method(trace) ->
-    <<"TRACE">>;
-method(connect) ->
-    <<"CONNECT">>.
+    {Status, [{<<"content-type">>, ?CONTENT_TYPE}], erlang:iolist_to_binary(json:encode(Problem))}.
 
 -spec detail(Source) -> Detail when
     Source :: erf_error_formatter:source() | undefined,
     Detail :: binary().
-detail({body, undefined}) ->
+detail(body) ->
     <<"Request body failed schema validation">>;
 detail({In, Name}) ->
     <<(label(In))/binary, " parameter \"", Name/binary, "\" failed schema validation">>;

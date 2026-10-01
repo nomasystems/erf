@@ -24,12 +24,12 @@
     generate/2,
     load/1,
     handle/2,
-    error_response/3,
+    error_response/2,
     validation_error_response/3
 ]).
 
 -ignore_xref([
-    error_response/3,
+    error_response/2,
     validation_error_response/3
 ]).
 
@@ -40,8 +40,8 @@
 -type generator_opts() :: #{
     callback := callback_spec(),
     static_routes := [erf:static_route()],
-    error_formatter => false | erf_error_formatter:t(),
-    error_formatters => #{erf:path() => false | erf_error_formatter:t()}
+    error_formatter => undefined | false | erf_error_formatter:t(),
+    error_formatters => #{erf:path() => undefined | false | erf_error_formatter:t()}
 }.
 
 %%%-----------------------------------------------------------------------------
@@ -140,40 +140,92 @@ handle(Name, RawRequest) ->
                         {RouterMod:handle(PreprocessRequest), PreprocessRequest}
                 end;
             {error, _Reason} ->
-                {ok, ErrorFormatter} = erf_conf:error_formatter(Name),
-                {error_response(ErrorFormatter, unreadable_body, 400), RawRequest}
+                {ok, ErrorFormatter} = erf_conf:error_formatter(
+                    Name, maps:get(path, RawRequest, [])
+                ),
+                {error_response(ErrorFormatter, unreadable_body), RawRequest}
         end,
     Response = apply_postprocess_middlewares(
         InitialRequest, InitialResponse, PostProcessMiddlewares
     ),
     postprocess(InitialRequest, Response).
 
--spec error_response(ErrorFormatter, Error, Status) -> Response when
-    ErrorFormatter :: false | erf_error_formatter:t(),
+-spec error_response(ErrorFormatter, Error) -> Response when
+    ErrorFormatter :: undefined | false | erf_error_formatter:t(),
     Error :: erf_error_formatter:error(),
-    Status :: pos_integer(),
     Response :: erf:response().
 %% @doc Builds the response for an error, asking the configured formatter and falling back to
-%% an empty body when there is none or it returns <code>default</code>.
-error_response(false, _Error, Status) ->
-    {Status, [], undefined};
-error_response(ErrorFormatter, Error, Status) ->
-    case ErrorFormatter:format(Error) of
+%% an empty body when there is none, it returns <code>default</code> or it crashes.
+error_response(undefined, unreadable_body) ->
+    ErrorBody = #{
+        <<"title">> => <<"Bad Request">>,
+        <<"status">> => 400,
+        <<"detail">> => <<"Failed to read request">>
+    },
+    {400, [{<<"content-type">>, <<"application/json">>}], ErrorBody};
+error_response(ErrorFormatter, Error) when
+    ErrorFormatter =:= undefined; ErrorFormatter =:= false
+->
+    {status(Error), headers(Error), undefined};
+error_response(ErrorFormatter, Error) ->
+    Status = status(Error),
+    EmptyResponse = {Status, headers(Error), undefined},
+    try ErrorFormatter:format(Error) of
         default ->
-            {Status, [], undefined};
+            EmptyResponse;
         Response ->
-            Response
+            IsValidResponse =
+                case Response of
+                    {ResponseStatus, Headers, _Body} when
+                        is_integer(ResponseStatus),
+                        ResponseStatus >= 100,
+                        ResponseStatus =< 599,
+                        is_list(Headers)
+                    ->
+                        lists:all(fun is_header/1, Headers);
+                    _InvalidResponse ->
+                        false
+                end,
+            case {IsValidResponse, Response} of
+                {true, {Status, ResponseHeaders, Body}} ->
+                    MissingHeaders = [
+                        {Name, Value}
+                     || {Name, Value} <- headers(Error),
+                        not lists:any(
+                            fun({ResponseName, _ResponseValue}) ->
+                                string:casefold(ResponseName) =:= Name
+                            end,
+                            ResponseHeaders
+                        )
+                    ],
+                    {Status, ResponseHeaders ++ MissingHeaders, Body};
+                {true, _OtherStatusResponse} ->
+                    Response;
+                {false, _Response} ->
+                    ?LOG_ERROR(
+                        "[erf] Error formatter ~p returned an invalid response: ~p",
+                        [ErrorFormatter, Response]
+                    ),
+                    EmptyResponse
+            end
+    catch
+        Class:Reason:Stacktrace ->
+            ?LOG_ERROR(
+                "[erf] Error formatter ~p crashed: ~p:~p~n~p",
+                [ErrorFormatter, Class, Reason, Stacktrace]
+            ),
+            EmptyResponse
     end.
 
 -spec validation_error_response(ErrorFormatter, Reason, Sources) -> Response when
-    ErrorFormatter :: false | erf_error_formatter:t(),
+    ErrorFormatter :: undefined | false | erf_error_formatter:t(),
     Reason :: term(),
     Sources :: tuple(),
     Response :: erf:response().
 %% @doc Builds the response for a failed validation, resolving which part of the request the
 %% failing condition covers before handing the error to the formatter.
 validation_error_response(ErrorFormatter, Reason, Sources) ->
-    error_response(ErrorFormatter, {validation_failed, Reason, source(Reason, Sources)}, 400).
+    error_response(ErrorFormatter, {validation_failed, Reason, source(Reason, Sources)}).
 
 %%%-----------------------------------------------------------------------------
 %%% INTERNAL FUNCTIONS
@@ -209,6 +261,35 @@ apply_postprocess_middlewares(Request, RawResponse, [Middleware | Rest]) ->
         Response ->
             apply_postprocess_middlewares(Request, Response, Rest)
     end.
+
+-spec headers(Error) -> Headers when
+    Error :: erf_error_formatter:error(),
+    Headers :: [erf:header()].
+headers({method_not_allowed, Methods}) ->
+    Allow = lists:join(<<", ">>, [string:uppercase(erlang:atom_to_binary(M)) || M <- Methods]),
+    [{<<"allow">>, erlang:iolist_to_binary(Allow)}];
+headers(_Error) ->
+    [].
+
+-spec status(Error) -> Status when
+    Error :: erf_error_formatter:error(),
+    Status :: pos_integer().
+status({validation_failed, _Reason, _Source}) ->
+    400;
+status(unreadable_body) ->
+    400;
+status(route_not_found) ->
+    404;
+status({method_not_allowed, _Methods}) ->
+    405.
+
+-spec is_header(Header) -> Result when
+    Header :: term(),
+    Result :: boolean().
+is_header({Name, Value}) when is_binary(Name), is_binary(Value) ->
+    true;
+is_header(_Header) ->
+    false.
 
 -spec source(Reason, Sources) -> Source when
     Reason :: term(),
@@ -413,14 +494,10 @@ handle_ast(API, #{callback := Callback} = Opts) ->
                     [
                         error_response_ast(
                             EndpointErrorFormatter,
-                            erl_syntax:tuple([
-                                erl_syntax:atom(method_not_allowed),
-                                erl_syntax:list([
-                                    erl_syntax:atom(maps:get(method, Operation))
-                                 || Operation <- maps:get(operations, Endpoint, [])
-                                ])
-                            ]),
-                            405
+                            {method_not_allowed, [
+                                maps:get(method, Operation)
+                             || Operation <- maps:get(operations, Endpoint, [])
+                            ]}
                         )
                     ]
                 ),
@@ -579,11 +656,7 @@ handle_ast(API, #{callback := Callback} = Opts) ->
             ],
             none,
             [
-                error_response_ast(
-                    maps:get(error_formatter, Opts, false),
-                    erl_syntax:atom(route_not_found),
-                    404
-                )
+                error_response_ast(maps:get(error_formatter, Opts, undefined), route_not_found)
             ]
         ),
     erl_syntax:function(
@@ -603,17 +676,19 @@ resolve_callback(CallbacksByBasePath, BasePath) when is_map(CallbacksByBasePath)
 -spec resolve_error_formatter(Opts, Endpoint) -> ErrorFormatter when
     Opts :: generator_opts(),
     Endpoint :: erf_parser:endpoint(),
-    ErrorFormatter :: false | erf_error_formatter:t().
+    ErrorFormatter :: undefined | false | erf_error_formatter:t().
 resolve_error_formatter(Opts, Endpoint) ->
     ErrorFormatters = maps:get(error_formatters, Opts, #{}),
     BasePath = maps:get(base_path, Endpoint, <<>>),
-    maps:get(BasePath, ErrorFormatters, maps:get(error_formatter, Opts, false)).
+    maps:get(BasePath, ErrorFormatters, maps:get(error_formatter, Opts, undefined)).
 
 -spec bad_request_clause(ErrorFormatter, Sources) -> Clause when
-    ErrorFormatter :: false | erf_error_formatter:t(),
+    ErrorFormatter :: undefined | false | erf_error_formatter:t(),
     Sources :: erl_syntax:syntaxTree(),
     Clause :: erl_syntax:syntaxTree().
-bad_request_clause(false, _Sources) ->
+bad_request_clause(ErrorFormatter, _Sources) when
+    ErrorFormatter =:= undefined; ErrorFormatter =:= false
+->
     erl_syntax:clause(
         [erl_syntax:tuple([erl_syntax:atom(false), erl_syntax:variable('_Reason')])],
         none,
@@ -632,18 +707,19 @@ bad_request_clause(ErrorFormatter, Sources) ->
         ]
     ).
 
--spec error_response_ast(ErrorFormatter, Error, Status) -> ResponseAST when
-    ErrorFormatter :: false | erf_error_formatter:t(),
-    Error :: erl_syntax:syntaxTree(),
-    Status :: pos_integer(),
+-spec error_response_ast(ErrorFormatter, Error) -> ResponseAST when
+    ErrorFormatter :: undefined | false | erf_error_formatter:t(),
+    Error :: erf_error_formatter:error(),
     ResponseAST :: erl_syntax:syntaxTree().
-error_response_ast(false, _Error, Status) ->
-    empty_response_ast(Status);
-error_response_ast(ErrorFormatter, Error, Status) ->
+error_response_ast(ErrorFormatter, Error) when
+    ErrorFormatter =:= undefined; ErrorFormatter =:= false
+->
+    erl_syntax:abstract(error_response(ErrorFormatter, Error));
+error_response_ast(ErrorFormatter, Error) ->
     erl_syntax:application(
         erl_syntax:atom(?MODULE),
         erl_syntax:atom(error_response),
-        [erl_syntax:atom(ErrorFormatter), Error, erl_syntax:integer(Status)]
+        [erl_syntax:atom(ErrorFormatter), erl_syntax:abstract(Error)]
     ).
 
 -spec empty_response_ast(Status) -> ResponseAST when
@@ -844,25 +920,10 @@ is_valid_request(RawParameters, Request) ->
                 ])
             ]
         ),
-    Sources =
-        erl_syntax:tuple([
-            source_ast(Source)
-         || Source <- [{body, undefined} | [maps:get(source, P) || P <- FilteredParameters]]
-        ]),
+    Sources = erl_syntax:abstract(
+        erlang:list_to_tuple([body | [maps:get(source, P) || P <- FilteredParameters]])
+    ),
     {IsValidRequest, Sources}.
-
--spec source_ast(Source) -> SourceAST when
-    Source :: erf_error_formatter:source(),
-    SourceAST :: erl_syntax:syntaxTree().
-source_ast({In, undefined}) ->
-    erl_syntax:tuple([erl_syntax:atom(In), erl_syntax:atom(undefined)]);
-source_ast({In, Name}) ->
-    erl_syntax:tuple([
-        erl_syntax:atom(In),
-        erl_syntax:binary([
-            erl_syntax:binary_field(erl_syntax:string(erlang:binary_to_list(Name)))
-        ])
-    ]).
 
 -spec query_param_value(Type, Value) -> ParamValue when
     Type :: binary(),

@@ -18,7 +18,7 @@
 %%% TYPES
 -type t() :: module().
 % A module that implements this behaviour.
--type source() :: {body, undefined} | {erf_parser:parameter_type(), Name :: binary()}.
+-type source() :: body | {erf_parser:parameter_type(), Name :: binary()}.
 % The part of the request that failed validation.
 -type error() ::
     {validation_failed, Reason :: term(), Source :: erf_error_formatter:source() | undefined}

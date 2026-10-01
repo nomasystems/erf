@@ -57,7 +57,7 @@
     keyfile => binary(),
     static_routes => [static_route()],
     swagger_ui => boolean(),
-    error_formatter => false | problem_json | erf_error_formatter:t(),
+    error_formatter => undefined | false | problem_json | erf_error_formatter:t(),
     log_level => logger:level()
 }.
 -type header() :: {binary(), binary()}.
@@ -76,7 +76,7 @@
     spec_path := path(),
     callback := module(),
     spec_parser => module(),
-    error_formatter => false | problem_json | erf_error_formatter:t()
+    error_formatter => undefined | false | problem_json | erf_error_formatter:t()
 }.
 -type path() :: binary().
 -type path_parameter() :: {binary(), binary()}.
@@ -315,19 +315,24 @@ build_http_server_conf(ErfConf) ->
     Extras :: #{
         route_patterns := route_patterns(),
         router_mod := module(),
-        router := erl_syntax:syntaxTree()
+        router := erl_syntax:syntaxTree(),
+        error_formatters := #{path() => undefined | false | erf_error_formatter:t()}
     },
     Reason :: term().
 build_router(#{mounts := RawMounts} = Conf) ->
     MountDefaults = #{
         spec_parser => maps:get(spec_parser, Conf),
-        error_formatter => maps:get(error_formatter, Conf, false)
+        error_formatter => maps:get(error_formatter, Conf, undefined)
     },
     Mounts = [maps:merge(MountDefaults, RawMount) || RawMount <- RawMounts],
     BasePaths = [BasePath || #{base_path := BasePath} <- Mounts],
     maybe
         ok ?= check_path_parameters(BasePaths),
         ok ?= check_duplicated_base_paths(BasePaths),
+        ok ?=
+            check_error_formatters([
+                maps:get(error_formatter, Conf, undefined) | maps:values(error_formatters(Mounts))
+            ]),
         {ok, SwaggerRoutes} ?= swagger_routes(Mounts, maps:get(swagger_ui, Conf)),
         build_router(Mounts, SwaggerRoutes ++ maps:get(static_routes, Conf), Conf)
     end.
@@ -340,10 +345,12 @@ build_router(#{mounts := RawMounts} = Conf) ->
     Extras :: #{
         route_patterns := route_patterns(),
         router_mod := module(),
-        router := erl_syntax:syntaxTree()
+        router := erl_syntax:syntaxTree(),
+        error_formatters := #{path() => undefined | false | erf_error_formatter:t()}
     },
     Reason :: term().
 build_router(Mounts, StaticRoutes, Conf) ->
+    ErrorFormatters = error_formatters(Mounts),
     maybe
         {ok, API} ?= parse_api(Mounts),
         Schemas = maps:to_list(maps:get(schemas, API)),
@@ -351,13 +358,14 @@ build_router(Mounts, StaticRoutes, Conf) ->
         {RouterMod, Router} = erf_router:generate(API, #{
             callback => callbacks(Mounts),
             static_routes => StaticRoutes,
-            error_formatter => maps:get(error_formatter, Conf, false),
-            error_formatters => error_formatters(Mounts)
+            error_formatter => maps:get(error_formatter, Conf, undefined),
+            error_formatters => ErrorFormatters
         }),
         Extras = #{
             route_patterns => route_patterns(API, StaticRoutes),
             router_mod => RouterMod,
-            router => Router
+            router => Router,
+            error_formatters => ErrorFormatters
         },
         case erf_router:load(Router) of
             ok ->
@@ -390,14 +398,36 @@ build_mounts_conf(Conf) ->
 
 -spec error_formatter(Conf) -> ErrorFormatter when
     Conf :: erf_conf:t() | mount(),
-    ErrorFormatter :: false | erf_error_formatter:t().
+    ErrorFormatter :: undefined | false | erf_error_formatter:t().
 error_formatter(Conf) ->
-    case maps:get(error_formatter, Conf, false) of
+    case maps:get(error_formatter, Conf, undefined) of
         problem_json ->
             erf_error_formatter_problem_json;
         ErrorFormatter ->
             ErrorFormatter
     end.
+
+-spec check_error_formatters(ErrorFormatters) -> Result when
+    ErrorFormatters :: [term()],
+    Result :: ok | {error, {invalid_error_formatter, term()}}.
+check_error_formatters([ErrorFormatter | ErrorFormatters]) when
+    ErrorFormatter =:= undefined; ErrorFormatter =:= false
+->
+    check_error_formatters(ErrorFormatters);
+check_error_formatters([ErrorFormatter | ErrorFormatters]) when is_atom(ErrorFormatter) ->
+    case
+        code:ensure_loaded(ErrorFormatter) =:= {module, ErrorFormatter} andalso
+            erlang:function_exported(ErrorFormatter, format, 1)
+    of
+        true ->
+            check_error_formatters(ErrorFormatters);
+        false ->
+            {error, {invalid_error_formatter, ErrorFormatter}}
+    end;
+check_error_formatters([ErrorFormatter | _ErrorFormatters]) ->
+    {error, {invalid_error_formatter, ErrorFormatter}};
+check_error_formatters([]) ->
+    ok.
 
 -spec check_mounts(Conf) -> Result when
     Conf :: erf_conf:t(),
@@ -436,7 +466,7 @@ check_duplicated_base_paths([]) ->
 
 -spec error_formatters(Mounts) -> ErrorFormatters when
     Mounts :: [mount()],
-    ErrorFormatters :: #{path() => false | erf_error_formatter:t()}.
+    ErrorFormatters :: #{path() => undefined | false | erf_error_formatter:t()}.
 error_formatters(Mounts) ->
     maps:from_list([
         {BasePath, error_formatter(Mount)}

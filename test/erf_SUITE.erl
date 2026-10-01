@@ -974,6 +974,36 @@ malformed_body(_Conf) ->
         name => erf_server
     }),
 
+    {ok, {{"HTTP/1.1", 400, "Bad Request"}, UnsetHeaders, UnsetBody}} =
+        httpc:request(
+            post,
+            {"http://localhost:8789/1/foo", [], "application/json", <<"{oops">>},
+            [],
+            [{body_format, binary}]
+        ),
+
+    ?assertEqual("application/json", proplists:get_value("content-type", UnsetHeaders)),
+    ?assertEqual(
+        #{
+            <<"title">> => <<"Bad Request">>,
+            <<"status">> => 400,
+            <<"detail">> => <<"Failed to read request">>
+        },
+        json:decode(UnsetBody)
+    ),
+
+    ?assertMatch(
+        {ok, {{"HTTP/1.1", 400, "Bad Request"}, _UnsetValidationHeaders, <<>>}},
+        httpc:request(
+            post,
+            {"http://localhost:8789/1/foo", [], "application/json", <<"\"nope\"">>},
+            [],
+            [{body_format, binary}]
+        )
+    ),
+
+    ok = erf:reload_conf(erf_server, #{error_formatter => false}),
+
     ?assertMatch(
         {ok, {{"HTTP/1.1", 400, "Bad Request"}, _EmptyHeaders, <<>>}},
         httpc:request(
@@ -1004,6 +1034,19 @@ malformed_body(_Conf) ->
         },
         json:decode(Body)
     ),
+
+    ok = erf:reload_conf(erf_server, #{error_formatter => undefined}),
+
+    {ok, {{"HTTP/1.1", 400, "Bad Request"}, RestoredHeaders, RestoredBody}} =
+        httpc:request(
+            post,
+            {"http://localhost:8789/1/foo", [], "application/json", <<"{oops">>},
+            [],
+            [{body_format, binary}]
+        ),
+
+    ?assertEqual("application/json", proplists:get_value("content-type", RestoredHeaders)),
+    ?assertEqual(json:decode(UnsetBody), json:decode(RestoredBody)),
 
     ok = erf:stop(erf_server),
 

@@ -159,7 +159,7 @@ The configuration is provided as map with the following type spec:
     keyfile => binary(),
     static_routes => [static_route()],
     swagger_ui => boolean(),
-    error_formatter => false | problem_json | erf_error_formatter:t(),
+    error_formatter => undefined | false | problem_json | erf_error_formatter:t(),
     min_acceptors => pos_integer(),
     accept_timeout => pos_integer(),
     request_timeout => pos_integer(),
@@ -184,7 +184,7 @@ A detailed description of each parameter can be found in the following list:
 - `keyfile`: Path to the SSL key file. Defaults to `undefined`.
 - `static_routes`: List of routes that serve static files. Defaults to `[]`.
 - `swagger_ui`: Boolean flag that enables/disables the Swagger UI. Defaults to `false`.
-- `error_formatter`: How error responses are formatted: `false` for empty bodies, `problem_json` for [RFC 9457 bodies](#error-responses), or the name of a module implementing the `erf_error_formatter` behaviour. Defaults to `false`.
+- `error_formatter`: How error responses are formatted: `undefined` (deprecated) for the behaviour `erf` had before this option existed, `false` for empty bodies, `problem_json` for [RFC 9457 bodies](#error-responses), or the name of a module implementing the `erf_error_formatter` behaviour. Defaults to `undefined`, which is deprecated and will be removed in a later version.
 - `min_acceptors`: Minimum number of acceptor processes. Defaults to `20`.
 - `accept_timeout`: Timeout in ms for accepting an incoming request. Defaults to `10000`.
 - `request_timeout`: Timeout in ms for receiving more packets when waiting for the request line. Defaults to `60000`.
@@ -204,7 +204,7 @@ A single `erf` instance can serve several API specifications, each under its own
     spec_path := path(),
     callback := module(),
     spec_parser => module(),
-    error_formatter => false | problem_json | erf_error_formatter:t()
+    error_formatter => undefined | false | problem_json | erf_error_formatter:t()
 }.
 ```
 
@@ -271,7 +271,7 @@ The following type spec corresponds to the runtime configuration of an `erf` ins
     spec_parser => module(),
     static_routes => [erf:static_route()],
     swagger_ui => boolean(),
-    error_formatter => false | problem_json | erf_error_formatter:t()
+    error_formatter => undefined | false | problem_json | erf_error_formatter:t()
 }.
 ```
 > __NOTE:__ the `router` and `router_mod` keys are not updatable as they are automatically computed when new configuration is provided.
@@ -292,9 +292,11 @@ This feature enables `erf` to serve a [Swagger UI](https://github.com/swagger-ap
 
 ## Error responses
 
-By default the error responses `erf` produces on its own have an empty body: the `400` of a request that fails schema validation or whose body cannot be read, the `404` of an unknown route and the `405` of a method the specification does not define. The `error_formatter` option chooses what those responses carry.
+The error responses `erf` produces on its own are the `400` of a request that fails schema validation or whose body cannot be read, the `404` of an unknown route and the `405` of a method the specification does not define. The `error_formatter` option chooses what those responses carry. Whatever the option, a `405` always carries an `allow` header with the methods the specification defines for that path, as [RFC 9110](https://www.rfc-editor.org/rfc/rfc9110#name-405-method-not-allowed) requires. If a formatter answers the `405` with its own headers, `erf` adds `allow` unless the formatter already set it; if the formatter changes the status, `erf` leaves its response as is.
 
-With `error_formatter => problem_json`, they have the content type `application/problem+json`, in the format [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) defines, and the `405` also carries an `allow` header:
+With `error_formatter => undefined`, the default, `erf` keeps the behaviour it had before this option existed, apart from the `allow` header: they have an empty body, except the `400` of a body that cannot be read, which has the content type `application/json` and the body `{"title":"Bad Request","status":400,"detail":"Failed to read request"}`. With `error_formatter => false`, all of them have an empty body. `undefined` is deprecated and will be removed in a later version, so set `error_formatter` explicitly.
+
+With `error_formatter => problem_json`, they have the content type `application/problem+json`, in the format [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) defines:
 
 ```json
 {
@@ -305,7 +307,7 @@ With `error_formatter => problem_json`, they have the content type `application/
 }
 ```
 
-For a failed validation the `detail` names the part of the request that failed: the body, or a path, query, header or cookie parameter. It never holds a value the caller sent.
+For a failed validation the `detail` names the part of the request that failed: the body, or a path, query or header parameter. It never holds a value the caller sent.
 
 With `error_formatter => Module`, the responses are whatever that module returns. The module implements the `erf_error_formatter` behaviour:
 
@@ -316,7 +318,7 @@ With `error_formatter => Module`, the responses are whatever that module returns
     | unreadable_body
     | route_not_found
     | {method_not_allowed, Methods :: [erf:method()]}.
--type source() :: {body, undefined} | {erf_parser:parameter_type(), Name :: binary()}.
+-type source() :: body | {erf_parser:parameter_type(), Name :: binary()}.
 
 -callback format(Error) -> Result when
     Error :: error(),
@@ -325,7 +327,9 @@ With `error_formatter => Module`, the responses are whatever that module returns
 
 Returning `default` leaves that error to `erf`, which answers it with an empty body, so a formatter only has to handle the errors it cares about.
 
-Each [mount](#mounts) can set its own `error_formatter`, which covers the errors of its own routes. The `404` of an unknown route and the `400` of a body that cannot be read happen before any mount is picked, so they use the instance-level one.
+Each [mount](#mounts) can set its own `error_formatter`, which covers the errors of its own routes, including the `400` of a body that cannot be read. The `404` of an unknown route happens before any mount is picked, so it uses the instance-level one.
+
+`erf` checks at startup and on `reload_conf/2` that every formatter is a loadable module exporting `format/1`, and fails with `{error, {invalid_error_formatter, Module}}` otherwise. If a formatter crashes while formatting an error, `erf` logs it and answers that error with an empty body and its usual status.
 
 For `validation_failed`, `Source` is the part of the request the failing condition covers, or `undefined` when `erf` cannot tell which one it was, and `Reason` the term `ndto_validation:'andalso'/1` returned, for a formatter that wants more detail than the source. `erf_error_formatter_problem_json` implements the behaviour and is what `problem_json` selects.
 
